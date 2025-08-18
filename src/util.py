@@ -4,7 +4,7 @@ import globals
 from botocore.exceptions import ClientError
 
 def compile_lambda_function(lambda_function_name):
-  zip_path = zip_directory(globals.lambda_functions_path + "/" + lambda_function_name)
+  zip_path = zip_directory(os.path.join(globals.lambda_functions_path, lambda_function_name))
 
   with open(zip_path, "rb") as f:
     zip_code = f.read()
@@ -12,8 +12,7 @@ def compile_lambda_function(lambda_function_name):
   return zip_code
 
 def zip_directory(relative_folder_path, zip_name='zipped.zip'):
-  script_dir = os.path.dirname(os.path.abspath(__file__))
-  folder_path = os.path.join(script_dir, relative_folder_path)
+  folder_path = os.path.join(globals.project_path(), relative_folder_path)
   output_path = os.path.join(folder_path, zip_name)
 
   with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:

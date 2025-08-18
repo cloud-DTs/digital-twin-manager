@@ -5,73 +5,8 @@ import util
 from botocore.exceptions import ClientError
 
 
-def dispatcher_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-dispatcher"
-
-def dispatcher_lambda_function_name():
-  return globals.config.get("general", "digital_twin_name") + "-dispatcher"
-
-def dispatcher_iot_rule_name():
-  rule_name = globals.config.get("general", "digital_twin_name") + "-trigger-dispatcher"
-  return rule_name.replace("-", "_")
-
-def persister_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-persister"
-
-def persister_lambda_function_name():
-  return globals.config.get("general", "digital_twin_name") + "-persister"
-
-def dynamodb_table_name():
-  return globals.config.get("general", "digital_twin_name") + "-iot-data"
-
-def hot_cold_mover_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-hot-to-cold-mover"
-
-def hot_cold_mover_lambda_function_name():
-  return globals.config.get("general", "digital_twin_name") + "-hot-to-cold-mover"
-
-def hot_cold_mover_event_rule_name():
-  return globals.config.get("general", "digital_twin_name") + "-hot-to-cold-mover"
-
-def cold_archive_mover_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-cold-to-archive-mover"
-
-def cold_archive_mover_lambda_function_name():
-  return globals.config.get("general", "digital_twin_name") + "-cold-to-archive-mover"
-
-def cold_archive_mover_event_rule_name():
-  return globals.config.get("general", "digital_twin_name") + "-cold-to-archive-mover"
-
-def cold_s3_bucket_name():
-  return globals.config.get("general", "digital_twin_name") + "-cold-iot-data"
-
-def archive_s3_bucket_name():
-  return globals.config.get("general", "digital_twin_name") + "-archive-iot-data"
-
-def twinmaker_s3_bucket_name():
-  return globals.config.get("general", "digital_twin_name") + "-twinmaker"
-
-def twinmaker_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-twinmaker"
-
-def twinmaker_workspace_name():
-  return globals.config.get("general", "digital_twin_name") + "-twinmaker"
-
-def twinmaker_connector_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-twinmaker-connector"
-
-def twinmaker_connector_lambda_function_name():
-  return globals.config.get("general", "digital_twin_name") + "-twinmaker-connector"
-
-def grafana_workspace_name():
-  return globals.config.get("general", "digital_twin_name") + "-grafana"
-
-def grafana_iam_role_name():
-  return globals.config.get("general", "digital_twin_name") + "-grafana"
-
-
 def create_dispatcher_iam_role():
-  role_name = dispatcher_iam_role_name()
+  role_name = globals.dispatcher_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -107,7 +42,7 @@ def create_dispatcher_iam_role():
   time.sleep(10)
 
 def destroy_dispatcher_iam_role():
-  role_name = dispatcher_iam_role_name()
+  role_name = globals.dispatcher_iam_role_name()
 
   try:
     # detach managed policies
@@ -137,8 +72,8 @@ def destroy_dispatcher_iam_role():
 
 
 def create_dispatcher_lambda_function():
-  function_name = dispatcher_lambda_function_name()
-  role_name = dispatcher_iam_role_name()
+  function_name = globals.dispatcher_lambda_function_name()
+  role_name = globals.dispatcher_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -158,7 +93,7 @@ def create_dispatcher_lambda_function():
   print(f"Created Lambda function: {function_name}")
 
 def destroy_dispatcher_lambda_function():
-  function_name = dispatcher_lambda_function_name()
+  function_name = globals.dispatcher_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -169,15 +104,14 @@ def destroy_dispatcher_lambda_function():
 
 
 def create_dispatcher_iot_rule():
-  rule_name = dispatcher_iot_rule_name()
+  rule_name = globals.dispatcher_iot_rule_name()
   sql = f"SELECT * FROM '{globals.config.get("general", "digital_twin_name")}/+'"
 
-  function_name = dispatcher_lambda_function_name()
+  function_name = globals.dispatcher_lambda_function_name()
 
   response = globals.aws_lambda_client.get_function(FunctionName=function_name)
   function_arn = response['Configuration']['FunctionArn']
 
-  # create the IoT Rule
   globals.aws_iot_client.create_topic_rule(
     ruleName=rule_name,
     topicRulePayload={
@@ -199,7 +133,6 @@ def create_dispatcher_iot_rule():
   region = globals.aws_iot_client.meta.region_name
   account_id = globals.aws_sts_client.get_caller_identity()['Account']
 
-  # make sure the Lambda function has permission to be invoked by IoT
   globals.aws_lambda_client.add_permission(
     FunctionName=function_name,
     StatementId="iot-invoke",
@@ -208,13 +141,11 @@ def create_dispatcher_iot_rule():
     SourceArn=f"arn:aws:iot:{region}:{account_id}:rule/{rule_name}"
   )
 
-  # SourceArn=f"arn:aws:iot:{region}:{account_id}:rule/{rule_name}"
-
   print(f"Added permission to Lambda function so the rule can invoke the function.")
 
 def destroy_dispatcher_iot_rule():
-  function_name = dispatcher_lambda_function_name()
-  rule_name = dispatcher_iot_rule_name()
+  function_name = globals.dispatcher_lambda_function_name()
+  rule_name = globals.dispatcher_iot_rule_name()
 
   try:
     globals.aws_lambda_client.remove_permission(
@@ -234,7 +165,7 @@ def destroy_dispatcher_iot_rule():
 
 
 def create_persister_iam_role():
-  role_name = persister_iam_role_name()
+  role_name = globals.persister_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -270,7 +201,7 @@ def create_persister_iam_role():
   time.sleep(10)
 
 def destroy_persister_iam_role():
-  role_name = persister_iam_role_name()
+  role_name = globals.persister_iam_role_name()
 
   try:
     # detach managed policies
@@ -300,8 +231,8 @@ def destroy_persister_iam_role():
 
 
 def create_persister_lambda_function():
-  function_name = persister_lambda_function_name()
-  role_name = persister_iam_role_name()
+  function_name = globals.persister_lambda_function_name()
+  role_name = globals.persister_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -321,7 +252,7 @@ def create_persister_lambda_function():
   print(f"Created Lambda function: {function_name}")
 
 def destroy_persister_lambda_function():
-  function_name = persister_lambda_function_name()
+  function_name = globals.persister_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -332,7 +263,7 @@ def destroy_persister_lambda_function():
 
 
 def create_iot_data_dynamodb_table():
-  table_name = dynamodb_table_name()
+  table_name = globals.dynamodb_table_name()
 
   globals.aws_dynamodb_client.create_table(
     TableName=table_name,
@@ -355,7 +286,7 @@ def create_iot_data_dynamodb_table():
   print(f"Created DynamoDb table: {table_name}")
 
 def destroy_iot_data_dynamodb_table():
-  table_name = dynamodb_table_name()
+  table_name = globals.dynamodb_table_name()
 
   try:
     globals.aws_dynamodb_client.delete_table(TableName=table_name)
@@ -374,7 +305,7 @@ def destroy_iot_data_dynamodb_table():
 
 
 def create_hot_cold_mover_iam_role():
-  role_name = hot_cold_mover_iam_role_name()
+  role_name = globals.hot_cold_mover_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -414,7 +345,7 @@ def create_hot_cold_mover_iam_role():
   time.sleep(10)
 
 def destroy_hot_cold_mover_iam_role():
-  role_name = hot_cold_mover_iam_role_name()
+  role_name = globals.hot_cold_mover_iam_role_name()
 
   try:
     # detach managed policies
@@ -444,8 +375,8 @@ def destroy_hot_cold_mover_iam_role():
 
 
 def create_hot_cold_mover_lambda_function():
-  function_name = hot_cold_mover_lambda_function_name()
-  role_name = hot_cold_mover_iam_role_name()
+  function_name = globals.hot_cold_mover_lambda_function_name()
+  role_name = globals.hot_cold_mover_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -465,7 +396,7 @@ def create_hot_cold_mover_lambda_function():
   print(f"Created Lambda function: {function_name}")
 
 def destroy_hot_cold_mover_lambda_function():
-  function_name = hot_cold_mover_lambda_function_name()
+  function_name = globals.hot_cold_mover_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -476,10 +407,10 @@ def destroy_hot_cold_mover_lambda_function():
 
 
 def create_hot_cold_mover_event_rule():
-  rule_name = hot_cold_mover_event_rule_name()
+  rule_name = globals.hot_cold_mover_event_rule_name()
   schedule_expression = f"rate({globals.config.get("general", "layer_3_hot_to_cold_interval_days")} days)"
 
-  function_name = hot_cold_mover_lambda_function_name()
+  function_name = globals.hot_cold_mover_lambda_function_name()
 
   # create the EventBridge rule
   rule_response = globals.aws_events_client.put_rule(
@@ -519,8 +450,8 @@ def create_hot_cold_mover_event_rule():
   print(f"Added permission to Lambda function so the rule can invoke the function.")
 
 def destroy_hot_cold_mover_event_rule():
-  rule_name = hot_cold_mover_event_rule_name()
-  function_name = hot_cold_mover_lambda_function_name()
+  rule_name = globals.hot_cold_mover_event_rule_name()
+  function_name = globals.hot_cold_mover_lambda_function_name()
 
   try:
     globals.aws_lambda_client.remove_permission(FunctionName=function_name, StatementId="events-invoke")
@@ -537,7 +468,7 @@ def destroy_hot_cold_mover_event_rule():
 
 
 def create_cold_data_s3_bucket():
-  bucket_name = cold_s3_bucket_name()
+  bucket_name = globals.cold_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
     Bucket=bucket_name,
@@ -549,13 +480,13 @@ def create_cold_data_s3_bucket():
   print(f"Created S3 Bucket: {bucket_name}")
 
 def destroy_cold_data_s3_bucket():
-  bucket_name = cold_s3_bucket_name()
+  bucket_name = globals.cold_s3_bucket_name()
 
   util.destroy_s3_bucket(bucket_name)
 
 
 def create_cold_archive_mover_iam_role():
-  role_name = cold_archive_mover_iam_role_name()
+  role_name = globals.cold_archive_mover_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -591,7 +522,7 @@ def create_cold_archive_mover_iam_role():
   time.sleep(10)
 
 def destroy_cold_archive_mover_iam_role():
-  role_name = cold_archive_mover_iam_role_name()
+  role_name = globals.cold_archive_mover_iam_role_name()
 
   try:
     # detach managed policies
@@ -621,8 +552,8 @@ def destroy_cold_archive_mover_iam_role():
 
 
 def create_cold_archive_mover_lambda_function():
-  function_name = cold_archive_mover_lambda_function_name()
-  role_name = cold_archive_mover_iam_role_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
+  role_name = globals.cold_archive_mover_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -642,7 +573,7 @@ def create_cold_archive_mover_lambda_function():
   print(f"Created Lambda function: {function_name}")
 
 def destroy_cold_archive_mover_lambda_function():
-  function_name = cold_archive_mover_lambda_function_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -653,10 +584,10 @@ def destroy_cold_archive_mover_lambda_function():
 
 
 def create_cold_archive_mover_event_rule():
-  rule_name = cold_archive_mover_event_rule_name()
+  rule_name = globals.cold_archive_mover_event_rule_name()
   schedule_expression = f"rate({globals.config.get("general", "layer_3_cold_to_archive_interval_days")} days)"
 
-  function_name = cold_archive_mover_lambda_function_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
 
   # create the EventBridge rule
   rule_response = globals.aws_events_client.put_rule(
@@ -696,8 +627,8 @@ def create_cold_archive_mover_event_rule():
   print(f"Added permission to Lambda function so the rule can invoke the function.")
 
 def destroy_cold_archive_mover_event_rule():
-  rule_name = cold_archive_mover_event_rule_name()
-  function_name = cold_archive_mover_lambda_function_name()
+  rule_name = globals.cold_archive_mover_event_rule_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
 
   try:
     globals.aws_lambda_client.remove_permission(FunctionName=function_name, StatementId="events-invoke")
@@ -714,7 +645,7 @@ def destroy_cold_archive_mover_event_rule():
 
 
 def create_archive_data_s3_bucket():
-  bucket_name = archive_s3_bucket_name()
+  bucket_name = globals.archive_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
     Bucket=bucket_name,
@@ -726,13 +657,13 @@ def create_archive_data_s3_bucket():
   print(f"Created S3 Bucket: {bucket_name}")
 
 def destroy_archive_data_s3_bucket():
-  bucket_name = archive_s3_bucket_name()
+  bucket_name = globals.archive_s3_bucket_name()
 
   util.destroy_s3_bucket(bucket_name)
 
 
 def create_twinmaker_s3_bucket():
-  bucket_name = twinmaker_s3_bucket_name()
+  bucket_name = globals.twinmaker_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
     Bucket=bucket_name,
@@ -744,13 +675,13 @@ def create_twinmaker_s3_bucket():
   print(f"Created S3 Bucket: {bucket_name}")
 
 def destroy_twinmaker_s3_bucket():
-  bucket_name = twinmaker_s3_bucket_name()
+  bucket_name = globals.twinmaker_s3_bucket_name()
 
   util.destroy_s3_bucket(bucket_name)
 
 
 def create_twinmaker_iam_role():
-  role_name = twinmaker_iam_role_name()
+  role_name = globals.twinmaker_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -796,7 +727,7 @@ def create_twinmaker_iam_role():
   time.sleep(10)
 
 def destroy_twinmaker_iam_role():
-  role_name = twinmaker_iam_role_name()
+  role_name = globals.twinmaker_iam_role_name()
 
   try:
     # detach managed policies
@@ -826,9 +757,9 @@ def destroy_twinmaker_iam_role():
 
 
 def create_twinmaker_workspace():
-  workspace_name = twinmaker_workspace_name()
-  role_name = twinmaker_iam_role_name()
-  bucket_name = twinmaker_s3_bucket_name()
+  workspace_name = globals.twinmaker_workspace_name()
+  role_name = globals.twinmaker_iam_role_name()
+  bucket_name = globals.twinmaker_s3_bucket_name()
 
   account_id = globals.aws_sts_client.get_caller_identity()['Account']
 
@@ -842,7 +773,7 @@ def create_twinmaker_workspace():
   print(f"Created IoT TwinMaker workspace: {workspace_name}")
 
 def destroy_twinmaker_workspace():
-  workspace_name = twinmaker_workspace_name()
+  workspace_name = globals.twinmaker_workspace_name()
 
   try:
     response = globals.aws_twinmaker_client.list_entities(workspaceId=workspace_name)
@@ -915,7 +846,7 @@ def destroy_twinmaker_workspace():
 
 
 def create_grafana_iam_role():
-  role_name = grafana_iam_role_name()
+  role_name = globals.grafana_iam_role_name()
 
   response = globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -1016,7 +947,7 @@ def create_grafana_iam_role():
   time.sleep(10)
 
 def destroy_grafana_iam_role():
-  role_name = grafana_iam_role_name()
+  role_name = globals.grafana_iam_role_name()
 
   try:
     # detach managed policies
@@ -1046,8 +977,8 @@ def destroy_grafana_iam_role():
 
 
 def create_grafana_workspace():
-  workspace_name = grafana_workspace_name()
-  role_name = grafana_iam_role_name()
+  workspace_name = globals.grafana_workspace_name()
+  role_name = globals.grafana_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response["Role"]["Arn"]
@@ -1087,7 +1018,7 @@ def create_grafana_workspace():
   print(f"Created Grafana workspace: {workspace_name}")
 
 def destroy_grafana_workspace():
-  workspace_name = grafana_workspace_name()
+  workspace_name = globals.grafana_workspace_name()
 
   try:
     workspace_id = util.get_grafana_workspace_id_by_name(workspace_name)
@@ -1114,8 +1045,8 @@ def destroy_grafana_workspace():
 
 
 def add_cors_to_twinmaker_s3_bucket():
-  bucket_name = twinmaker_s3_bucket_name()
-  grafana_workspace_id = util.get_grafana_workspace_id_by_name(grafana_workspace_name())
+  bucket_name = globals.twinmaker_s3_bucket_name()
+  grafana_workspace_id = util.get_grafana_workspace_id_by_name(globals.grafana_workspace_name())
 
   globals.aws_s3_client.put_bucket_cors(
       Bucket=bucket_name,
@@ -1135,7 +1066,7 @@ def add_cors_to_twinmaker_s3_bucket():
   print(f"------- allowed origin: {f"https://grafana.{globals.aws_grafana_client.meta.region_name}.amazonaws.com/workspaces/{grafana_workspace_id}"}")
 
 def remove_cors_from_twinmaker_s3_bucket():
-  bucket_name = twinmaker_s3_bucket_name()
+  bucket_name = globals.twinmaker_s3_bucket_name()
 
   try:
     globals.aws_s3_client.get_bucket_cors(Bucket=bucket_name)
@@ -1147,12 +1078,6 @@ def remove_cors_from_twinmaker_s3_bucket():
       raise
 
   print(f"CORS configuration removed from bucket: {bucket_name}")
-
-
-
-
-
-
 
 
 def deploy_core_services_l1():

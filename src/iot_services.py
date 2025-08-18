@@ -8,25 +8,9 @@ import core_services
 import util
 
 
-def iot_thing_name(iot_device):
-  return globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"]
-
-def iot_thing_policy_name(iot_device):
-  return globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"]
-
-def preprocessor_iam_role_name(iot_device):
-  return globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-preprocessor"
-
-def preprocessor_lambda_function_name(iot_device):
-  return globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-preprocessor"
-
-def twinmaker_component_type_id(iot_device):
-  return globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"]
-
-
 def create_iot_thing(iot_device):
-  thing_name = iot_thing_name(iot_device)
-  policy_name = iot_thing_policy_name(iot_device)
+  thing_name = globals.iot_thing_name(iot_device)
+  policy_name = globals.iot_thing_policy_name(iot_device)
 
   globals.aws_iot_client.create_thing(thingName=thing_name)
   print(f"Created IoT Thing: {thing_name}")
@@ -66,8 +50,8 @@ def create_iot_thing(iot_device):
   print(f"Attached IoT Policy to Certificate")
 
 def destroy_iot_thing(iot_device):
-  thing_name = iot_thing_name(iot_device)
-  policy_name = iot_thing_policy_name(iot_device)
+  thing_name = globals.iot_thing_name(iot_device)
+  policy_name = globals.iot_thing_policy_name(iot_device)
 
   try:
     principals_resp = globals.aws_iot_client.list_thing_principals(thingName=thing_name)
@@ -129,7 +113,7 @@ def destroy_iot_thing(iot_device):
 
 
 def create_preprocessor_iam_role(iot_device):
-  role_name = preprocessor_iam_role_name(iot_device)
+  role_name = globals.preprocessor_iam_role_name(iot_device)
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -168,7 +152,7 @@ def create_preprocessor_iam_role(iot_device):
   time.sleep(10)
 
 def destroy_preprocessor_iam_role(iot_device):
-  role_name = preprocessor_iam_role_name(iot_device)
+  role_name = globals.preprocessor_iam_role_name(iot_device)
 
   try:
     response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
@@ -194,13 +178,13 @@ def destroy_preprocessor_iam_role(iot_device):
 
 
 def create_preprocessor_lambda_function(iot_device):
-  function_name = preprocessor_lambda_function_name(iot_device)
-  role_name = preprocessor_iam_role_name(iot_device)
+  function_name = globals.preprocessor_lambda_function_name(iot_device)
+  role_name = globals.preprocessor_iam_role_name(iot_device)
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
 
-  if os.path.exists(globals.lambda_functions_path + "/" + function_name):
+  if os.path.exists(os.path.join(globals.project_path(), globals.lambda_functions_path, function_name)):
     function_name_local = function_name
   else:
     function_name_local = "default-preprocessor"
@@ -225,7 +209,7 @@ def create_preprocessor_lambda_function(iot_device):
   print(f"Created Lambda function: {function_name}")
 
 def destroy_preprocessor_lambda_function(iot_device):
-  function_name = preprocessor_lambda_function_name(iot_device)
+  function_name = globals.preprocessor_lambda_function_name(iot_device)
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -237,7 +221,7 @@ def destroy_preprocessor_lambda_function(iot_device):
 
 def create_twinmaker_component_type(iot_device):
   workspace_name = core_services.twinmaker_workspace_name()
-  component_type_id = twinmaker_component_type_id(iot_device)
+  component_type_id = globals.twinmaker_component_type_id(iot_device)
 
   property_definitions = {}
 
@@ -266,7 +250,7 @@ def create_twinmaker_component_type(iot_device):
 
 def destroy_twinmaker_component_type(iot_device):
   workspace_name = core_services.twinmaker_workspace_name()
-  component_type_id = twinmaker_component_type_id(iot_device)
+  component_type_id = globals.twinmaker_component_type_id(iot_device)
 
   try:
     globals.aws_twinmaker_client.get_component_type(workspaceId=workspace_name, componentTypeId=component_type_id)
@@ -289,9 +273,6 @@ def destroy_twinmaker_component_type(iot_device):
         raise
 
   print(f"Deleted IoT Twinmaker Component Type: {component_type_id}")
-
-
-
 
 
 def deploy_iot_services_l1():

@@ -51,8 +51,8 @@ def main():
         iot_services.deploy()
       elif command == "destroy_iot":
         iot_services.destroy()
-      elif command == "info_l1":
-        info.l1()
+      elif command == "info":
+        info.check()
       elif command == "help":
         help_menu()
       elif command == "exit":
