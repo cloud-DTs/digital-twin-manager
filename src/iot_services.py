@@ -4,7 +4,6 @@ import os
 from botocore.exceptions import ClientError
 import shutil
 import time
-import core_services
 import util
 
 
@@ -201,7 +200,7 @@ def create_preprocessor_lambda_function(iot_device):
     Publish=True,
     Environment={
       "Variables": {
-        "PERSISTER_LAMBDA_NAME": core_services.persister_lambda_function_name()
+        "PERSISTER_LAMBDA_NAME": globals.persister_lambda_function_name()
       }
     }
   )
@@ -220,7 +219,7 @@ def destroy_preprocessor_lambda_function(iot_device):
 
 
 def create_twinmaker_component_type(iot_device):
-  workspace_name = core_services.twinmaker_workspace_name()
+  workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
 
   property_definitions = {}
@@ -249,7 +248,7 @@ def create_twinmaker_component_type(iot_device):
   print(f"Created IoT Twinmaker Component Type: {component_type_id}")
 
 def destroy_twinmaker_component_type(iot_device):
-  workspace_name = core_services.twinmaker_workspace_name()
+  workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
 
   try:
