@@ -18,10 +18,10 @@ def process(event):
 def lambda_handler(event, context):
     payload = process(event)
 
-    if LAYER_INFO["layer_3_provider"].lower() == "aws":
+    if LAYER_INFO["layer_3_hot_provider"].lower() == "aws":
         lambda_client.invoke(FunctionName=PERSISTER_LAMBDA_NAME, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
 
-    elif LAYER_INFO["layer_3_provider"].lower() == "azure":
+    elif LAYER_INFO["layer_3_hot_provider"].lower() == "azure":
         print("TODO AZURE")
 
     else:

@@ -40,7 +40,7 @@ def update_function(function_name, local_function_name, environment=None):
   print(f"Updated Lambda Function: {function_name}")
 
 
-def fetch_logs(function_name, n=10, filter_system_logs=False):
+def fetch_logs(function_name, n=10, filter_system_logs=True):
   log_group = f"/aws/lambda/{function_name}"
 
   streams = globals.aws_logs_client.describe_log_streams( logGroupName=log_group, orderBy="LastEventTime", descending=True, limit=1)
