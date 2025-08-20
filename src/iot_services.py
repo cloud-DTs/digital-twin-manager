@@ -111,8 +111,8 @@ def destroy_iot_thing(iot_device):
     pass
 
 
-def create_preprocessor_iam_role(iot_device):
-  role_name = globals.preprocessor_iam_role_name(iot_device)
+def create_processor_iam_role(iot_device):
+  role_name = globals.processor_iam_role_name(iot_device)
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -151,8 +151,8 @@ def create_preprocessor_iam_role(iot_device):
 
   time.sleep(10)
 
-def destroy_preprocessor_iam_role(iot_device):
-  role_name = globals.preprocessor_iam_role_name(iot_device)
+def destroy_processor_iam_role(iot_device):
+  role_name = globals.processor_iam_role_name(iot_device)
 
   try:
     response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
@@ -177,9 +177,9 @@ def destroy_preprocessor_iam_role(iot_device):
       raise
 
 
-def create_preprocessor_lambda_function(iot_device):
-  function_name = globals.preprocessor_lambda_function_name(iot_device)
-  role_name = globals.preprocessor_iam_role_name(iot_device)
+def create_processor_lambda_function(iot_device):
+  function_name = globals.processor_lambda_function_name(iot_device)
+  role_name = globals.processor_iam_role_name(iot_device)
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -187,7 +187,7 @@ def create_preprocessor_lambda_function(iot_device):
   if os.path.exists(os.path.join(globals.project_path(), globals.lambda_functions_path, function_name)):
     function_name_local = function_name
   else:
-    function_name_local = "default-preprocessor"
+    function_name_local = "default-processor"
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
@@ -208,8 +208,8 @@ def create_preprocessor_lambda_function(iot_device):
 
   print(f"Created Lambda function: {function_name}")
 
-def destroy_preprocessor_lambda_function(iot_device):
-  function_name = globals.preprocessor_lambda_function_name(iot_device)
+def destroy_processor_lambda_function(iot_device):
+  function_name = globals.processor_lambda_function_name(iot_device)
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -286,13 +286,13 @@ def destroy_iot_services_l1():
 
 def deploy_iot_services_l2():
   for iot_device in globals.config_iot_devices:
-    create_preprocessor_iam_role(iot_device)
-    create_preprocessor_lambda_function(iot_device)
+    create_processor_iam_role(iot_device)
+    create_processor_lambda_function(iot_device)
 
 def destroy_iot_services_l2():
   for iot_device in globals.config_iot_devices:
-    destroy_preprocessor_lambda_function(iot_device)
-    destroy_preprocessor_iam_role(iot_device)
+    destroy_processor_lambda_function(iot_device)
+    destroy_processor_iam_role(iot_device)
 
 
 def deploy_iot_services_l4():

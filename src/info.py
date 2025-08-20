@@ -75,27 +75,27 @@ def check_persister_lambda_function():
     else:
       raise
 
-def check_preprocessor_iam_role(iot_device):
-  role_name = globals.preprocessor_iam_role_name(iot_device)
+def check_processor_iam_role(iot_device):
+  role_name = globals.processor_iam_role_name(iot_device)
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Preprocessor IAM Role exists: {util.link_to_iam_role(role_name)}")
+    print(f"✅ Processor IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Preprocessor IAM Role missing: {role_name}")
+      print(f"❌ Processor IAM Role missing: {role_name}")
     else:
       raise
 
-def check_preprocessor_lambda_function(iot_device):
-  function_name = globals.preprocessor_lambda_function_name(iot_device)
+def check_processor_lambda_function(iot_device):
+  function_name = globals.processor_lambda_function_name(iot_device)
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Preprocessor Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    print(f"✅ Processor Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Preprocessor Lambda Function missing: {function_name}")
+      print(f"❌ Processor Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -295,8 +295,8 @@ def check_l2():
   check_persister_lambda_function()
 
   for iot_device in globals.config_iot_devices:
-    check_preprocessor_iam_role(iot_device)
-    check_preprocessor_lambda_function(iot_device)
+    check_processor_iam_role(iot_device)
+    check_processor_lambda_function(iot_device)
 
 def check_l3_hot():
   check_iot_data_dynamodb_table()

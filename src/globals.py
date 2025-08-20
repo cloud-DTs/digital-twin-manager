@@ -189,11 +189,11 @@ def iot_thing_name(iot_device):
 def iot_thing_policy_name(iot_device):
   return config.get("general", "digital_twin_name") + "-" + iot_device["name"]
 
-def preprocessor_iam_role_name(iot_device):
-  return config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-preprocessor"
+def processor_iam_role_name(iot_device):
+  return config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-processor"
 
-def preprocessor_lambda_function_name(iot_device):
-  return config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-preprocessor"
+def processor_lambda_function_name(iot_device):
+  return config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-processor"
 
 def twinmaker_component_type_id(iot_device):
   return config.get("general", "digital_twin_name") + "-" + iot_device["name"]

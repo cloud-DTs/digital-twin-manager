@@ -5,8 +5,7 @@ def lambda_handler(event, context):
 
     # push data into dynamoDb
     # push data into twinmaker (batch_put_property_values)
+    # push data into azure digital twins
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from persister Lambda!')
-    }
+    print("Hello from Persister!")
+    print("Event: " + json.dumps(event))

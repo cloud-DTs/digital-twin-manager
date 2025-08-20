@@ -2,12 +2,12 @@ import globals
 import util
 
 
-def update_function(local_function_name, environment=None):
-  if local_function_name == "default-preprocessor":
+def update_function(function_name, local_function_name, environment=None):
+  if local_function_name == "default-processor":
     compiled_function = util.compile_lambda_function(local_function_name)
 
     for iot_device in globals.config_iot_devices:
-      function_name = globals.config.get("general", "digital_twin_name") + "-" + iot_device
+      function_name = globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-processor"
 
       globals.aws_lambda_client.update_function_code(
         FunctionName=function_name,
@@ -25,8 +25,6 @@ def update_function(local_function_name, environment=None):
 
     return
 
-  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
-
   globals.aws_lambda_client.update_function_code(
     FunctionName=function_name,
     ZipFile=util.compile_lambda_function(local_function_name),
@@ -42,8 +40,7 @@ def update_function(local_function_name, environment=None):
   print(f"Updated Lambda Function: {function_name}")
 
 
-def fetch_logs(local_function_name, n=10, filter_system_logs=False):
-  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
+def fetch_logs(function_name, n=10, filter_system_logs=False):
   log_group = f"/aws/lambda/{function_name}"
 
   streams = globals.aws_logs_client.describe_log_streams( logGroupName=log_group, orderBy="LastEventTime", descending=True, limit=1)
