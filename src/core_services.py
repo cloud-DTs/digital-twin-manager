@@ -28,14 +28,18 @@ def create_dispatcher_iam_role():
 
   print(f"Created IAM role: {role_name}")
 
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+  ]
 
-  globals.aws_iam_client.attach_role_policy(
-    RoleName=role_name,
-    PolicyArn=policy_arn
-  )
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
 
-  print(f"Attached IAM policy ARN: {policy_arn}")
+    print(f"Attached IAM policy ARN: {policy_arn}")
 
   print(f"Waiting for propagation...")
 
@@ -105,7 +109,7 @@ def destroy_dispatcher_lambda_function():
 
 def create_dispatcher_iot_rule():
   rule_name = globals.dispatcher_iot_rule_name()
-  sql = f"SELECT * FROM '{globals.config.get("general", "digital_twin_name")}/+'"
+  sql = f"SELECT *, topic() as topic FROM '{globals.config.get("general", "digital_twin_name")}/+'"
 
   function_name = globals.dispatcher_lambda_function_name()
 
@@ -187,14 +191,18 @@ def create_persister_iam_role():
 
   print(f"Created IAM role: {role_name}")
 
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
+  ]
 
-  globals.aws_iam_client.attach_role_policy(
-    RoleName=role_name,
-    PolicyArn=policy_arn
-  )
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
 
-  print(f"Attached IAM policy ARN: {policy_arn}")
+    print(f"Attached IAM policy ARN: {policy_arn}")
 
   print(f"Waiting for propagation...")
 
@@ -328,6 +336,7 @@ def create_hot_cold_mover_iam_role():
   print(f"Created IAM role: {role_name}")
 
   policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2",
     "arn:aws:iam::aws:policy/AmazonS3FullAccess"
   ]
@@ -518,14 +527,18 @@ def create_cold_archive_mover_iam_role():
 
   print(f"Created IAM role: {role_name}")
 
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  ]
 
-  globals.aws_iam_client.attach_role_policy(
-    RoleName=role_name,
-    PolicyArn=policy_arn
-  )
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
 
-  print(f"Attached IAM policy ARN: {policy_arn}")
+    print(f"Attached IAM policy ARN: {policy_arn}")
 
   print(f"Waiting for propagation...")
 

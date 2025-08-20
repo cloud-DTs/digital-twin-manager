@@ -5,5 +5,20 @@
       { "name": "serial-number", "dataType": "STRING" },
       { "name": "temperature", "dataType": "DOUBLE" }
     ]
+  },
+  {
+    "name": "temperature-sensor-2",
+    "properties": [
+      { "name": "serial-number", "dataType": "STRING" },
+      { "name": "temperature", "dataType": "DOUBLE" }
+    ]
+  },
+  {
+    "name": "pressure-sensor-1",
+    "properties": [
+      { "name": "pressure", "dataType": "DOUBLE" },
+      { "name": "density", "dataType": "DOUBLE" },
+      { "name": "hardness", "dataType": "DOUBLE" }
+    ]
   }
 ]

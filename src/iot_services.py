@@ -135,6 +135,7 @@ def create_preprocessor_iam_role(iot_device):
   print(f"Created IAM role: {role_name}")
 
   policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
   ]
 

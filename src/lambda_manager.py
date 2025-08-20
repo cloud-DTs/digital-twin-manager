@@ -1,0 +1,59 @@
+import globals
+import util
+
+
+def update_function(local_function_name, environment=None):
+  if local_function_name == "default-preprocessor":
+    compiled_function = util.compile_lambda_function(local_function_name)
+
+    for iot_device in globals.config_iot_devices:
+      function_name = globals.config.get("general", "digital_twin_name") + "-" + iot_device
+
+      globals.aws_lambda_client.update_function_code(
+        FunctionName=function_name,
+        ZipFile=compiled_function,
+        Publish=True
+      )
+
+      if environment is not None:
+        globals.aws_lambda_client.update_function_configuration(
+          FunctionName=function_name,
+          Environment=environment
+        )
+
+      print(f"Updated Lambda Function: {function_name}")
+
+    return
+
+  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
+
+  globals.aws_lambda_client.update_function_code(
+    FunctionName=function_name,
+    ZipFile=util.compile_lambda_function(local_function_name),
+    Publish=True
+  )
+
+  if environment is not None:
+    globals.aws_lambda_client.update_function_configuration(
+      FunctionName=function_name,
+      Environment=environment
+    )
+
+  print(f"Updated Lambda Function: {function_name}")
+
+
+def fetch_logs(local_function_name, n=10, filter_system_logs=False):
+  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
+  log_group = f"/aws/lambda/{function_name}"
+
+  streams = globals.aws_logs_client.describe_log_streams( logGroupName=log_group, orderBy="LastEventTime", descending=True, limit=1)
+  latest_stream = streams["logStreams"][0]["logStreamName"]
+
+  events = globals.aws_logs_client.get_log_events(logGroupName=log_group, logStreamName=latest_stream, limit=n, startFromHead=False)
+  messages = [e["message"] for e in events["events"]][-n:]
+
+  if not filter_system_logs:
+    return messages
+  else:
+    system_prefixes = ("INIT_START", "START", "END", "REPORT")
+    return [message for message in messages if not message.startswith(system_prefixes)]

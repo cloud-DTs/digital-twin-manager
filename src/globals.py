@@ -19,6 +19,7 @@ aws_dynamodb_client = {}
 aws_s3_client = {}
 aws_twinmaker_client = {}
 aws_grafana_client = {}
+aws_logs_client = {}
 
 def project_path():
   return os.path.dirname(os.path.dirname(__file__))
@@ -101,6 +102,14 @@ def initialize_aws_grafana_client():
   global config
   global aws_grafana_client
   aws_grafana_client = boto3.client("grafana",
+    aws_access_key_id=config.get("credentials", "aws_access_key_id"),
+    aws_secret_access_key=config.get("credentials", "aws_secret_access_key"),
+    region_name=config.get("credentials", "aws_region"))
+
+def initialize_aws_logs_client():
+  global config
+  global aws_logs_client
+  aws_logs_client = boto3.client("logs",
     aws_access_key_id=config.get("credentials", "aws_access_key_id"),
     aws_secret_access_key=config.get("credentials", "aws_secret_access_key"),
     region_name=config.get("credentials", "aws_region"))
