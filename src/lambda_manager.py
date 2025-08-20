@@ -15,6 +15,9 @@ def update_function(function_name, local_function_name, environment=None):
         Publish=True
       )
 
+      waiter = globals.aws_lambda_client.get_waiter("function_updated")
+      waiter.wait(FunctionName=function_name)
+
       if environment is not None:
         globals.aws_lambda_client.update_function_configuration(
           FunctionName=function_name,
@@ -30,6 +33,9 @@ def update_function(function_name, local_function_name, environment=None):
     ZipFile=util.compile_lambda_function(local_function_name),
     Publish=True
   )
+
+  waiter = globals.aws_lambda_client.get_waiter("function_updated")
+  waiter.wait(FunctionName=function_name)
 
   if environment is not None:
     globals.aws_lambda_client.update_function_configuration(

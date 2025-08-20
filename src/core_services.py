@@ -260,6 +260,13 @@ def create_persister_lambda_function():
     Timeout=3, # seconds
     MemorySize=128, # MB
     Publish=True,
+    Environment={
+      "Variables": {
+        "LAYER_INFO": json.dumps(globals.config_layers),
+        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
+        "TWINMAKER_WORKSPACE_NAME": globals.twinmaker_workspace_name()
+      }
+    }
   )
 
   print(f"Created Lambda function: {function_name}")

@@ -93,6 +93,16 @@ def main():
           print("".join(lambda_manager.fetch_logs(args[0])))
       elif command == "help":
         help_menu()
+      # elif command == "ex":
+      #   env = {
+      #     "Variables": {
+      #       "LAYER_INFO": json.dumps(globals.config_layers),
+      #       "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
+      #       "TWINMAKER_WORKSPACE_NAME": globals.twinmaker_workspace_name()
+      #     }
+      #   }
+
+      #   lambda_manager.update_function("digital-twin-persister", "persister", env)
       elif command == "exit":
         print("Goodbye!")
         break
