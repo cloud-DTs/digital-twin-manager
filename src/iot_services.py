@@ -201,6 +201,7 @@ def create_processor_lambda_function(iot_device):
     Publish=True,
     Environment={
       "Variables": {
+        "LAYER_INFO": json.dumps(globals.config_layers),
         "PERSISTER_LAMBDA_NAME": globals.persister_lambda_function_name()
       }
     }

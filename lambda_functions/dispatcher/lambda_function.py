@@ -2,9 +2,11 @@ import json
 import os
 import boto3
 
+
 LAYER_INFO = json.loads(os.environ.get("LAYER_INFO", None))
 
 lambda_client = boto3.client("lambda")
+
 
 def lambda_handler(event, context):
     payload = event.copy()
