@@ -460,6 +460,16 @@ def destroy_hot_cold_mover_event_rule():
     pass
 
   try:
+    response = globals.aws_events_client.list_targets_by_rule(Rule=rule_name, EventBusName="default")
+    target_ids = [t["Id"] for t in response.get("Targets", [])]
+
+    if target_ids:
+      globals.aws_events_client.remove_targets(Rule=rule_name, EventBusName="default", Ids=target_ids, Force=True)
+      print(f"Removed targets from EventBridge Rule: {target_ids}")
+  except globals.aws_events_client.exceptions.ResourceNotFoundException:
+    pass
+
+  try:
     globals.aws_events_client.describe_rule(Name=rule_name)
     globals.aws_events_client.delete_rule(Name=rule_name, Force=True)
     print(f"Deleted EventBridge rule: {rule_name}")
@@ -467,7 +477,7 @@ def destroy_hot_cold_mover_event_rule():
     pass
 
 
-def create_cold_data_s3_bucket():
+def create_cold_s3_bucket():
   bucket_name = globals.cold_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
@@ -479,7 +489,7 @@ def create_cold_data_s3_bucket():
 
   print(f"Created S3 Bucket: {bucket_name}")
 
-def destroy_cold_data_s3_bucket():
+def destroy_cold_s3_bucket():
   bucket_name = globals.cold_s3_bucket_name()
 
   util.destroy_s3_bucket(bucket_name)
@@ -585,22 +595,14 @@ def destroy_cold_archive_mover_lambda_function():
 
 def create_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
-  schedule_expression = f"rate({globals.config.get("general", "layer_3_cold_to_archive_interval_days")} days)"
-
   function_name = globals.cold_archive_mover_lambda_function_name()
 
-  # create the EventBridge rule
-  rule_response = globals.aws_events_client.put_rule(
-    Name=rule_name,
-    ScheduleExpression=schedule_expression,
-    State="ENABLED",
-    Description="",
-  )
-  rule_arn = rule_response["RuleArn"]
+  schedule_expression = f"rate({globals.config.get("general", "layer_3_cold_to_archive_interval_days")} days)"
 
-  print(f"Created EventBridge rule: {rule_name}")
+  rule_arn = globals.aws_events_client.put_rule(Name=rule_name, ScheduleExpression=schedule_expression, State="ENABLED")["RuleArn"]
 
-  # add Lambda function as target
+  print(f"Created EventBridge Rule: {rule_name}")
+
   lambda_arn = globals.aws_lambda_client.get_function(FunctionName=function_name)["Configuration"]["FunctionArn"]
 
   globals.aws_events_client.put_targets(
@@ -613,9 +615,8 @@ def create_cold_archive_mover_event_rule():
     ]
   )
 
-  print(f"Added Lambda function as target.")
+  print(f"Added Lambda Function as target.")
 
-  # grant EventBridge permission to invoke the Lambda function
   globals.aws_lambda_client.add_permission(
     FunctionName=function_name,
     StatementId="events-invoke",
@@ -624,7 +625,7 @@ def create_cold_archive_mover_event_rule():
     SourceArn=rule_arn,
   )
 
-  print(f"Added permission to Lambda function so the rule can invoke the function.")
+  print(f"Added permission to Lambda Function so the rule can invoke the function.")
 
 def destroy_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
@@ -632,19 +633,29 @@ def destroy_cold_archive_mover_event_rule():
 
   try:
     globals.aws_lambda_client.remove_permission(FunctionName=function_name, StatementId="events-invoke")
-    print(f"Removed permission from Lambda function: {rule_name}, {function_name}")
+    print(f"Removed permission from Lambda Function: {rule_name}, {function_name}")
   except globals.aws_lambda_client.exceptions.ResourceNotFoundException:
+    pass
+
+  try:
+    response = globals.aws_events_client.list_targets_by_rule(Rule=rule_name, EventBusName="default")
+    target_ids = [t["Id"] for t in response.get("Targets", [])]
+
+    if target_ids:
+      globals.aws_events_client.remove_targets(Rule=rule_name, EventBusName="default", Ids=target_ids, Force=True)
+      print(f"Removed targets from EventBridge Rule: {target_ids}")
+  except globals.aws_events_client.exceptions.ResourceNotFoundException:
     pass
 
   try:
     globals.aws_events_client.describe_rule(Name=rule_name)
     globals.aws_events_client.delete_rule(Name=rule_name, Force=True)
-    print(f"Deleted EventBridge rule: {rule_name}")
+    print(f"Deleted EventBridge Rule: {rule_name}")
   except globals.aws_events_client.exceptions.ResourceNotFoundException:
     pass
 
 
-def create_archive_data_s3_bucket():
+def create_archive_s3_bucket():
   bucket_name = globals.archive_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
@@ -656,7 +667,7 @@ def create_archive_data_s3_bucket():
 
   print(f"Created S3 Bucket: {bucket_name}")
 
-def destroy_archive_data_s3_bucket():
+def destroy_archive_s3_bucket():
   bucket_name = globals.archive_s3_bucket_name()
 
   util.destroy_s3_bucket(bucket_name)
@@ -1114,7 +1125,7 @@ def destroy_core_services_l3_hot():
 
 
 def deploy_core_services_l3_cold():
-  create_cold_data_s3_bucket()
+  create_cold_s3_bucket()
   create_cold_archive_mover_iam_role()
   create_cold_archive_mover_lambda_function()
   create_cold_archive_mover_event_rule()
@@ -1123,14 +1134,14 @@ def destroy_core_services_l3_cold():
   destroy_cold_archive_mover_event_rule()
   destroy_cold_archive_mover_lambda_function()
   destroy_cold_archive_mover_iam_role()
-  destroy_cold_data_s3_bucket()
+  destroy_cold_s3_bucket()
 
 
 def deploy_core_services_l3_archive():
-  create_archive_data_s3_bucket()
+  create_archive_s3_bucket()
 
 def destroy_core_services_l3_archive():
-  destroy_archive_data_s3_bucket()
+  destroy_archive_s3_bucket()
 
 
 def deploy_core_services_l4():

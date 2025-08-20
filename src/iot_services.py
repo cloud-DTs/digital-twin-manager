@@ -294,13 +294,6 @@ def destroy_iot_services_l2():
     destroy_preprocessor_iam_role(iot_device)
 
 
-def deploy_iot_services_l3():
-  pass
-
-def destroy_iot_services_l3():
-  pass
-
-
 def deploy_iot_services_l4():
   for iot_device in globals.config_iot_devices:
     create_twinmaker_component_type(iot_device)
@@ -310,23 +303,12 @@ def destroy_iot_services_l4():
     destroy_twinmaker_component_type(iot_device)
 
 
-def deploy_iot_services_l5():
-  pass
-
-def destroy_iot_services_l5():
-  pass
-
-
 def deploy():
   deploy_iot_services_l1()
   deploy_iot_services_l2()
-  deploy_iot_services_l3()
   deploy_iot_services_l4()
-  deploy_iot_services_l5()
 
 def destroy():
-  destroy_iot_services_l5()
   destroy_iot_services_l4()
-  destroy_iot_services_l3()
   destroy_iot_services_l2()
   destroy_iot_services_l1()

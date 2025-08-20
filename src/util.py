@@ -83,3 +83,33 @@ def get_grafana_workspace_id_by_name(workspace_name):
     operation_name = "get_grafana_workspace_id_by_name"
 
     raise ClientError(error_response, operation_name)
+
+def link_to_iam_role(role_name):
+  return f"https://console.aws.amazon.com/iam/home?region={globals.aws_iam_client.meta.region_name}#/roles/{role_name}"
+
+def link_to_lambda_function(function_name):
+  return f"https://console.aws.amazon.com/lambda/home?region={globals.aws_lambda_client.meta.region_name}#/functions/{function_name}"
+
+def link_to_iot_rule(rule_name):
+  return f"https://console.aws.amazon.com/iot/home?region={globals.aws_iot_client.meta.region_name}#/rule/{rule_name}"
+
+def link_to_iot_thing(thing_name):
+  return f"https://console.aws.amazon.com/iot/home?region={globals.aws_iot_client.meta.region_name}#/thing/{thing_name}"
+
+def link_to_dynamodb_table(table_name):
+  return f"https://console.aws.amazon.com/dynamodbv2/home?region={globals.aws_dynamodb_client.meta.region_name}#table?name={table_name}"
+
+def link_to_event_rule(rule_name):
+  return f"https://console.aws.amazon.com/events/home?region={globals.aws_events_client.meta.region_name}#/eventbus/default/rules/{rule_name}"
+
+def link_to_s3_bucket(bucket_name):
+  return f"https://console.aws.amazon.com/s3/buckets/{bucket_name}"
+
+def link_to_twinmaker_workspace(workspace_name):
+  return f"https://console.aws.amazon.com/iottwinmaker/home?region={globals.aws_twinmaker_client.meta.region_name}#/workspaces/{workspace_name}"
+
+def link_to_twinmaker_component_type(workspace_name, component_type_id):
+  return f"https://console.aws.amazon.com/iottwinmaker/home?region={globals.aws_twinmaker_client.meta.region_name}#/workspaces/{workspace_name}/component-types/{component_type_id}"
+
+def link_to_grafana_workspace(workspace_id):
+  return f"https://console.aws.amazon.com/grafana/home?region={globals.aws_grafana_client.meta.region_name}#/workspaces/{workspace_id}"

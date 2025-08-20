@@ -4,14 +4,18 @@ import info
 import iot_services
 
 def help_menu():
-  print("""depl
+  print("""
     Available commands:
-      deploy_core            - Deploys core services and resources (workspaces etc.)
-      destroy_core           - Destroys core services and resources (workspaces etc.)
-      add_iot_device_type    - Deploys services and resources for a new iot device type (TwinMaker connecter etc.)
-      add_iot_device         - Deploys services and resources for a new iot device entity (IoT thing etc.)
-      help                   - Show this help menu
-      exit                   - Exit the program
+      deploy                 - Deploys core and IoT services and resources.
+      destroy                - Destroys core and IoT services and resources.
+      deploy_core            - Deploys core services and resources.
+      destroy_core           - Destroys core services and resources.
+      deploy_iot             - Deploys services and resources for every specified iot device.
+      destroy_iot            - Deploys services and resources for every specified iot device.
+      info                   - Lists all the deployed resources.
+      info_l1(-l5)           - Lists the deployed resources for the given layer.
+      help                   - Show this help menu.
+      exit                   - Exit the program.
   """)
 
 def main():
@@ -43,7 +47,13 @@ def main():
       command = parts[0]
       args = parts[1:]
 
-      if command == "deploy_core":
+      if command == "deploy":
+        core_services.deploy()
+        iot_services.deploy()
+      elif command == "destroy":
+        core_services.destroy()
+        iot_services.destroy()
+      elif command == "deploy_core":
         core_services.deploy()
       elif command == "destroy_core":
         core_services.destroy()
@@ -53,6 +63,16 @@ def main():
         iot_services.destroy()
       elif command == "info":
         info.check()
+      elif command == "info_l1":
+        info.check_l1()
+      elif command == "info_l2":
+        info.check_l2()
+      elif command == "info_l3":
+        info.check_l3()
+      elif command == "info_l4":
+        info.check_l4()
+      elif command == "info_l5":
+        info.check_l5()
       elif command == "help":
         help_menu()
       elif command == "exit":
