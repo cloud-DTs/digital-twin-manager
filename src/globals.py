@@ -3,6 +3,7 @@ import json
 import os
 import boto3
 
+
 config_path = "config.ini"
 config_iot_devices_path = "config_iot_devices.json"
 iot_data_path = "iot_devices_auth"
@@ -10,6 +11,8 @@ lambda_functions_path = "lambda_functions"
 
 config = {}
 config_iot_devices = []
+config_layers = {}
+
 aws_iam_client = {}
 aws_lambda_client = {}
 aws_iot_client = {}
@@ -20,6 +23,7 @@ aws_s3_client = {}
 aws_twinmaker_client = {}
 aws_grafana_client = {}
 aws_logs_client = {}
+
 
 def project_path():
   return os.path.dirname(os.path.dirname(__file__))
@@ -33,6 +37,12 @@ def initialize_config_iot_devices():
   global config_iot_devices
   with open("config_iot_devices.json", "r") as file:
     config_iot_devices = json.load(file)
+
+def initialize_config_layers():
+  global config_layers
+  with open("config_layers.json", "r") as file:
+    config_layers = json.load(file)
+
 
 def initialize_aws_iam_client():
   global config

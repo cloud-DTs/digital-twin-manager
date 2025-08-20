@@ -25,6 +25,7 @@ def help_menu():
 def main():
     globals.initialize_config()
     globals.initialize_config_iot_devices()
+    globals.initialize_config_layers()
     globals.initialize_aws_iam_client()
     globals.initialize_aws_lambda_client()
     globals.initialize_aws_iot_client()

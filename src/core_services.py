@@ -92,6 +92,11 @@ def create_dispatcher_lambda_function():
     Timeout=3, # seconds
     MemorySize=128, # MB
     Publish=True,
+    Environment={
+      "Variables": {
+        "LAYER_INFO": json.dumps(globals.config_layers)
+      }
+    }
   )
 
   print(f"Created Lambda function: {function_name}")
