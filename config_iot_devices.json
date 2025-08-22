@@ -2,14 +2,12 @@
   {
     "name": "temperature-sensor-1",
     "properties": [
-      { "name": "serial-number", "dataType": "STRING" },
       { "name": "temperature", "dataType": "DOUBLE" }
     ]
   },
   {
     "name": "temperature-sensor-2",
     "properties": [
-      { "name": "serial-number", "dataType": "STRING" },
       { "name": "temperature", "dataType": "DOUBLE" }
     ]
   },

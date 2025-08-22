@@ -3,15 +3,25 @@ import json
 import boto3
 
 
-LAYER_INFO = json.loads(os.environ.get("LAYER_INFO", None))
+DIGITAL_TWIN_INFO = json.loads(os.environ.get("DIGITAL_TWIN_INFO", None))
 DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", None)
-TWINMAKER_WORKSPACE_NAME = os.environ.get("TWINMAKER_WORKSPACE_NAME", None)
+
+dynamodb_client = boto3.resource("dynamodb")
+dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)
+twinmaker_client = boto3.client("iottwinmaker")
 
 
 def lambda_handler(event, context):
-    # push data into dynamoDb
-    # push data into twinmaker (batch_put_property_values)
-    # push data into azure digital twins
-
     print("Hello from Persister!")
     print("Event: " + json.dumps(event))
+
+    item = event.copy()
+    item["id"] = str(item.pop("timestamp"))
+
+    dynamodb_table.put_item(Item=item)
+
+    if DIGITAL_TWIN_INFO["layer_4_provider"].lower() == "azure":
+        print("TODO AZURE: push data to Azure Digital Twins")
+
+    else:
+        print("UNKNOWN DIGITAL_TWIN_INFO")

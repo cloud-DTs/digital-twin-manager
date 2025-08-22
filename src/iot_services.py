@@ -28,7 +28,7 @@ def create_iot_thing(iot_device):
   with open(f"{dir}public.pem.key", "w") as f:
     f.write(cert_response["keyPair"]["PublicKey"])
 
-  print("Stored certificate and keys to {dir}")
+  print(f"Stored certificate and keys to {dir}")
 
   policy_document = {
     "Version": "2012-10-17",
@@ -201,7 +201,7 @@ def create_processor_lambda_function(iot_device):
     Publish=True,
     Environment={
       "Variables": {
-        "LAYER_INFO": json.dumps(globals.config_layers),
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
         "PERSISTER_LAMBDA_NAME": globals.persister_lambda_function_name()
       }
     }
@@ -221,8 +221,12 @@ def destroy_processor_lambda_function(iot_device):
 
 
 def create_twinmaker_component_type(iot_device):
+  connector_function_name = globals.twinmaker_connector_lambda_function_name()
   workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
+
+  response = globals.aws_lambda_client.get_function(FunctionName=connector_function_name)
+  connector_function_arn = response["Configuration"]["FunctionArn"]
 
   property_definitions = {}
 
@@ -230,13 +234,28 @@ def create_twinmaker_component_type(iot_device):
     property_definitions[property["name"]] = {
       "dataType": {
         "type": property["dataType"]
+      },
+      "isTimeSeries": True,
+      "isStoredExternally": True
+    }
+
+  functions = {}
+
+  functions = {
+    "dataReader": {
+      "implementedBy": {
+        "lambda": {
+          "arn": connector_function_arn
+        }
       }
     }
+  }
 
   globals.aws_twinmaker_client.create_component_type(
     workspaceId=workspace_name,
     componentTypeId=component_type_id,
     propertyDefinitions=property_definitions,
+    functions=functions
   )
 
   print(f"Creation of IoT Twinmaker Component Type initiated: {component_type_id}")

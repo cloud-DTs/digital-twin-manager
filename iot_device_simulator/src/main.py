@@ -4,7 +4,7 @@ import transmission
 def help_menu():
   print("""
     Available commands:
-      send <device_name>          - Sends payload to IoT endpoint.
+      send                        - Sends payload to IoT endpoint.
       help                        - Show this help menu.
       exit                        - Exit the program.
   """)
@@ -29,8 +29,7 @@ def main():
       args = parts[1:]
 
       if command == "send":
-        device_name = args[0]
-        transmission.send(device_name)
+        transmission.send()
       elif command == "help":
         help_menu()
       elif command == "exit":

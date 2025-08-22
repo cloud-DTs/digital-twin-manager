@@ -43,7 +43,7 @@ def create_dispatcher_iam_role():
 
   print(f"Waiting for propagation...")
 
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_dispatcher_iam_role():
   role_name = globals.dispatcher_iam_role_name()
@@ -94,7 +94,7 @@ def create_dispatcher_lambda_function():
     Publish=True,
     Environment={
       "Variables": {
-        "LAYER_INFO": json.dumps(globals.config_layers)
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
       }
     }
   )
@@ -114,7 +114,7 @@ def destroy_dispatcher_lambda_function():
 
 def create_dispatcher_iot_rule():
   rule_name = globals.dispatcher_iot_rule_name()
-  sql = f"SELECT *, topic() as topic FROM '{globals.config.get("general", "digital_twin_name")}/+'"
+  sql = f"SELECT * FROM '{globals.config.get("general", "digital_twin_name")}/iot-data'"
 
   function_name = globals.dispatcher_lambda_function_name()
 
@@ -211,7 +211,7 @@ def create_persister_iam_role():
 
   print(f"Waiting for propagation...")
 
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_persister_iam_role():
   role_name = globals.persister_iam_role_name()
@@ -262,9 +262,8 @@ def create_persister_lambda_function():
     Publish=True,
     Environment={
       "Variables": {
-        "LAYER_INFO": json.dumps(globals.config_layers),
-        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
-        "TWINMAKER_WORKSPACE_NAME": globals.twinmaker_workspace_name()
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
+        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name()
       }
     }
   )
@@ -363,7 +362,7 @@ def create_hot_cold_mover_iam_role():
 
   print(f"Waiting for propagation...")
 
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_hot_cold_mover_iam_role():
   role_name = globals.hot_cold_mover_iam_role_name()
@@ -554,7 +553,7 @@ def create_cold_archive_mover_iam_role():
 
   print(f"Waiting for propagation...")
 
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_cold_archive_mover_iam_role():
   role_name = globals.cold_archive_mover_iam_role_name()
@@ -698,6 +697,103 @@ def destroy_archive_s3_bucket():
   util.destroy_s3_bucket(bucket_name)
 
 
+def create_twinmaker_connector_iam_role():
+  role_name = globals.twinmaker_connector_iam_role_name()
+
+  globals.aws_iam_client.create_role(
+      RoleName=role_name,
+      AssumeRolePolicyDocument=json.dumps(
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        }
+      )
+  )
+
+  print(f"Created IAM role: {role_name}")
+
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  ]
+
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
+
+    print(f"Attached IAM policy ARN: {policy_arn}")
+
+  print(f"Waiting for propagation...")
+
+  time.sleep(20)
+
+def destroy_twinmaker_connector_iam_role():
+  role_name = globals.twinmaker_connector_iam_role_name()
+
+  try:
+    response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
+    for policy in response["AttachedPolicies"]:
+        globals.aws_iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
+
+    response = globals.aws_iam_client.list_role_policies(RoleName=role_name)
+    for policy_name in response["PolicyNames"]:
+        globals.aws_iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
+
+    response = globals.aws_iam_client.list_instance_profiles_for_role(RoleName=role_name)
+    for profile in response["InstanceProfiles"]:
+      globals.aws_iam_client.remove_role_from_instance_profile(
+        InstanceProfileName=profile["InstanceProfileName"],
+        RoleName=role_name
+      )
+
+    globals.aws_iam_client.delete_role(RoleName=role_name)
+    print(f"Deleted IAM role: {role_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "NoSuchEntity":
+      raise
+
+
+def create_twinmaker_connector_lambda_function():
+  function_name = globals.twinmaker_connector_lambda_function_name()
+  role_name = globals.twinmaker_connector_iam_role_name()
+
+  response = globals.aws_iam_client.get_role(RoleName=role_name)
+  role_arn = response['Role']['Arn']
+
+  globals.aws_lambda_client.create_function(
+    FunctionName=function_name,
+    Runtime="python3.13",
+    Role=role_arn,
+    Handler="lambda_function.lambda_handler", #  file.function
+    Code={"ZipFile": util.compile_lambda_function("twinmaker-connector")},
+    Description="",
+    Timeout=3, # seconds
+    MemorySize=128, # MB
+    Publish=True,
+  )
+
+  print(f"Created Lambda function: {function_name}")
+
+def destroy_twinmaker_connector_lambda_function():
+  function_name = globals.twinmaker_connector_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.delete_function(FunctionName=function_name)
+    print(f"Deleted Lambda function: {function_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "ResourceNotFoundException":
+      raise
+
+
 def create_twinmaker_s3_bucket():
   bucket_name = globals.twinmaker_s3_bucket_name()
 
@@ -760,7 +856,7 @@ def create_twinmaker_iam_role():
   print(f"Attached inline IAM policy: {policy_name}")
 
   print(f"Waiting for propagation...")
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_twinmaker_iam_role():
   role_name = globals.twinmaker_iam_role_name()
@@ -825,7 +921,7 @@ def destroy_twinmaker_workspace():
 
     if deleted_an_entity:
       print(f"Waiting for propagation...")
-      time.sleep(10)
+      time.sleep(20)
   except ClientError as e:
     if e.response["Error"]["Code"] != "ValidationException":
       raise
@@ -906,7 +1002,7 @@ def create_grafana_iam_role():
   print(f"Created IAM role: {role_name}")
 
   print(f"Waiting for propagation...")
-  time.sleep(10)
+  time.sleep(20)
 
   trust_policy = globals.aws_iam_client.get_role(RoleName=role_name)['Role']['AssumeRolePolicyDocument']
 
@@ -980,7 +1076,7 @@ def create_grafana_iam_role():
   print(f"Attached inline IAM policy: {policy_name}")
 
   print(f"Waiting for propagation...")
-  time.sleep(10)
+  time.sleep(20)
 
 def destroy_grafana_iam_role():
   role_name = globals.grafana_iam_role_name()
@@ -1173,8 +1269,12 @@ def deploy_core_services_l4():
   create_twinmaker_s3_bucket()
   create_twinmaker_iam_role()
   create_twinmaker_workspace()
+  create_twinmaker_connector_iam_role()
+  create_twinmaker_connector_lambda_function()
 
 def destroy_core_services_l4():
+  destroy_twinmaker_connector_lambda_function()
+  destroy_twinmaker_connector_iam_role()
   destroy_twinmaker_workspace()
   destroy_twinmaker_iam_role()
   destroy_twinmaker_s3_bucket()

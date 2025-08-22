@@ -43,6 +43,9 @@ def initialize_config_layers():
   with open("config_layers.json", "r") as file:
     config_layers = json.load(file)
 
+def digital_twin_info():
+  return { "name": config.get("general", "digital_twin_name") } | config_layers | { "iot_devices": config_iot_devices }
+
 
 def initialize_aws_iam_client():
   global config
@@ -167,6 +170,12 @@ def cold_s3_bucket_name():
 
 def archive_s3_bucket_name():
   return config.get("general", "digital_twin_name") + "-archive-iot-data"
+
+def twinmaker_connector_iam_role_name():
+  return config.get("general", "digital_twin_name") + "-twinmaker-connector"
+
+def twinmaker_connector_lambda_function_name():
+  return config.get("general", "digital_twin_name") + "-twinmaker-connector"
 
 def twinmaker_s3_bucket_name():
   return config.get("general", "digital_twin_name") + "-twinmaker"
