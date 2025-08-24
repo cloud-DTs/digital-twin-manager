@@ -721,7 +721,8 @@ def create_twinmaker_connector_iam_role():
   print(f"Created IAM role: {role_name}")
 
   policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
   ]
 
   for policy_arn in policy_arns:
@@ -731,6 +732,28 @@ def create_twinmaker_connector_iam_role():
     )
 
     print(f"Attached IAM policy ARN: {policy_arn}")
+
+  policy_name = "TwinmakerAccess"
+
+  globals.aws_iam_client.put_role_policy(
+    RoleName=role_name,
+    PolicyName=policy_name,
+    PolicyDocument=json.dumps(
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "iottwinmaker:*",
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    )
+  )
+  print(f"Attached inline IAM policy: {policy_name}")
 
   print(f"Waiting for propagation...")
 
@@ -779,6 +802,12 @@ def create_twinmaker_connector_lambda_function():
     Timeout=3, # seconds
     MemorySize=128, # MB
     Publish=True,
+    Environment={
+      "Variables": {
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
+        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name()
+      }
+    }
   )
 
   print(f"Created Lambda function: {function_name}")
@@ -846,6 +875,7 @@ def create_twinmaker_iam_role():
           "Effect": "Allow",
           "Action": [
             "s3:*",
+            "dynamodb:*",
             "lambda:*",
           ],
           "Resource": "*"
@@ -1026,21 +1056,6 @@ def create_grafana_iam_role():
 
   print(f"Updated IAM role trust policy: {role_name}")
 
-  # https://docs.aws.amazon.com/grafana/latest/userguide/AMG-manage-permissions.html
-
-  # policy_arns = [
-  #   "arn:aws:iam::aws:policy/service-role/AmazonGrafanaCloudWatchAccess",
-  #   "arn:aws:iam::aws:policy/service-role/AWSIoTSiteWiseReadOnlyAccess",
-  # ]
-
-  # for policy_arn in policy_arns:
-  #   globals.aws_iam_client.attach_role_policy(
-  #     RoleName=role_name,
-  #     PolicyArn=policy_arn
-  #   )
-
-  #   print(f"Attached IAM policy ARN: {policy_arn}")
-
   policy_name = "GrafanaExecutionPolicy"
 
   globals.aws_iam_client.put_role_policy(
@@ -1059,6 +1074,13 @@ def create_grafana_iam_role():
             "Effect": "Allow",
             "Action": [
               "iottwinmaker:*",
+            ],
+            "Resource": "*"
+          },
+          {
+            "Effect": "Allow",
+            "Action": [
+              "dynamodb:*",
             ],
             "Resource": "*"
           },
@@ -1212,67 +1234,67 @@ def remove_cors_from_twinmaker_s3_bucket():
   print(f"CORS configuration removed from bucket: {bucket_name}")
 
 
-def deploy_core_services_l1():
+def deploy_l1():
   create_dispatcher_iam_role()
   create_dispatcher_lambda_function()
   create_dispatcher_iot_rule()
 
-def destroy_core_services_l1():
+def destroy_l1():
   destroy_dispatcher_iot_rule()
   destroy_dispatcher_lambda_function()
   destroy_dispatcher_iam_role()
 
 
-def deploy_core_services_l2():
+def deploy_l2():
   create_persister_iam_role()
   create_persister_lambda_function()
 
-def destroy_core_services_l2():
+def destroy_l2():
   destroy_persister_lambda_function()
   destroy_persister_iam_role()
 
 
-def deploy_core_services_l3_hot():
+def deploy_l3_hot():
   create_iot_data_dynamodb_table()
   create_hot_cold_mover_iam_role()
   create_hot_cold_mover_lambda_function()
   create_hot_cold_mover_event_rule()
 
-def destroy_core_services_l3_hot():
+def destroy_l3_hot():
   destroy_hot_cold_mover_event_rule()
   destroy_hot_cold_mover_lambda_function()
   destroy_hot_cold_mover_iam_role()
   destroy_iot_data_dynamodb_table()
 
 
-def deploy_core_services_l3_cold():
+def deploy_l3_cold():
   create_cold_s3_bucket()
   create_cold_archive_mover_iam_role()
   create_cold_archive_mover_lambda_function()
   create_cold_archive_mover_event_rule()
 
-def destroy_core_services_l3_cold():
+def destroy_l3_cold():
   destroy_cold_archive_mover_event_rule()
   destroy_cold_archive_mover_lambda_function()
   destroy_cold_archive_mover_iam_role()
   destroy_cold_s3_bucket()
 
 
-def deploy_core_services_l3_archive():
+def deploy_l3_archive():
   create_archive_s3_bucket()
 
-def destroy_core_services_l3_archive():
+def destroy_l3_archive():
   destroy_archive_s3_bucket()
 
 
-def deploy_core_services_l4():
+def deploy_l4():
   create_twinmaker_s3_bucket()
   create_twinmaker_iam_role()
   create_twinmaker_workspace()
   create_twinmaker_connector_iam_role()
   create_twinmaker_connector_lambda_function()
 
-def destroy_core_services_l4():
+def destroy_l4():
   destroy_twinmaker_connector_lambda_function()
   destroy_twinmaker_connector_iam_role()
   destroy_twinmaker_workspace()
@@ -1280,31 +1302,31 @@ def destroy_core_services_l4():
   destroy_twinmaker_s3_bucket()
 
 
-def deploy_core_services_l5():
+def deploy_l5():
   create_grafana_iam_role()
   create_grafana_workspace()
   add_cors_to_twinmaker_s3_bucket()
 
-def destroy_core_services_l5():
+def destroy_l5():
   remove_cors_from_twinmaker_s3_bucket()
   destroy_grafana_workspace()
   destroy_grafana_iam_role()
 
 
 def deploy():
-  deploy_core_services_l1()
-  deploy_core_services_l2()
-  deploy_core_services_l3_hot()
-  deploy_core_services_l3_cold()
-  deploy_core_services_l3_archive()
-  deploy_core_services_l4()
-  deploy_core_services_l5()
+  deploy_l1()
+  deploy_l2()
+  deploy_l3_hot()
+  deploy_l3_cold()
+  deploy_l3_archive()
+  deploy_l4()
+  deploy_l5()
 
 def destroy():
-  destroy_core_services_l5()
-  destroy_core_services_l4()
-  destroy_core_services_l3_archive()
-  destroy_core_services_l3_cold()
-  destroy_core_services_l3_hot()
-  destroy_core_services_l2()
-  destroy_core_services_l1()
+  destroy_l5()
+  destroy_l4()
+  destroy_l3_archive()
+  destroy_l3_cold()
+  destroy_l3_hot()
+  destroy_l2()
+  destroy_l1()

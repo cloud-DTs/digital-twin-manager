@@ -16,12 +16,9 @@ def lambda_handler(event, context):
     print("Event: " + json.dumps(event))
 
     item = event.copy()
-    item["id"] = str(item.pop("timestamp"))
+    item["id"] = str(item.pop("time"))
 
     dynamodb_table.put_item(Item=item)
 
     if DIGITAL_TWIN_INFO["layer_4_provider"].lower() == "azure":
         print("TODO AZURE: push data to Azure Digital Twins")
-
-    else:
-        print("UNKNOWN DIGITAL_TWIN_INFO")

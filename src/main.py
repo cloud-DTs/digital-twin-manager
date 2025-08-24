@@ -69,16 +69,6 @@ def main():
         iot_services.destroy()
       elif command == "info":
         info.check()
-      elif command == "info_l1":
-        info.check_l1()
-      elif command == "info_l2":
-        info.check_l2()
-      elif command == "info_l3":
-        info.check_l3()
-      elif command == "info_l4":
-        info.check_l4()
-      elif command == "info_l5":
-        info.check_l5()
       elif command == "lambda_update":
         if len(args) > 1:
           lambda_manager.update_function(args[0], json.loads(args[1]))

@@ -224,10 +224,10 @@ def check_twinmaker_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Twinmaker Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+    print(f"✅ Twinmaker IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Twinmaker Mover IAM Role missing: {role_name}")
+      print(f"❌ Twinmaker IAM Role missing: {role_name}")
     else:
       raise
 
@@ -261,10 +261,10 @@ def check_grafana_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Grafana Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+    print(f"✅ Grafana IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Grafana Mover IAM Role missing: {role_name}")
+      print(f"❌ Grafana IAM Role missing: {role_name}")
     else:
       raise
 

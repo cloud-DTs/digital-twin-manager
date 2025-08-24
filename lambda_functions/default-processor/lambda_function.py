@@ -16,6 +16,9 @@ def process(event):
 
 
 def lambda_handler(event, context):
+    print("Hello from Default Processor!")
+    print("Event: " + json.dumps(event))
+
     payload = process(event)
 
     if DIGITAL_TWIN_INFO["layer_3_hot_provider"].lower() == "aws":

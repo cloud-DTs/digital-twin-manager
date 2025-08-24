@@ -1,124 +1,65 @@
 import json
-from datetime import datetime, timezone
+import os
+import boto3
+from boto3.dynamodb.conditions import Key
+
+
+DIGITAL_TWIN_INFO = json.loads(os.environ.get("DIGITAL_TWIN_INFO", None))
+DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", None)
+
+twinmaker_client = boto3.client("iottwinmaker")
+dynamodb_resource = boto3.resource("dynamodb")
+dynamodb_table = dynamodb_resource.Table(DYNAMODB_TABLE_NAME)
+
+
+def aws_handler(event, context):
+    entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])
+    components = entity.get("components", {})
+    component_info = components.get(event["componentName"])
+    component_type_id = component_info.get("componentTypeId")
+
+    response = dynamodb_table.query(
+        KeyConditionExpression=Key("iot_device_id").eq(component_type_id) &
+                               Key("id").between(event["startTime"], event["endTime"])
+        )
+    items = response["Items"]
+
+    propertyValues = []
+
+    for prop in event["selectedProperties"]:
+        prop_type = f"{event["properties"][prop]["definition"]["dataType"]["type"].capitalize()}Value"
+
+        entry = {
+            "entityPropertyReference": {
+                "propertyName": prop
+            },
+            "values": []
+        }
+
+        for item in items:
+            entry["values"].append({
+                "time": item["id"],
+                "value": { prop_type: item[prop] }
+            })
+
+        propertyValues.append(entry)
+
+    return { "propertyValues": propertyValues }
+
+
+def azure_handler(event, context):
+    print("TODO Azure")
+
 
 def lambda_handler(event, context):
-    # Example: event may contain entityId, componentName, propertyName, etc.
-    # api_url = "https://your-http-api.example.com/data"
+    print("Hello from Twinmaker Connector!")
+    print("Event: " + json.dumps(event))
 
-    # try:
-    #     resp = requests.get(api_url, timeout=5)
-    #     resp.raise_for_status()
-    #     data = resp.json()
+    if DIGITAL_TWIN_INFO["layer_3_hot_provider"].lower() == "aws":
+        return aws_handler(event, context)
 
-    #     # Build TwinMaker response (customize per your schema)
-    #     return {
-    #         "value": data.get("desired_value"),
-    #         "timestamp": data.get("timestamp"),
-    #         # Include other required elements per TwinMaker's spec
-    #     }
-    # except Exception as e:
-    #     return {
-    #         "error": str(e)
-    #     }
+    elif DIGITAL_TWIN_INFO["layer_3_hot_provider"].lower() == "azure":
+        return azure_handler(event, context)
 
-
-    """
-    TwinMaker connector Lambda for time-series properties.
-
-    Event example:
-    {
-        "workspaceId": "MyWorkspace",
-        "entityId": "MyEntity",
-        "componentName": "TelemetryData",
-        "selectedProperties": ["Temperature"],
-        "startTime": "2022-08-25T00:00:00Z",
-        "endTime": "2022-08-25T00:00:05Z",
-        "maxResults": 3,
-        "orderByTime": "ASCENDING",
-        "properties": {
-            "telemetryType": {
-                "definition": {
-                    "dataType": { "type": "STRING" },
-                    "isExternalId": false,
-                    "isFinal": false,
-                    "isImported": false,
-                    "isInherited": false,
-                    "isRequiredInEntity": false,
-                    "isStoredExternally": false,
-                    "isTimeSeries": false
-                },
-                "value": {
-                    "stringValue": "Mixer"
-                }
-            },
-            "telemetryId": {
-                "definition": {
-                    "dataType": { "type": "STRING" },
-                    "isExternalId": true,
-                    "isFinal": true,
-                    "isImported": false,
-                    "isInherited": false,
-                    "isRequiredInEntity": true,
-                    "isStoredExternally": false,
-                    "isTimeSeries": false
-                },
-                "value": {
-                    "stringValue": "item_A001"
-                }
-            },
-            "Temperature": {
-                "definition": {
-                    "dataType": { "type": "DOUBLE", },
-                    "isExternalId": false,
-                    "isFinal": false,
-                    "isImported": true,
-                    "isInherited": false,
-                    "isRequiredInEntity": false,
-                    "isStoredExternally": false,
-                    "isTimeSeries": true
-                }
-            }
-        }
-    }
-    """
-
-    print("Hello from twinmaker connector!")
-
-    return {
-        # "propertyValues": [
-        #     {
-        #         "time": "2025-08-22T19:03:18+00:00",
-        #         "value": {"doubleValue": 11.1}
-        #     }
-        # ]
-
-        "propertyValues": [
-            {
-                "entityPropertyReference": {
-                    # "entityId": "MyEntity",
-                    # "componentName": "TelemetryData",
-                    "propertyName": "density"
-                },
-                "values": [
-                    {
-                        "time": "2025-08-22T19:01:18+00:00",
-                        "value": {
-                            "doubleValue": 111.1
-                        }
-                    },
-                    {
-                        "time": "2025-08-22T19:02:18+00:00",
-                        "value": {
-                            "doubleValue": 222.2
-                        }
-                    },
-                    {
-                        "time": "2025-08-22T19:03:18+00:00",
-                        "value": {
-                            "doubleValue": 333.3
-                        }
-                    }
-                ]
-            }
-        ],
-    }
+    else:
+        print("Error: Unknown DIGITAL_TWIN_INFO['layer_3_hot_provider']")

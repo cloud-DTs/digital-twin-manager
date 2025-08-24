@@ -295,41 +295,41 @@ def destroy_twinmaker_component_type(iot_device):
   print(f"Deleted IoT Twinmaker Component Type: {component_type_id}")
 
 
-def deploy_iot_services_l1():
+def deploy_l1():
   for iot_device in globals.config_iot_devices:
     create_iot_thing(iot_device)
 
-def destroy_iot_services_l1():
+def destroy_l1():
   for iot_device in globals.config_iot_devices:
     destroy_iot_thing(iot_device)
 
 
-def deploy_iot_services_l2():
+def deploy_l2():
   for iot_device in globals.config_iot_devices:
     create_processor_iam_role(iot_device)
     create_processor_lambda_function(iot_device)
 
-def destroy_iot_services_l2():
+def destroy_l2():
   for iot_device in globals.config_iot_devices:
     destroy_processor_lambda_function(iot_device)
     destroy_processor_iam_role(iot_device)
 
 
-def deploy_iot_services_l4():
+def deploy_l4():
   for iot_device in globals.config_iot_devices:
     create_twinmaker_component_type(iot_device)
 
-def destroy_iot_services_l4():
+def destroy_l4():
   for iot_device in globals.config_iot_devices:
     destroy_twinmaker_component_type(iot_device)
 
 
 def deploy():
-  deploy_iot_services_l1()
-  deploy_iot_services_l2()
-  deploy_iot_services_l4()
+  deploy_l1()
+  deploy_l2()
+  deploy_l4()
 
 def destroy():
-  destroy_iot_services_l4()
-  destroy_iot_services_l2()
-  destroy_iot_services_l1()
+  destroy_l4()
+  destroy_l2()
+  destroy_l1()

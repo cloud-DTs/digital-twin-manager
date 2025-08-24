@@ -3,6 +3,7 @@ import globals
 import os
 import json
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
+from datetime import datetime, timezone
 
 
 payload_index = 0
@@ -39,7 +40,7 @@ def send():
   payload = payloads[payload_index]
   payload_index += 1
 
-  if "timestamp" not in payload or payload["timestamp"] == "":
-    payload["timestamp"] = int(time.time())
+  if "time" not in payload or payload["time"] == "":
+    payload["time"] = datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
 
   send_mqtt(payload)
