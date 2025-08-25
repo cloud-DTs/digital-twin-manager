@@ -7,7 +7,7 @@ def update_function(local_function_name, environment=None):
     compiled_function = util.compile_lambda_function(local_function_name)
 
     for iot_device in globals.config_iot_devices:
-      function_name = globals.config.get("general", "digital_twin_name") + "-" + iot_device["name"] + "-processor"
+      function_name = globals.config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
 
       globals.aws_lambda_client.update_function_code(
         FunctionName=function_name,
@@ -28,7 +28,7 @@ def update_function(local_function_name, environment=None):
 
     return
 
-  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
+  function_name = globals.config["digital_twin_name"] + "-" + local_function_name
 
   globals.aws_lambda_client.update_function_code(
     FunctionName=function_name,
@@ -49,7 +49,7 @@ def update_function(local_function_name, environment=None):
 
 
 def fetch_logs(local_function_name, n=10, filter_system_logs=True):
-  function_name = globals.config.get("general", "digital_twin_name") + "-" + local_function_name
+  function_name = globals.config["digital_twin_name"] + "-" + local_function_name
   log_group = f"/aws/lambda/{function_name}"
 
   streams = globals.aws_logs_client.describe_log_streams( logGroupName=log_group, orderBy="LastEventTime", descending=True, limit=1)

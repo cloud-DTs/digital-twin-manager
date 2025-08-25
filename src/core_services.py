@@ -114,7 +114,7 @@ def destroy_dispatcher_lambda_function():
 
 def create_dispatcher_iot_rule():
   rule_name = globals.dispatcher_iot_rule_name()
-  sql = f"SELECT * FROM '{globals.config.get("general", "digital_twin_name")}/iot-data'"
+  sql = f"SELECT * FROM '{globals.config["digital_twin_name"]}/iot-data'"
 
   function_name = globals.dispatcher_lambda_function_name()
 
@@ -428,11 +428,10 @@ def destroy_hot_cold_mover_lambda_function():
 
 def create_hot_cold_mover_event_rule():
   rule_name = globals.hot_cold_mover_event_rule_name()
-  schedule_expression = f"rate({globals.config.get("general", "layer_3_hot_to_cold_interval_days")} days)"
+  schedule_expression = f"rate({globals.config["layer_3_hot_to_cold_interval_days"]} days)"
 
   function_name = globals.hot_cold_mover_lambda_function_name()
 
-  # create the EventBridge rule
   rule_response = globals.aws_events_client.put_rule(
     Name=rule_name,
     ScheduleExpression=schedule_expression,
@@ -443,7 +442,6 @@ def create_hot_cold_mover_event_rule():
 
   print(f"Created EventBridge rule: {rule_name}")
 
-  # add Lambda function as target
   lambda_arn = globals.aws_lambda_client.get_function(FunctionName=function_name)["Configuration"]["FunctionArn"]
 
   globals.aws_events_client.put_targets(
@@ -458,7 +456,6 @@ def create_hot_cold_mover_event_rule():
 
   print(f"Added Lambda function as target.")
 
-  # grant EventBridge permission to invoke the Lambda function
   globals.aws_lambda_client.add_permission(
     FunctionName=function_name,
     StatementId="events-invoke",
@@ -621,7 +618,7 @@ def create_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
   function_name = globals.cold_archive_mover_lambda_function_name()
 
-  schedule_expression = f"rate({globals.config.get("general", "layer_3_cold_to_archive_interval_days")} days)"
+  schedule_expression = f"rate({globals.config["layer_3_cold_to_archive_interval_days"]} days)"
 
   rule_arn = globals.aws_events_client.put_rule(Name=rule_name, ScheduleExpression=schedule_expression, State="ENABLED")["RuleArn"]
 
