@@ -28,22 +28,22 @@ def project_path():
 
 def initialize_config():
   global config
-  with open("config.json", "r") as file:
+  with open(f"{project_path()}/config.json", "r") as file:
     config = json.load(file)
 
 def initialize_config_iot_devices():
   global config_iot_devices
-  with open("config_iot_devices.json", "r") as file:
+  with open(f"{project_path()}/config_iot_devices.json", "r") as file:
     config_iot_devices = json.load(file)
 
 def initialize_config_providers():
   global config_providers
-  with open("config_providers.json", "r") as file:
+  with open(f"{project_path()}/config_providers.json", "r") as file:
     config_providers = json.load(file)
 
 def initialize_config_credentials():
   global config_credentials
-  with open("config_credentials.json", "r") as file:
+  with open(f"{project_path()}/config_credentials.json", "r") as file:
     config_credentials = json.load(file)
 
 def digital_twin_info():
