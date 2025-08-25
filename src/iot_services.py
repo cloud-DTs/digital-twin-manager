@@ -278,6 +278,38 @@ def destroy_twinmaker_component_type(iot_device):
     if e.response['Error']['Code'] == 'ResourceNotFoundException':
       return
 
+  try:
+    response = globals.aws_twinmaker_client.list_entities(workspaceId=workspace_name)
+
+    for entity in response.get("entitySummaries", []):
+      entity_details = globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity["entityId"])
+      components = entity_details.get("components", {})
+      component_updates = {}
+
+      for comp_name, comp in components.items():
+        if comp.get("componentTypeId") == component_type_id:
+          component_updates[comp_name] = {"updateType": "DELETE"}
+
+      if component_updates:
+        globals.aws_twinmaker_client.update_entity(workspaceId=workspace_name, entityId=entity["entityId"], componentUpdates=component_updates)
+        print("Deletion of components initiated.")
+
+        while True:
+          entity_details_2 = globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity["entityId"])
+          components_2 = entity_details_2.get("components", {})
+
+          if not set(component_updates.keys()) & set(components_2.keys()):
+            print(f"Deleted components.")
+            break
+          else:
+            time.sleep(2)
+
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "ValidationException":
+      raise
+
+  print(f"Deleted all IoT Twinmaker Components with component type id: {component_type_id}")
+
   globals.aws_twinmaker_client.delete_component_type(workspaceId=workspace_name, componentTypeId=component_type_id)
 
   print(f"Deletion of IoT Twinmaker Component Type initiated: {component_type_id}")

@@ -1,4 +1,5 @@
 import json
+import time
 import globals
 import core_services
 import info
@@ -58,8 +59,8 @@ def main():
         core_services.deploy()
         iot_services.deploy()
       elif command == "destroy":
-        core_services.destroy()
         iot_services.destroy()
+        core_services.destroy()
       elif command == "deploy_core":
         core_services.deploy()
       elif command == "destroy_core":
@@ -83,7 +84,9 @@ def main():
         else:
           print("".join(lambda_manager.fetch_logs(args[0])))
       elif command == "help":
-        help_menu()
+        # help_menu()
+
+
       elif command == "exit":
         print("Goodbye!")
         break
