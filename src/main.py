@@ -1,5 +1,4 @@
 import json
-import time
 import globals
 import core_services
 import info
@@ -84,9 +83,7 @@ def main():
         else:
           print("".join(lambda_manager.fetch_logs(args[0])))
       elif command == "help":
-        # help_menu()
-
-
+        help_menu()
       elif command == "exit":
         print("Goodbye!")
         break
