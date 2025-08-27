@@ -1,2 +1,4 @@
 config_credentials.json
 iot_devices_auth/
+src/__pycache__
+iot_device_simulator/src/__pycache__
