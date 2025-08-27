@@ -15,7 +15,6 @@ def help_menu():
       deploy_iot                                                        - Deploys services and resources for every specified iot device.
       destroy_iot                                                       - Deploys services and resources for every specified iot device.
       info                                                              - Lists all the deployed resources.
-      info_l1(-l5)                                                      - Lists the deployed resources for the given layer.
       lambda_update <local_function_name> <o:environment>               - Deploys a new version of the specified lambda function.
       lambda_logs <local_function_name> <o:n> <o:filter_system_logs>    - Fetches the last n logged messages of the specified lambda function.
       help                                                              - Show this help menu.
