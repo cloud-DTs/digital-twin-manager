@@ -10,14 +10,14 @@
           {
             "type": "component",
             "name": "temperature-sensor-1",
-            "componentType": "digital-twin-temperature-sensor-1"
+            "componentType": "some-component-type"
           }
         ]
       },
       {
         "type": "component",
         "name": "temperature-sensor-2",
-        "componentType": "digital-twin-temperature-sensor-2"
+        "iotDevice": "temperature-sensor-2"
       }
     ]
   },
@@ -28,7 +28,7 @@
       {
         "type": "component",
         "name": "pressure-sensor-1",
-        "componentType": "digital-twin-pressure-sensor-1"
+        "iotDevice": "pressure-sensor-1"
       }
     ]
   }
