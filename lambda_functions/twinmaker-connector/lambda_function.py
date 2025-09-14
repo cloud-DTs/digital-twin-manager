@@ -19,7 +19,7 @@ def aws_handler(event, context):
     component_type_id = component_info.get("componentTypeId")
 
     response = dynamodb_table.query(
-        KeyConditionExpression=Key("iot_device_id").eq(component_type_id) &
+        KeyConditionExpression=Key("iotDeviceId").eq(component_type_id) &
                                Key("id").between(event["startTime"], event["endTime"])
         )
     items = response["Items"]

@@ -3,6 +3,9 @@
     "name": "temperature-sensor-1",
     "properties": [
       { "name": "temperature", "dataType": "DOUBLE" }
+    ],
+    "constProperties": [
+      { "name": "serial-number", "dataType": "STRING", "value": "1232323" }
     ]
   },
   {

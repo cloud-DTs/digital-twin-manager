@@ -1,0 +1,35 @@
+[
+  {
+    "type": "entity",
+    "name": "room-1",
+    "children": [
+      {
+        "type": "entity",
+        "name": "machine-1",
+        "children": [
+          {
+            "type": "component",
+            "name": "temperature-sensor-1",
+            "componentType": "digital-twin-temperature-sensor-1"
+          }
+        ]
+      },
+      {
+        "type": "component",
+        "name": "temperature-sensor-2",
+        "componentType": "digital-twin-temperature-sensor-2"
+      }
+    ]
+  },
+  {
+    "type": "entity",
+    "name": "room-2",
+    "children": [
+      {
+        "type": "component",
+        "name": "pressure-sensor-1",
+        "componentType": "digital-twin-pressure-sensor-1"
+      }
+    ]
+  }
+]

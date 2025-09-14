@@ -1,0 +1,16 @@
+[
+  {
+    "condition": "temperature-sensor-1.temperature < STATIC(43)",
+    "action": {
+      "type": "lambda",
+      "functionArn": "..."
+    }
+  },
+  {
+    "condition": "<componentName>.<propertyName> > temperature-sensor-2.temperature",
+    "action": {
+      "type": "lambda",
+      "functionArn": "..."
+    }
+  }
+]

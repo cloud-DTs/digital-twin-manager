@@ -9,7 +9,7 @@ payload_index = 0
 
 
 def send_mqtt(payload):
-  device_name = payload["iot_device_id"]
+  device_name = payload["iotDeviceId"]
   auth_path = os.path.join(globals.project_path(), globals.config["auth_files_path"], device_name)
 
   client = AWSIoTMQTTClient(device_name)

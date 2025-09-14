@@ -287,11 +287,11 @@ def create_iot_data_dynamodb_table():
   globals.aws_dynamodb_client.create_table(
     TableName=table_name,
     KeySchema=[
-      {'AttributeName': 'iot_device_id', 'KeyType': 'HASH'},  # partition key
+      {'AttributeName': 'iotDeviceId', 'KeyType': 'HASH'},  # partition key
       {'AttributeName': 'id', 'KeyType': 'RANGE'}             # sort key
     ],
     AttributeDefinitions=[
-      {'AttributeName': 'iot_device_id', 'AttributeType': 'S'},
+      {'AttributeName': 'iotDeviceId', 'AttributeType': 'S'},
       {'AttributeName': 'id', 'AttributeType': 'S'}
     ],
     BillingMode='PAY_PER_REQUEST'
