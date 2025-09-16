@@ -75,6 +75,30 @@ def check_persister_lambda_function():
     else:
       raise
 
+def check_event_checker_iam_role():
+  role_name = globals.event_checker_iam_role_name()
+
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Event-Checker IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Event-Checker IAM Role missing: {role_name}")
+    else:
+      raise
+
+def check_event_checker_lambda_function():
+  function_name = globals.event_checker_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Event-Checker Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Event-Checker Lambda Function missing: {function_name}")
+    else:
+      raise
+
 def check_processor_iam_role(iot_device):
   role_name = globals.processor_iam_role_name(iot_device)
 

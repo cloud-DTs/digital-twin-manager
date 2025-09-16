@@ -26,6 +26,8 @@ def main():
     globals.initialize_config_iot_devices()
     globals.initialize_config_providers()
     globals.initialize_config_credentials()
+    globals.initialize_config_events()
+    globals.initialize_config_hierarchy()
     globals.initialize_aws_iam_client()
     globals.initialize_aws_lambda_client()
     globals.initialize_aws_iot_client()
@@ -55,9 +57,9 @@ def main():
 
       if command == "deploy":
         core_services.deploy()
-        iot_services.deploy()
+        # iot_services.deploy()
       elif command == "destroy":
-        iot_services.destroy()
+        # iot_services.destroy()
         core_services.destroy()
       elif command == "deploy_core":
         core_services.deploy()

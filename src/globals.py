@@ -36,6 +36,16 @@ def initialize_config_iot_devices():
   with open(f"{project_path()}/config_iot_devices.json", "r") as file:
     config_iot_devices = json.load(file)
 
+def initialize_config_events():
+  global config_events
+  with open(f"{project_path()}/config_events.json", "r") as file:
+    config_events = json.load(file)
+
+def initialize_config_hierarchy():
+  global config_hierarchy
+  with open(f"{project_path()}/config_hierarchy.json", "r") as file:
+    config_hierarchy = json.load(file)
+
 def initialize_config_providers():
   global config_providers
   with open(f"{project_path()}/config_providers.json", "r") as file:
@@ -47,7 +57,13 @@ def initialize_config_credentials():
     config_credentials = json.load(file)
 
 def digital_twin_info():
-  return { "name": config["digital_twin_name"] } | config_providers | { "iot_devices": config_iot_devices }
+  return { 
+    "name": config["digital_twin_name"] 
+  } | config_providers | {
+    "iot_devices": config_iot_devices
+  } | {
+    "events": config_events
+  }
 
 
 def initialize_aws_iam_client():
@@ -147,6 +163,12 @@ def persister_iam_role_name():
 def persister_lambda_function_name():
   return config["digital_twin_name"] + "-persister"
 
+def event_checker_iam_role_name():
+  return config["digital_twin_name"] + "-event-checker"
+
+def event_checker_lambda_function_name():
+  return config["digital_twin_name"] + "-event-checker"
+
 def dynamodb_table_name():
   return config["digital_twin_name"] + "-iot-data"
 
@@ -179,6 +201,12 @@ def twinmaker_connector_iam_role_name():
 
 def twinmaker_connector_lambda_function_name():
   return config["digital_twin_name"] + "-twinmaker-connector"
+
+def twinmaker_connector_last_entry_iam_role_name():
+  return config["digital_twin_name"] + "-twinmaker-connector-last-entry"
+
+def twinmaker_connector_last_entry_lambda_function_name():
+  return config["digital_twin_name"] + "-twinmaker-connector-last-entry"
 
 def twinmaker_s3_bucket_name():
   return config["digital_twin_name"] + "-twinmaker"

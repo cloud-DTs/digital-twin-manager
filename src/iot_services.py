@@ -222,11 +222,15 @@ def destroy_processor_lambda_function(iot_device):
 
 def create_twinmaker_component_type(iot_device):
   connector_function_name = globals.twinmaker_connector_lambda_function_name()
+  connector_last_entry_function_name = globals.twinmaker_connector_last_entry_lambda_function_name()
   workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
 
   response = globals.aws_lambda_client.get_function(FunctionName=connector_function_name)
   connector_function_arn = response["Configuration"]["FunctionArn"]
+
+  response = globals.aws_lambda_client.get_function(FunctionName=connector_last_entry_function_name)
+  connector_last_entry_function_arn = response["Configuration"]["FunctionArn"]
 
   property_definitions = {}
 
@@ -246,6 +250,13 @@ def create_twinmaker_component_type(iot_device):
       "implementedBy": {
         "lambda": {
           "arn": connector_function_arn
+        }
+      }
+    },
+    "attributePropertyValueReaderByEntity": {
+      "implementedBy": {
+        "lambda": {
+          "arn": connector_last_entry_function_arn
         }
       }
     }

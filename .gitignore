@@ -8,3 +8,5 @@ lambda_functions/dispatcher/zipped.zip
 lambda_functions/hot-to-cold-mover/zipped.zip
 lambda_functions/persister/zipped.zip
 lambda_functions/twinmaker-connector/zipped.zip
+lambda_functions/twinmaker-connector-last-entry/zipped.zip
+lambda_functions/event-checker/zipped.zip
