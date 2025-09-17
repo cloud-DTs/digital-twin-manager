@@ -308,6 +308,7 @@ def create_event_checker_iam_role():
 
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
   ]
 
@@ -439,7 +440,7 @@ def create_iot_data_dynamodb_table():
     TableName=table_name,
     KeySchema=[
       {'AttributeName': 'iotDeviceId', 'KeyType': 'HASH'},  # partition key
-      {'AttributeName': 'id', 'KeyType': 'RANGE'}             # sort key
+      {'AttributeName': 'id', 'KeyType': 'RANGE'}           # sort key
     ],
     AttributeDefinitions=[
       {'AttributeName': 'iotDeviceId', 'AttributeType': 'S'},
@@ -1526,10 +1527,10 @@ def deploy_l2():
   create_event_checker_lambda_function()
 
 def destroy_l2():
-  destroy_persister_lambda_function()
-  destroy_persister_iam_role()
   destroy_event_checker_lambda_function()
   destroy_event_checker_iam_role()
+  destroy_persister_lambda_function()
+  destroy_persister_iam_role()
 
 
 def deploy_l3_hot():
@@ -1566,22 +1567,22 @@ def destroy_l3_archive():
 
 
 def deploy_l4():
-  # create_twinmaker_s3_bucket()
-  # create_twinmaker_iam_role()
-  # create_twinmaker_workspace()
-  # create_twinmaker_connector_iam_role()
-  # create_twinmaker_connector_lambda_function()
+  create_twinmaker_s3_bucket()
+  create_twinmaker_iam_role()
+  create_twinmaker_workspace()
+  create_twinmaker_connector_iam_role()
+  create_twinmaker_connector_lambda_function()
   create_twinmaker_connector_last_entry_iam_role()
   create_twinmaker_connector_last_entry_lambda_function()
 
 def destroy_l4():
   destroy_twinmaker_connector_last_entry_lambda_function()
   destroy_twinmaker_connector_last_entry_iam_role()
-  # destroy_twinmaker_connector_lambda_function()
-  # destroy_twinmaker_connector_iam_role()
-  # destroy_twinmaker_workspace()
-  # destroy_twinmaker_iam_role()
-  # destroy_twinmaker_s3_bucket()
+  destroy_twinmaker_connector_lambda_function()
+  destroy_twinmaker_connector_iam_role()
+  destroy_twinmaker_workspace()
+  destroy_twinmaker_iam_role()
+  destroy_twinmaker_s3_bucket()
 
 
 def deploy_l5():
@@ -1596,19 +1597,23 @@ def destroy_l5():
 
 
 def deploy():
-  # deploy_l1()
-  # deploy_l2()
-  # deploy_l3_hot()
-  # deploy_l3_cold()
-  # deploy_l3_archive()
+  deploy_l1()
+  deploy_l2()
+  deploy_l3_hot()
+  deploy_l3_cold()
+  deploy_l3_archive()
   deploy_l4()
-  # deploy_l5()
+  deploy_l5()
 
 def destroy():
-  # destroy_l5()
+  destroy_l5()
   destroy_l4()
-  # destroy_l3_archive()
-  # destroy_l3_cold()
-  # destroy_l3_hot()
-  # destroy_l2()
-  # destroy_l1()
+  destroy_l3_archive()
+  destroy_l3_cold()
+  destroy_l3_hot()
+  destroy_l2()
+  destroy_l1()
+
+def config_events_updated():
+  destroy_event_checker_lambda_function()
+  create_event_checker_lambda_function()

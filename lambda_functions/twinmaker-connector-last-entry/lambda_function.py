@@ -13,21 +13,8 @@ dynamodb_table = dynamodb_resource.Table(DYNAMODB_TABLE_NAME)
 
 
 def lambda_handler(event, context):
-    print("Hello from Twinmaker Connector!")
+    print("Hello from Twinmaker Connector Last Entry!")
     print("Event: " + json.dumps(event))
-
-    return {
-        "propertyValues": {
-            "temperature": { 
-                "propertyReference": {
-
-                },
-                "propertyValue": {
-                    "doubleValue": 111
-                }
-            }
-        }
-    }
 
     entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])
     components = entity.get("components", {})
@@ -35,29 +22,26 @@ def lambda_handler(event, context):
     component_type_id = component_info.get("componentTypeId")
 
     response = dynamodb_table.query(
-        KeyConditionExpression=Key("iotDeviceId").eq(component_type_id) &
-                               Key("id").between(event["startTime"], event["endTime"])
+        KeyConditionExpression=Key("iotDeviceId").eq(component_type_id),
+                               ScanIndexForward=False,
+                               Limit=1
         )
-    items = response["Items"]
+    item = response["Items"][0]
 
-    propertyValues = []
+    propertyValues = {}
 
-    for prop in event["selectedProperties"]:
-        prop_type = f"{event["properties"][prop]["definition"]["dataType"]["type"].capitalize()}Value"
+    for property_name in event["selectedProperties"]:
+        property_type = f"{event["properties"][property_name]["definition"]["dataType"]["type"].lower()}Value"
 
-        entry = {
-            "entityPropertyReference": {
-                "propertyName": prop
+        propertyValues[property_name] = {
+            "propertyReference": {
+                "entityId": event["entityId"],
+                "componentName": event["componentName"],
+                "propertyName": property_name
             },
-            "values": []
+            "propertyValue": {
+                property_type: item[property_name]
+            }
         }
-
-        for item in items:
-            entry["values"].append({
-                "time": item["id"],
-                "value": { prop_type: item[prop] }
-            })
-
-        propertyValues.append(entry)
 
     return { "propertyValues": propertyValues }

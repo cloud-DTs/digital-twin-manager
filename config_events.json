@@ -1,23 +1,9 @@
 [
   {
-    "condition": "testEntityId.temperature-sensor-1.temperature < DOUBLE(43)",
+    "condition": "testEntityId.temperature-sensor-1.temperature == DOUBLE(30)",
     "action": {
       "type": "lambda",
-      "functionArn": "..."
-    }
-  },
-  {
-    "condition": "testEntityId.temperature-sensor-1.temperature > testEntityId.pressure-sensor-1.pressure",
-    "action": {
-      "type": "lambda",
-      "functionArn": "..."
-    }
-  },
-  {
-    "condition": "DOUBLE(22) > testEntityId.temperature-sensor-2.temperature",
-    "action": {
-      "type": "lambda",
-      "functionArn": "..."
+      "functionName": "myEventAction"
     }
   }
 ]
