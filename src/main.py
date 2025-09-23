@@ -53,11 +53,11 @@ def main():
       args = parts[1:]
 
       if command == "deploy":
-        # core_services.deploy()
+        core_services.deploy()
         iot_services.deploy()
       elif command == "destroy":
         iot_services.destroy()
-        # core_services.destroy()
+        core_services.destroy()
       elif command == "info":
         info.check()
       elif command == "config_events_updated":

@@ -382,11 +382,11 @@ def destroy_l4():
 
 
 def deploy():
-  # deploy_l1()
-  # deploy_l2()
+  deploy_l1()
+  deploy_l2()
   deploy_l4()
 
 def destroy():
   destroy_l4()
-  # destroy_l2()
-  # destroy_l1()
+  destroy_l2()
+  destroy_l1()
