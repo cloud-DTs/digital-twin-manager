@@ -67,7 +67,7 @@ def lambda_handler(event, context):
                 case ">": result = param1_value < param2_value
                 case "==": result = param1_value == param2_value
 
-            if e["action"]["type"] == "lambda":
+            if e["action"]["type"] == "lambda" and result:
                 payload = {
                     "e": e
                 }
