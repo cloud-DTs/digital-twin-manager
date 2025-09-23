@@ -234,14 +234,28 @@ def create_twinmaker_component_type(iot_device):
 
   property_definitions = {}
 
-  for property in iot_device["properties"]:
-    property_definitions[property["name"]] = {
-      "dataType": {
-        "type": property["dataType"]
-      },
-      "isTimeSeries": True,
-      "isStoredExternally": True
-    }
+  if "properties" in iot_device:
+    for property in iot_device["properties"]:
+      property_definitions[property["name"]] = {
+        "dataType": {
+          "type": property["dataType"]
+        },
+        "isTimeSeries": True,
+        "isStoredExternally": True
+      }
+
+  if "constProperties" in iot_device:
+    for const_property in iot_device["constProperties"]:
+      property_definitions[const_property["name"]] = {
+        "dataType": {
+          "type": const_property["dataType"]
+        },
+        "defaultValue": {
+          f"{const_property["dataType"].lower()}Value": const_property["value"]
+        },
+        "isTimeSeries": False,
+        "isStoredExternally": False
+      }
 
   functions = {}
 
@@ -368,11 +382,11 @@ def destroy_l4():
 
 
 def deploy():
-  deploy_l1()
-  deploy_l2()
+  # deploy_l1()
+  # deploy_l2()
   deploy_l4()
 
 def destroy():
   destroy_l4()
-  destroy_l2()
-  destroy_l1()
+  # destroy_l2()
+  # destroy_l1()
