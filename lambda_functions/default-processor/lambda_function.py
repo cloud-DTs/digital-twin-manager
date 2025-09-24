@@ -21,12 +21,4 @@ def lambda_handler(event, context):
 
     payload = process(event)
 
-    if DIGITAL_TWIN_INFO["layer_3_hot_provider"].lower() == "aws":
-        lambda_client.invoke(FunctionName=PERSISTER_LAMBDA_NAME, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
-
-    elif DIGITAL_TWIN_INFO["layer_3_hot_provider"].lower() == "azure":
-        print("TODO AZURE")
-
-    else:
-        print("UNKNOWN DIGITAL_TWIN_INFO")
-
+    lambda_client.invoke(FunctionName=PERSISTER_LAMBDA_NAME, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))

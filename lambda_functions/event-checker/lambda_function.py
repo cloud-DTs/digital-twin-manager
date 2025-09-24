@@ -37,9 +37,9 @@ def extract_const_value(string):
 def lambda_handler(event, context):
     print("Hello from Event-Checker!")
     print("Event: " + json.dumps(event))
-    print("Events: " + json.dumps(DIGITAL_TWIN_INFO["events"]))
+    print("Events: " + json.dumps(DIGITAL_TWIN_INFO["config_events"]))
 
-    for e in DIGITAL_TWIN_INFO["events"]:
+    for e in DIGITAL_TWIN_INFO["config_events"]:
         try:
             condition = e["condition"]
             param1 = condition.split()[0]

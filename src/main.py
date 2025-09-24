@@ -21,7 +21,6 @@ def help_menu():
 def main():
     globals.initialize_config()
     globals.initialize_config_iot_devices()
-    globals.initialize_config_providers()
     globals.initialize_config_credentials()
     globals.initialize_config_events()
     globals.initialize_config_hierarchy()
@@ -74,8 +73,27 @@ def main():
           print("".join(lambda_manager.fetch_logs(args[0], int(args[1]))))
         else:
           print("".join(lambda_manager.fetch_logs(args[0])))
+      elif command == "lambda_invoke":
+        if len(args) > 2:
+          lambda_manager.invoke_function(args[0], json.loads(args[1]), args[2].lower() in ("true", "1", "yes", "y"))
+        elif len(args) > 1:
+          lambda_manager.invoke_function(args[0], json.loads(args[1]))
+        else:
+          lambda_manager.invoke_function(args[0])
       elif command == "help":
         help_menu()
+        # for iot_device in globals.config_iot_devices:
+        #   iot_services.destroy_processor_lambda_function(iot_device)
+        #   iot_services.create_processor_lambda_function(iot_device)
+
+        # core_services.destroy_dispatcher_lambda_function()
+        # core_services.create_dispatcher_lambda_function()
+
+        # core_services.destroy_event_checker_lambda_function()
+        # core_services.create_event_checker_lambda_function()
+
+        core_services.destroy_hot_cold_mover_lambda_function()
+        core_services.create_hot_cold_mover_lambda_function()
       elif command == "exit":
         print("Goodbye!")
         break

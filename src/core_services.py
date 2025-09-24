@@ -563,6 +563,13 @@ def create_hot_cold_mover_lambda_function():
     Timeout=3, # seconds
     MemorySize=128, # MB
     Publish=True,
+    Environment={
+      "Variables": {
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
+        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
+        "S3_BUCKET_NAME": globals.cold_s3_bucket_name()
+      }
+    }
   )
 
   print(f"Created Lambda function: {function_name}")
@@ -580,7 +587,7 @@ def destroy_hot_cold_mover_lambda_function():
 
 def create_hot_cold_mover_event_rule():
   rule_name = globals.hot_cold_mover_event_rule_name()
-  schedule_expression = f"rate({globals.config["layer_3_hot_to_cold_interval_days"]} days)"
+  schedule_expression = f"cron(0 12 * * ? *)"
 
   function_name = globals.hot_cold_mover_lambda_function_name()
 
@@ -770,7 +777,7 @@ def create_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
   function_name = globals.cold_archive_mover_lambda_function_name()
 
-  schedule_expression = f"rate({globals.config["layer_3_cold_to_archive_interval_days"]} days)"
+  schedule_expression = f"cron(0 18 * * ? *)"
 
   rule_arn = globals.aws_events_client.put_rule(Name=rule_name, ScheduleExpression=schedule_expression, State="ENABLED")["RuleArn"]
 
@@ -1603,10 +1610,10 @@ def deploy():
   deploy_l3_cold()
   deploy_l3_archive()
   deploy_l4()
-  deploy_l5()
+  # deploy_l5()
 
 def destroy():
-  destroy_l5()
+  # destroy_l5()
   destroy_l4()
   destroy_l3_archive()
   destroy_l3_cold()

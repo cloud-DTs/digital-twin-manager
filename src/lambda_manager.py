@@ -1,3 +1,4 @@
+import json
 import globals
 import util
 
@@ -63,3 +64,21 @@ def fetch_logs(local_function_name, n=10, filter_system_logs=True):
   else:
     system_prefixes = ("INIT_START", "START", "END", "REPORT")
     return [message for message in messages if not message.startswith(system_prefixes)]
+
+
+def invoke_function(local_function_name, payload={}, sync=True):
+  function_name = globals.config["digital_twin_name"] + "-" + local_function_name
+
+  response = globals.aws_lambda_client.invoke(
+      FunctionName=function_name,
+      InvocationType="RequestResponse" if sync else "Event",
+      Payload=json.dumps(payload),
+  )
+
+  if sync:
+    response_payload = response["Payload"].read()
+    result = json.loads(response_payload)
+
+    print("Lambda response:", result)
+  else:
+    print("Lambda invoked.")
