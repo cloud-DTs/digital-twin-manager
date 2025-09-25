@@ -14,6 +14,7 @@ def help_menu():
       config_events_updated                                             - Redeploys the events.
       lambda_update <local_function_name> <o:environment>               - Deploys a new version of the specified lambda function.
       lambda_logs <local_function_name> <o:n> <o:filter_system_logs>    - Fetches the last n logged messages of the specified lambda function.
+      lambda_invoke <local_function_name> <o:payload> <o:sync>          - Invokes the specified lambda function.
       help                                                              - Show this help menu.
       exit                                                              - Exit the program.
   """)
@@ -21,7 +22,6 @@ def help_menu():
 def main():
     globals.initialize_config()
     globals.initialize_config_iot_devices()
-    globals.initialize_config_providers()
     globals.initialize_config_credentials()
     globals.initialize_config_events()
     globals.initialize_config_hierarchy()
@@ -74,6 +74,13 @@ def main():
           print("".join(lambda_manager.fetch_logs(args[0], int(args[1]))))
         else:
           print("".join(lambda_manager.fetch_logs(args[0])))
+      elif command == "lambda_invoke":
+        if len(args) > 2:
+          lambda_manager.invoke_function(args[0], json.loads(args[1]), args[2].lower() in ("true", "1", "yes", "y"))
+        elif len(args) > 1:
+          lambda_manager.invoke_function(args[0], json.loads(args[1]))
+        else:
+          lambda_manager.invoke_function(args[0])
       elif command == "help":
         help_menu()
       elif command == "exit":

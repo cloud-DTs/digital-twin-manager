@@ -12,12 +12,5 @@ def lambda_handler(event, context):
     print("Hello from Dispatcher!")
     print("Event: " + json.dumps(event))
 
-    if DIGITAL_TWIN_INFO["layer_2_provider"].lower() == "aws":
-        processor_function_name = event["iotDeviceId"] + "-processor"
-        lambda_client.invoke(FunctionName=processor_function_name, InvocationType="Event", Payload=json.dumps(event).encode("utf-8"))
-
-    elif DIGITAL_TWIN_INFO["layer_2_provider"].lower() == "azure":
-        print("TODO AZURE")
-
-    else:
-        print("UNKNOWN DIGITAL_TWIN_INFO")
+    processor_function_name = DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + event["iotDeviceId"] + "-processor"
+    lambda_client.invoke(FunctionName=processor_function_name, InvocationType="Event", Payload=json.dumps(event).encode("utf-8"))

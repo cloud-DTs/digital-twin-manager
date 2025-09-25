@@ -1,6 +1,6 @@
 [
   {
-    "name": "temperature-sensor-1",
+    "id": "temperature-sensor-1",
     "properties": [
       { "name": "temperature", "dataType": "DOUBLE" }
     ],
@@ -9,13 +9,13 @@
     ]
   },
   {
-    "name": "temperature-sensor-2",
+    "id": "temperature-sensor-2",
     "properties": [
       { "name": "temperature", "dataType": "DOUBLE" }
     ]
   },
   {
-    "name": "pressure-sensor-1",
+    "id": "pressure-sensor-1",
     "properties": [
       { "name": "pressure", "dataType": "DOUBLE" },
       { "name": "density", "dataType": "DOUBLE" },

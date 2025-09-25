@@ -8,7 +8,6 @@ lambda_functions_path = "lambda_functions"
 
 config = {}
 config_iot_devices = []
-config_providers = {}
 config_credentials = {}
 
 aws_iam_client = {}
@@ -46,23 +45,16 @@ def initialize_config_hierarchy():
   with open(f"{project_path()}/config_hierarchy.json", "r") as file:
     config_hierarchy = json.load(file)
 
-def initialize_config_providers():
-  global config_providers
-  with open(f"{project_path()}/config_providers.json", "r") as file:
-    config_providers = json.load(file)
-
 def initialize_config_credentials():
   global config_credentials
   with open(f"{project_path()}/config_credentials.json", "r") as file:
     config_credentials = json.load(file)
 
 def digital_twin_info():
-  return { 
-    "name": config["digital_twin_name"] 
-  } | config_providers | {
-    "iot_devices": config_iot_devices
-  } | {
-    "events": config_events
+  return {
+    "config": config,
+    "config_iot_devices": config_iot_devices,
+    "config_events": config_events
   }
 
 
@@ -224,16 +216,16 @@ def grafana_iam_role_name():
   return config["digital_twin_name"] + "-grafana"
 
 def iot_thing_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]
 
 def iot_thing_policy_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]
 
 def processor_iam_role_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
+  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
 def processor_lambda_function_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
+  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
 def twinmaker_component_type_id(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]
