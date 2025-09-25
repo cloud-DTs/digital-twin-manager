@@ -14,6 +14,7 @@ def help_menu():
       config_events_updated                                             - Redeploys the events.
       lambda_update <local_function_name> <o:environment>               - Deploys a new version of the specified lambda function.
       lambda_logs <local_function_name> <o:n> <o:filter_system_logs>    - Fetches the last n logged messages of the specified lambda function.
+      lambda_invoke <local_function_name> <o:payload> <o:sync>          - Invokes the specified lambda function.
       help                                                              - Show this help menu.
       exit                                                              - Exit the program.
   """)
@@ -82,9 +83,6 @@ def main():
           lambda_manager.invoke_function(args[0])
       elif command == "help":
         help_menu()
-
-        core_services.destroy_cold_archive_mover_lambda_function()
-        core_services.create_cold_archive_mover_lambda_function()
       elif command == "exit":
         print("Goodbye!")
         break
