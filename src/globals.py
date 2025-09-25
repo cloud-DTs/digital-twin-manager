@@ -216,16 +216,16 @@ def grafana_iam_role_name():
   return config["digital_twin_name"] + "-grafana"
 
 def iot_thing_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]
 
 def iot_thing_policy_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]
 
 def processor_iam_role_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
+  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
 def processor_lambda_function_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
+  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
 def twinmaker_component_type_id(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["name"]
+  return config["digital_twin_name"] + "-" + iot_device["id"]

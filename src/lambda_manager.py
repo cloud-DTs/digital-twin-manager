@@ -8,7 +8,7 @@ def update_function(local_function_name, environment=None):
     compiled_function = util.compile_lambda_function(local_function_name)
 
     for iot_device in globals.config_iot_devices:
-      function_name = globals.config["digital_twin_name"] + "-" + iot_device["name"] + "-processor"
+      function_name = globals.config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
       globals.aws_lambda_client.update_function_code(
         FunctionName=function_name,

@@ -12,5 +12,5 @@ def lambda_handler(event, context):
     print("Hello from Dispatcher!")
     print("Event: " + json.dumps(event))
 
-    processor_function_name = event["iotDeviceId"] + "-processor"
+    processor_function_name = DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + event["iotDeviceId"] + "-processor"
     lambda_client.invoke(FunctionName=processor_function_name, InvocationType="Event", Payload=json.dumps(event).encode("utf-8"))

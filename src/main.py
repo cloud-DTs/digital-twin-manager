@@ -82,18 +82,9 @@ def main():
           lambda_manager.invoke_function(args[0])
       elif command == "help":
         help_menu()
-        # for iot_device in globals.config_iot_devices:
-        #   iot_services.destroy_processor_lambda_function(iot_device)
-        #   iot_services.create_processor_lambda_function(iot_device)
 
-        # core_services.destroy_dispatcher_lambda_function()
-        # core_services.create_dispatcher_lambda_function()
-
-        # core_services.destroy_event_checker_lambda_function()
-        # core_services.create_event_checker_lambda_function()
-
-        core_services.destroy_hot_cold_mover_lambda_function()
-        core_services.create_hot_cold_mover_lambda_function()
+        core_services.destroy_cold_archive_mover_lambda_function()
+        core_services.create_cold_archive_mover_lambda_function()
       elif command == "exit":
         print("Goodbye!")
         break

@@ -29,7 +29,8 @@ def flush_chunk_to_s3(iot_device_id, items, start, end, chunk_index):
         Bucket=S3_BUCKET_NAME,
         Key=key,
         Body=body,
-        ContentType="application/json"
+        ContentType="application/json",
+        StorageClass="STANDARD_IA"
     )
 
     print(f"Wrote {len(items)} items to s3://{S3_BUCKET_NAME}/{key}")
@@ -41,12 +42,11 @@ def lambda_handler(event, context):
 
     with dynamodb_table.batch_writer() as batch:
         for iot_device in DIGITAL_TWIN_INFO["config_iot_devices"]:
-            iot_device_id = DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + iot_device["name"]
             chunk_index = 0
 
             response = dynamodb_table.query(
-                KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                                    Key("id").lt(cutoff_iso),
+                KeyConditionExpression=Key("iotDeviceId").eq(iot_device["id"]) &
+                                       Key("id").lt(cutoff_iso),
                 ScanIndexForward=False, # descending order by id (time)
                 Limit=1
             )
@@ -58,8 +58,8 @@ def lambda_handler(event, context):
             end = items[0]["id"]
 
             response = dynamodb_table.query(
-                KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                                    Key("id").lt(cutoff_iso),
+                KeyConditionExpression=Key("iotDeviceId").eq(iot_device["id"]) &
+                                       Key("id").lt(cutoff_iso),
                 ScanIndexForward=True # ascending order by id (time)
             )
             items = response.get("Items", [])
@@ -70,7 +70,7 @@ def lambda_handler(event, context):
             start = items[0]["id"]
 
             while len(items) > 0:
-                flush_chunk_to_s3(iot_device_id, items, start, end, chunk_index)
+                flush_chunk_to_s3(iot_device["id"], items, start, end, chunk_index)
                 chunk_index += 1
 
                 item_count = len(items)
@@ -89,8 +89,8 @@ def lambda_handler(event, context):
                     break
 
                 response = dynamodb_table.query(
-                    KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                                        Key("id").lt(cutoff_iso),
+                    KeyConditionExpression=Key("iotDeviceId").eq(iot_device["id"]) &
+                                           Key("id").lt(cutoff_iso),
                     ExclusiveStartKey=response["LastEvaluatedKey"]
                 )
                 items = response.get("Items", [])

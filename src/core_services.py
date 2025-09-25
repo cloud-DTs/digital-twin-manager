@@ -758,6 +758,13 @@ def create_cold_archive_mover_lambda_function():
     Timeout=3, # seconds
     MemorySize=128, # MB
     Publish=True,
+    Environment={
+      "Variables": {
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
+        "SOURCE_S3_BUCKET_NAME": globals.cold_s3_bucket_name(),
+        "TARGET_S3_BUCKET_NAME": globals.archive_s3_bucket_name()
+      }
+    }
   )
 
   print(f"Created Lambda function: {function_name}")
@@ -1610,10 +1617,10 @@ def deploy():
   deploy_l3_cold()
   deploy_l3_archive()
   deploy_l4()
-  # deploy_l5()
+  deploy_l5()
 
 def destroy():
-  # destroy_l5()
+  destroy_l5()
   destroy_l4()
   destroy_l3_archive()
   destroy_l3_cold()

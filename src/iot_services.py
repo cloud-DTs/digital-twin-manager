@@ -18,7 +18,7 @@ def create_iot_thing(iot_device):
   certificate_arn = cert_response['certificateArn']
   print(f"Created IoT Certificate: {cert_response['certificateId']}")
 
-  dir = f"{globals.iot_data_path}/{thing_name}/"
+  dir = f"{globals.iot_data_path}/{iot_device["id"]}/"
   os.makedirs(os.path.dirname(dir), exist_ok=True)
 
   with open(f"{dir}certificate.pem.crt", "w") as f:
@@ -106,7 +106,7 @@ def destroy_iot_thing(iot_device):
       raise
 
   try:
-    shutil.rmtree(f"{globals.iot_data_path}/{thing_name}")
+    shutil.rmtree(f"{globals.iot_data_path}/{iot_device["id"]}")
   except FileNotFoundError:
     pass
 
