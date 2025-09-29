@@ -21,20 +21,22 @@ def lambda_handler(event, context):
     component_info = components.get(event["componentName"])
     component_type_id = component_info.get("componentTypeId")
 
+    iot_device_id = component_type_id.removeprefix(DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-")
+
     response = dynamodb_table.query(
-        KeyConditionExpression=Key("iotDeviceId").eq(component_type_id) &
+        KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
                                Key("id").between(event["startTime"], event["endTime"])
         )
     items = response["Items"]
 
-    propertyValues = []
+    property_values = []
 
-    for prop in event["selectedProperties"]:
-        prop_type = f"{event["properties"][prop]["definition"]["dataType"]["type"].capitalize()}Value"
+    for property_name in event["selectedProperties"]:
+        property_type = f"{event["properties"][property_name]["definition"]["dataType"]["type"].capitalize()}Value"
 
         entry = {
             "entityPropertyReference": {
-                "propertyName": prop
+                "propertyName": property_name
             },
             "values": []
         }
@@ -42,9 +44,9 @@ def lambda_handler(event, context):
         for item in items:
             entry["values"].append({
                 "time": item["id"],
-                "value": { prop_type: item[prop] }
+                "value": { property_type: item[property_name] }
             })
 
-        propertyValues.append(entry)
+        property_values.append(entry)
 
-    return { "propertyValues": propertyValues }
+    return { "propertyValues": property_values }
