@@ -279,6 +279,9 @@ def check_twinmaker_connector_last_entry_lambda_function():
     else:
       raise
 
+def check_twinmaker_hierarchy():
+  print("TODO: check_twinmaker_hierarchy")
+
 def check_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
 
@@ -424,6 +427,7 @@ def check_l4():
   check_twinmaker_connector_lambda_function()
   check_twinmaker_connector_last_entry_iam_role()
   check_twinmaker_connector_last_entry_lambda_function()
+  check_twinmaker_hierarchy()
 
   for iot_device in globals.config_iot_devices:
     check_twinmaker_component_type(iot_device)

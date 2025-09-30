@@ -1112,6 +1112,36 @@ def destroy_twinmaker_connector_last_entry_lambda_function():
       raise
 
 
+def create_twinmaker_hierarchy():
+  for entity in globals.config_hierarchy:
+    util.create_twinmaker_entity(entity)
+
+def destroy_twinmaker_hierarchy():
+  workspace_name = globals.twinmaker_workspace_name()
+  deleting_entities = []
+
+  for entity in globals.config_hierarchy:
+    try:
+      globals.aws_twinmaker_client.delete_entity(workspaceId=workspace_name, entityId=entity["id"], isRecursive=True)
+      deleting_entities.append(entity)
+    except ClientError as e:
+      if e.response["Error"]["Code"] != "ResourceNotFoundException":
+        raise
+
+  for entity in deleting_entities:
+    while True:
+      try:
+        globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity["id"])
+        time.sleep(2)
+      except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+          break
+        else:
+          raise
+
+    print(f"Deleted IoT TwinMaker Entity: {entity["id"]}")
+
+
 def create_twinmaker_s3_bucket():
   bucket_name = globals.twinmaker_s3_bucket_name()
 
@@ -1588,8 +1618,10 @@ def deploy_l4():
   create_twinmaker_connector_lambda_function()
   create_twinmaker_connector_last_entry_iam_role()
   create_twinmaker_connector_last_entry_lambda_function()
+  create_twinmaker_hierarchy()
 
 def destroy_l4():
+  destroy_twinmaker_hierarchy()
   destroy_twinmaker_connector_last_entry_lambda_function()
   destroy_twinmaker_connector_last_entry_iam_role()
   destroy_twinmaker_connector_lambda_function()
