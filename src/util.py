@@ -105,30 +105,6 @@ def create_twinmaker_entity(entity_info, parent_info=None):
     elif child["type"] == "component":
       create_twinmaker_component(child, entity_info)
 
-def destroy_twinmaker_entity(entity_info):
-  workspace_name = globals.twinmaker_workspace_name()
-  entity_id = entity_info["id"]
-
-  try:
-    globals.aws_twinmaker_client.delete_entity(workspaceId=workspace_name, entityId=entity_id, isRecursive=True)
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      return
-    else:
-      raise
-
-  while True:
-    try:
-      globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity_id)
-      time.sleep(3)
-    except ClientError as e:
-      if e.response["Error"]["Code"] == "ResourceNotFoundException":
-        break
-      else:
-        raise
-
-  print(f"Deleted IoT TwinMaker Entity: {entity_id}")
-
 def create_twinmaker_component(component_info, parent_info):
   if "componentTypeId" in component_info:
     component_type_id = component_info["componentTypeId"]
@@ -174,6 +150,12 @@ def link_to_twinmaker_workspace(workspace_name):
 
 def link_to_twinmaker_component_type(workspace_name, component_type_id):
   return f"https://console.aws.amazon.com/iottwinmaker/home?region={globals.aws_twinmaker_client.meta.region_name}#/workspaces/{workspace_name}/component-types/{component_type_id}"
+
+def link_to_twinmaker_entity(workspace_name, entity_id):
+  return f"https://console.aws.amazon.com/iottwinmaker/home?region={globals.aws_twinmaker_client.meta.region_name}#/workspaces/{workspace_name}/entities/{entity_id}"
+
+def link_to_twinmaker_component(workspace_name, entity_id, component_name):
+  return f"https://console.aws.amazon.com/iottwinmaker/home?region={globals.aws_twinmaker_client.meta.region_name}#/workspaces/{workspace_name}/entities/{entity_id}/components/{component_name}"
 
 def link_to_grafana_workspace(workspace_id):
   return f"https://console.aws.amazon.com/grafana/home?region={globals.aws_grafana_client.meta.region_name}#/workspaces/{workspace_id}"

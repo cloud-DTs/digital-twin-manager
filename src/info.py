@@ -279,8 +279,49 @@ def check_twinmaker_connector_last_entry_lambda_function():
     else:
       raise
 
-def check_twinmaker_hierarchy():
-  print("TODO: check_twinmaker_hierarchy")
+def check_twinmaker_hierarchy(hierarchy=None, parent=None):
+  workspace_name = globals.twinmaker_workspace_name()
+
+  if hierarchy is None:
+    hierarchy = globals.config_hierarchy
+
+  for entry in hierarchy:
+    if entry["type"] == "entity":
+      try:
+        response = globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entry["id"])
+        print(f"✅ IoT TwinMaker Entity exists: {util.link_to_twinmaker_entity(workspace_name, entry["id"])}")
+
+        if parent is not None and parent["entityId"] != response.get("parentEntityId"):
+          print(f"❌ IoT TwinMaker Entity {entry["id"]} is missing parent: {parent["entityId"]}")
+
+        if "children" in entry:
+          check_twinmaker_hierarchy(entry["children"], response)
+      except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceNotFoundException":
+          print(f"❌ IoT TwinMaker Entity missing: {entry["id"]}")
+        else:
+          raise
+
+    elif entry["type"] == "component":
+      if parent is None:
+        continue
+
+      if entry["name"] not in parent.get("components", {}):
+        print(f"❌ IoT TwinMaker Entity {parent["entityId"]} is missing component: {entry["name"]}")
+        continue
+
+      print(f"✅ IoT TwinMaker Component exists: {util.link_to_twinmaker_component(workspace_name, parent["entityId"], entry["name"])}")
+
+      component_info = parent["components"][entry["name"]]
+
+      if "componentTypeId" in entry:
+        entry_component_type_id = entry["componentTypeId"]
+      else:
+        entry_component_type_id = f"{globals.config["digital_twin_name"]}-{entry["iotDeviceId"]}"
+
+      if component_info["componentTypeId"] != entry_component_type_id:
+        print(f"❌ IoT TwinMaker Component {entry["name"]} has the wrong component type: {component_info["componentTypeId"]}")
+
 
 def check_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
