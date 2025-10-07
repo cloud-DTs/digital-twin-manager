@@ -194,7 +194,7 @@ def create_processor_lambda_function(iot_device):
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(function_name_local)},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, function_name_local))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB

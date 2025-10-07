@@ -1,4 +1,5 @@
 import json
+import event_action_services
 import globals
 import core_services
 import info
@@ -55,13 +56,18 @@ def main():
       if command == "deploy":
         core_services.deploy()
         iot_services.deploy()
+        event_action_services.deploy()
       elif command == "destroy":
+        event_action_services.destroy()
         iot_services.destroy()
         core_services.destroy()
       elif command == "info":
         info.check()
+        event_action_services.info()
       elif command == "config_events_updated":
-        core_services.config_events_updated()
+        event_action_services.redeploy()
+        core_services.redeploy_event_checker_lambda_function()
+
       elif command == "lambda_update":
         if len(args) > 1:
           lambda_manager.update_function(args[0], json.loads(args[1]))
@@ -81,6 +87,7 @@ def main():
           lambda_manager.invoke_function(args[0], json.loads(args[1]))
         else:
           lambda_manager.invoke_function(args[0])
+
       elif command == "help":
         help_menu()
       elif command == "exit":
