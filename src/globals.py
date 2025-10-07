@@ -5,6 +5,7 @@ import boto3
 
 iot_data_path = "iot_devices_auth"
 lambda_functions_path = "lambda_functions"
+event_actions_path = "event_actions"
 
 config = {}
 config_iot_devices = []

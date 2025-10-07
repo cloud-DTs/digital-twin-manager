@@ -3,7 +3,8 @@
     "condition": "testEntityId.temperature-sensor-1.temperature == DOUBLE(30)",
     "action": {
       "type": "lambda",
-      "functionName": "myEventAction"
+      "functionName": "high-temperature-callback",
+      "autoDeploy": true
     }
   }
 ]

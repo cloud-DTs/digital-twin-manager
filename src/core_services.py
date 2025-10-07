@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import globals
 import util
@@ -87,7 +88,7 @@ def create_dispatcher_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("dispatcher")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "dispatcher"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -256,7 +257,7 @@ def create_persister_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("persister")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "persister"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -407,7 +408,7 @@ def create_event_checker_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("event-checker")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "event-checker"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -431,6 +432,10 @@ def destroy_event_checker_lambda_function():
   except ClientError as e:
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
+
+def redeploy_event_checker_lambda_function():
+  destroy_event_checker_lambda_function()
+  create_event_checker_lambda_function()
 
 
 def create_iot_data_dynamodb_table():
@@ -558,7 +563,7 @@ def create_hot_cold_mover_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("hot-to-cold-mover")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "hot-to-cold-mover"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -753,7 +758,7 @@ def create_cold_archive_mover_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("cold-to-archive-mover")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "cold-to-archive-mover"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -960,7 +965,7 @@ def create_twinmaker_connector_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("twinmaker-connector")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "twinmaker-connector"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -1086,7 +1091,7 @@ def create_twinmaker_connector_last_entry_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function("twinmaker-connector-last-entry")},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "twinmaker-connector-last-entry"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -1659,7 +1664,3 @@ def destroy():
   destroy_l3_hot()
   destroy_l2()
   destroy_l1()
-
-def config_events_updated():
-  destroy_event_checker_lambda_function()
-  create_event_checker_lambda_function()

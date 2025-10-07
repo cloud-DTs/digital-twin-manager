@@ -10,3 +10,4 @@ lambda_functions/persister/zipped.zip
 lambda_functions/twinmaker-connector/zipped.zip
 lambda_functions/twinmaker-connector-last-entry/zipped.zip
 lambda_functions/event-checker/zipped.zip
+event_actions/high-temperature-callback/zipped.zip
