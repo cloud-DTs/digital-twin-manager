@@ -162,8 +162,8 @@ def event_checker_iam_role_name():
 def event_checker_lambda_function_name():
   return config["digital_twin_name"] + "-event-checker"
 
-def dynamodb_table_name():
-  return config["digital_twin_name"] + "-iot-data"
+def hot_dynamodb_table_name():
+  return config["digital_twin_name"] + "-hot-iot-data"
 
 def hot_cold_mover_iam_role_name():
   return config["digital_twin_name"] + "-hot-to-cold-mover"
@@ -189,17 +189,17 @@ def cold_s3_bucket_name():
 def archive_s3_bucket_name():
   return config["digital_twin_name"] + "-archive-iot-data"
 
-def twinmaker_connector_iam_role_name():
-  return config["digital_twin_name"] + "-twinmaker-connector"
+def hot_reader_iam_role_name():
+  return config["digital_twin_name"] + "-hot-reader"
 
-def twinmaker_connector_lambda_function_name():
-  return config["digital_twin_name"] + "-twinmaker-connector"
+def hot_reader_lambda_function_name():
+  return config["digital_twin_name"] + "-hot-reader"
 
-def twinmaker_connector_last_entry_iam_role_name():
-  return config["digital_twin_name"] + "-twinmaker-connector-last-entry"
+def hot_reader_last_entry_iam_role_name():
+  return config["digital_twin_name"] + "-hot-reader-last-entry"
 
-def twinmaker_connector_last_entry_lambda_function_name():
-  return config["digital_twin_name"] + "-twinmaker-connector-last-entry"
+def hot_reader_last_entry_lambda_function_name():
+  return config["digital_twin_name"] + "-hot-reader-last-entry"
 
 def twinmaker_s3_bucket_name():
   return config["digital_twin_name"] + "-twinmaker"

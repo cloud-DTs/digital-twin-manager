@@ -147,8 +147,8 @@ def check_processor_lambda_function(iot_device):
     else:
       raise
 
-def check_iot_data_dynamodb_table():
-  table_name = globals.dynamodb_table_name()
+def check_hot_dynamodb_table():
+  table_name = globals.hot_dynamodb_table_name()
 
   try:
     globals.aws_dynamodb_client.describe_table(TableName=table_name)
@@ -195,6 +195,54 @@ def check_hot_cold_mover_event_rule():
     else:
       raise
 
+def check_hot_reader_iam_role():
+  role_name = globals.hot_reader_iam_role_name()
+
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Hot Reader IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Hot Reader IAM Role missing: {role_name}")
+    else:
+      raise
+
+def check_hot_reader_lambda_function():
+  function_name = globals.hot_reader_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Hot Reader Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Hot Reader Lambda Function missing: {function_name}")
+    else:
+      raise
+
+def check_hot_reader_last_entry_iam_role():
+  role_name = globals.hot_reader_last_entry_iam_role_name()
+
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Hot Reader Last Entry IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Hot Reader Last Entry IAM Role missing: {role_name}")
+    else:
+      raise
+
+def check_hot_reader_last_entry_lambda_function():
+  function_name = globals.hot_reader_last_entry_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Hot Reader Last Entry Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Hot Reader Last Entry Lambda Function missing: {function_name}")
+    else:
+      raise
+
 def check_cold_s3_bucket():
   bucket_name = globals.cold_s3_bucket_name()
 
@@ -230,98 +278,6 @@ def check_cold_archive_mover_lambda_function():
       print(f"❌ Cold to Archive Mover Lambda Function missing: {function_name}")
     else:
       raise
-
-def check_twinmaker_connector_iam_role():
-  role_name = globals.twinmaker_connector_iam_role_name()
-
-  try:
-    globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Twinmaker Connector IAM Role exists: {util.link_to_iam_role(role_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Twinmaker Connector IAM Role missing: {role_name}")
-    else:
-      raise
-
-def check_twinmaker_connector_lambda_function():
-  function_name = globals.twinmaker_connector_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Twinmaker Connector Lambda Function exists: {util.link_to_lambda_function(function_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Twinmaker Connector Lambda Function missing: {function_name}")
-    else:
-      raise
-
-def check_twinmaker_connector_last_entry_iam_role():
-  role_name = globals.twinmaker_connector_last_entry_iam_role_name()
-
-  try:
-    globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Twinmaker Connector Last Entry IAM Role exists: {util.link_to_iam_role(role_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Twinmaker Connector Last Entry IAM Role missing: {role_name}")
-    else:
-      raise
-
-def check_twinmaker_connector_last_entry_lambda_function():
-  function_name = globals.twinmaker_connector_last_entry_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Twinmaker Connector Last Entry Lambda Function exists: {util.link_to_lambda_function(function_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Twinmaker Connector Last Entry Lambda Function missing: {function_name}")
-    else:
-      raise
-
-def check_twinmaker_hierarchy(hierarchy=None, parent=None):
-  workspace_name = globals.twinmaker_workspace_name()
-
-  if hierarchy is None:
-    hierarchy = globals.config_hierarchy
-
-  for entry in hierarchy:
-    if entry["type"] == "entity":
-      try:
-        response = globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entry["id"])
-        print(f"✅ IoT TwinMaker Entity exists: {util.link_to_twinmaker_entity(workspace_name, entry["id"])}")
-
-        if parent is not None and parent["entityId"] != response.get("parentEntityId"):
-          print(f"❌ IoT TwinMaker Entity {entry["id"]} is missing parent: {parent["entityId"]}")
-
-        if "children" in entry:
-          check_twinmaker_hierarchy(entry["children"], response)
-      except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceNotFoundException":
-          print(f"❌ IoT TwinMaker Entity missing: {entry["id"]}")
-        else:
-          raise
-
-    elif entry["type"] == "component":
-      if parent is None:
-        continue
-
-      if entry["name"] not in parent.get("components", {}):
-        print(f"❌ IoT TwinMaker Entity {parent["entityId"]} is missing component: {entry["name"]}")
-        continue
-
-      print(f"✅ IoT TwinMaker Component exists: {util.link_to_twinmaker_component(workspace_name, parent["entityId"], entry["name"])}")
-
-      component_info = parent["components"][entry["name"]]
-
-      if "componentTypeId" in entry:
-        entry_component_type_id = entry["componentTypeId"]
-      else:
-        entry_component_type_id = f"{globals.config["digital_twin_name"]}-{entry["iotDeviceId"]}"
-
-      if component_info["componentTypeId"] != entry_component_type_id:
-        print(f"❌ IoT TwinMaker Component {entry["name"]} has the wrong component type: {component_info["componentTypeId"]}")
-
 
 def check_cold_archive_mover_event_rule():
   rule_name = globals.cold_archive_mover_event_rule_name()
@@ -441,10 +397,14 @@ def check_l2():
     check_processor_lambda_function(iot_device)
 
 def check_l3_hot():
-  check_iot_data_dynamodb_table()
+  check_hot_dynamodb_table()
   check_hot_cold_mover_iam_role()
   check_hot_cold_mover_lambda_function()
   check_hot_cold_mover_event_rule()
+  check_hot_reader_iam_role()
+  check_hot_reader_lambda_function()
+  check_hot_reader_last_entry_iam_role()
+  check_hot_reader_last_entry_lambda_function()
 
 def check_l3_cold():
   check_cold_s3_bucket()
@@ -464,11 +424,6 @@ def check_l4():
   check_twinmaker_s3_bucket()
   check_twinmaker_iam_role()
   check_twinmaker_workspace()
-  check_twinmaker_connector_iam_role()
-  check_twinmaker_connector_lambda_function()
-  check_twinmaker_connector_last_entry_iam_role()
-  check_twinmaker_connector_last_entry_lambda_function()
-  check_twinmaker_hierarchy()
 
   for iot_device in globals.config_iot_devices:
     check_twinmaker_component_type(iot_device)

@@ -265,7 +265,7 @@ def create_persister_lambda_function():
     Environment={
       "Variables": {
         "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
-        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
+        "DYNAMODB_TABLE_NAME": globals.hot_dynamodb_table_name(),
         "EVENT_CHECKER_LAMBDA_NAME": globals.event_checker_lambda_function_name()
       }
     }
@@ -438,8 +438,8 @@ def redeploy_event_checker_lambda_function():
   create_event_checker_lambda_function()
 
 
-def create_iot_data_dynamodb_table():
-  table_name = globals.dynamodb_table_name()
+def create_hot_dynamodb_table():
+  table_name = globals.hot_dynamodb_table_name()
 
   globals.aws_dynamodb_client.create_table(
     TableName=table_name,
@@ -461,8 +461,8 @@ def create_iot_data_dynamodb_table():
 
   print(f"Created DynamoDb table: {table_name}")
 
-def destroy_iot_data_dynamodb_table():
-  table_name = globals.dynamodb_table_name()
+def destroy_hot_dynamodb_table():
+  table_name = globals.hot_dynamodb_table_name()
 
   try:
     globals.aws_dynamodb_client.delete_table(TableName=table_name)
@@ -571,7 +571,7 @@ def create_hot_cold_mover_lambda_function():
     Environment={
       "Variables": {
         "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
-        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name(),
+        "DYNAMODB_TABLE_NAME": globals.hot_dynamodb_table_name(),
         "S3_BUCKET_NAME": globals.cold_s3_bucket_name()
       }
     }
@@ -865,8 +865,8 @@ def destroy_archive_s3_bucket():
   util.destroy_s3_bucket(bucket_name)
 
 
-def create_twinmaker_connector_iam_role():
-  role_name = globals.twinmaker_connector_iam_role_name()
+def create_hot_reader_iam_role():
+  role_name = globals.hot_reader_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -927,8 +927,8 @@ def create_twinmaker_connector_iam_role():
 
   time.sleep(20)
 
-def destroy_twinmaker_connector_iam_role():
-  role_name = globals.twinmaker_connector_iam_role_name()
+def destroy_hot_reader_iam_role():
+  role_name = globals.hot_reader_iam_role_name()
 
   try:
     response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
@@ -953,9 +953,9 @@ def destroy_twinmaker_connector_iam_role():
       raise
 
 
-def create_twinmaker_connector_lambda_function():
-  function_name = globals.twinmaker_connector_lambda_function_name()
-  role_name = globals.twinmaker_connector_iam_role_name()
+def create_hot_reader_lambda_function():
+  function_name = globals.hot_reader_lambda_function_name()
+  role_name = globals.hot_reader_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -965,7 +965,7 @@ def create_twinmaker_connector_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "twinmaker-connector"))},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "hot-reader"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -973,15 +973,15 @@ def create_twinmaker_connector_lambda_function():
     Environment={
       "Variables": {
         "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
-        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name()
+        "DYNAMODB_TABLE_NAME": globals.hot_dynamodb_table_name()
       }
     }
   )
 
   print(f"Created Lambda function: {function_name}")
 
-def destroy_twinmaker_connector_lambda_function():
-  function_name = globals.twinmaker_connector_lambda_function_name()
+def destroy_hot_reader_lambda_function():
+  function_name = globals.hot_reader_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -991,8 +991,8 @@ def destroy_twinmaker_connector_lambda_function():
       raise
 
 
-def create_twinmaker_connector_last_entry_iam_role():
-  role_name = globals.twinmaker_connector_last_entry_iam_role_name()
+def create_hot_reader_last_entry_iam_role():
+  role_name = globals.hot_reader_last_entry_iam_role_name()
 
   globals.aws_iam_client.create_role(
       RoleName=role_name,
@@ -1053,8 +1053,8 @@ def create_twinmaker_connector_last_entry_iam_role():
 
   time.sleep(20)
 
-def destroy_twinmaker_connector_last_entry_iam_role():
-  role_name = globals.twinmaker_connector_last_entry_iam_role_name()
+def destroy_hot_reader_last_entry_iam_role():
+  role_name = globals.hot_reader_last_entry_iam_role_name()
 
   try:
     response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
@@ -1079,9 +1079,9 @@ def destroy_twinmaker_connector_last_entry_iam_role():
       raise
 
 
-def create_twinmaker_connector_last_entry_lambda_function():
-  function_name = globals.twinmaker_connector_last_entry_lambda_function_name()
-  role_name = globals.twinmaker_connector_last_entry_iam_role_name()
+def create_hot_reader_last_entry_lambda_function():
+  function_name = globals.hot_reader_last_entry_lambda_function_name()
+  role_name = globals.hot_reader_last_entry_iam_role_name()
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
@@ -1091,7 +1091,7 @@ def create_twinmaker_connector_last_entry_lambda_function():
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "twinmaker-connector-last-entry"))},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, "hot-reader-last-entry"))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -1099,15 +1099,15 @@ def create_twinmaker_connector_last_entry_lambda_function():
     Environment={
       "Variables": {
         "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
-        "DYNAMODB_TABLE_NAME": globals.dynamodb_table_name()
+        "DYNAMODB_TABLE_NAME": globals.hot_dynamodb_table_name()
       }
     }
   )
 
   print(f"Created Lambda function: {function_name}")
 
-def destroy_twinmaker_connector_last_entry_lambda_function():
-  function_name = globals.twinmaker_connector_last_entry_lambda_function_name()
+def destroy_hot_reader_last_entry_lambda_function():
+  function_name = globals.hot_reader_last_entry_lambda_function_name()
 
   try:
     globals.aws_lambda_client.delete_function(FunctionName=function_name)
@@ -1115,37 +1115,6 @@ def destroy_twinmaker_connector_last_entry_lambda_function():
   except ClientError as e:
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
-
-
-def create_twinmaker_hierarchy():
-  for entity in globals.config_hierarchy:
-    util.create_twinmaker_entity(entity)
-
-def destroy_twinmaker_hierarchy():
-  workspace_name = globals.twinmaker_workspace_name()
-  deleting_entities = []
-
-  for entity in globals.config_hierarchy:
-    try:
-      globals.aws_twinmaker_client.delete_entity(workspaceId=workspace_name, entityId=entity["id"], isRecursive=True)
-      deleting_entities.append(entity)
-    except ClientError as e:
-      if e.response["Error"]["Code"] != "ResourceNotFoundException":
-        raise
-
-  for entity in deleting_entities:
-    while True:
-      try:
-        globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity["id"])
-        time.sleep(2)
-      except ClientError as e:
-        if e.response["Error"]["Code"] == "ResourceNotFoundException":
-          break
-        else:
-          raise
-
-    print(f"Deleted IoT TwinMaker Entity: {entity["id"]}")
-
 
 def create_twinmaker_s3_bucket():
   bucket_name = globals.twinmaker_s3_bucket_name()
@@ -1583,16 +1552,24 @@ def destroy_l2():
 
 
 def deploy_l3_hot():
-  create_iot_data_dynamodb_table()
+  create_hot_dynamodb_table()
   create_hot_cold_mover_iam_role()
   create_hot_cold_mover_lambda_function()
   create_hot_cold_mover_event_rule()
+  create_hot_reader_iam_role()
+  create_hot_reader_lambda_function()
+  create_hot_reader_last_entry_iam_role()
+  create_hot_reader_last_entry_lambda_function()
 
 def destroy_l3_hot():
+  destroy_hot_reader_last_entry_lambda_function()
+  destroy_hot_reader_last_entry_iam_role()
+  destroy_hot_reader_lambda_function()
+  destroy_hot_reader_iam_role()
   destroy_hot_cold_mover_event_rule()
   destroy_hot_cold_mover_lambda_function()
   destroy_hot_cold_mover_iam_role()
-  destroy_iot_data_dynamodb_table()
+  destroy_hot_dynamodb_table()
 
 
 def deploy_l3_cold():
@@ -1619,18 +1596,8 @@ def deploy_l4():
   create_twinmaker_s3_bucket()
   create_twinmaker_iam_role()
   create_twinmaker_workspace()
-  create_twinmaker_connector_iam_role()
-  create_twinmaker_connector_lambda_function()
-  create_twinmaker_connector_last_entry_iam_role()
-  create_twinmaker_connector_last_entry_lambda_function()
-  create_twinmaker_hierarchy()
 
 def destroy_l4():
-  destroy_twinmaker_hierarchy()
-  destroy_twinmaker_connector_last_entry_lambda_function()
-  destroy_twinmaker_connector_last_entry_iam_role()
-  destroy_twinmaker_connector_lambda_function()
-  destroy_twinmaker_connector_iam_role()
   destroy_twinmaker_workspace()
   destroy_twinmaker_iam_role()
   destroy_twinmaker_s3_bucket()

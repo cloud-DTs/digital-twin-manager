@@ -13,7 +13,7 @@ dynamodb_table = dynamodb_resource.Table(DYNAMODB_TABLE_NAME)
 
 
 def lambda_handler(event, context):
-    print("Hello from Twinmaker Connector Last Entry!")
+    print("Hello from Hot Reader Last Entry!")
     print("Event: " + json.dumps(event))
 
     entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])

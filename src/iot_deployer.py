@@ -221,8 +221,8 @@ def destroy_processor_lambda_function(iot_device):
 
 
 def create_twinmaker_component_type(iot_device):
-  connector_function_name = globals.twinmaker_connector_lambda_function_name()
-  connector_last_entry_function_name = globals.twinmaker_connector_last_entry_lambda_function_name()
+  connector_function_name = globals.hot_reader_lambda_function_name()
+  connector_last_entry_function_name = globals.hot_reader_last_entry_lambda_function_name()
   workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
 
