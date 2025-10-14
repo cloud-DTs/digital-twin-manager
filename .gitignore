@@ -1,6 +1,7 @@
 config_credentials.json
 iot_devices_auth/
 src/__pycache__
+src/deployers/__pycache__
 iot_device_simulator/src/__pycache__
 lambda_functions/cold-to-archive-mover/zipped.zip
 lambda_functions/default-processor/zipped.zip
