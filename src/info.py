@@ -369,8 +369,9 @@ def check_grafana_workspace():
 
   try:
     workspace_id = util.get_grafana_workspace_id_by_name(workspace_name)
-    globals.aws_grafana_client.describe_workspace(workspaceId=workspace_id)
+    response = globals.aws_grafana_client.describe_workspace(workspaceId=workspace_id)
     print(f"✅ Grafana Workspace exists: {util.link_to_grafana_workspace(workspace_id)}")
+    print(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
       print(f"❌ Grafana Workspace missing: {workspace_name}")
