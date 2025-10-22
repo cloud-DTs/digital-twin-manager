@@ -4,7 +4,11 @@
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
-      "autoDeploy": true
+      "autoDeploy": true,
+      "feedback": {
+        "topic": "temperature-sensor-1",
+        "payload": "result"
+      }
     }
   }
 ]

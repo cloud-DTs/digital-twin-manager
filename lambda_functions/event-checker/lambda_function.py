@@ -68,12 +68,11 @@ def lambda_handler(event, context):
                 case "==": result = param1_value == param2_value
 
             if e["action"]["type"] == "lambda" and result:
-                payload = {
-                    "e": e
-                }
+                payload = { "e": e }
                 lambda_client.invoke(FunctionName=e["action"]["functionName"], InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
+                # TODO: invoke stepfunction instead of function itself. Stepfunction has the event action as paremeter
             else:
                 raise ValueError(f"Invalid action type: {e["action"]["type"]}")
 
         except Exception as ex:
-            print("Something went wrong:", ex)
+            print("Something went wrong: ", ex)
