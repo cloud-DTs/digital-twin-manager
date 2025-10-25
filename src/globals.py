@@ -225,8 +225,11 @@ def iot_thing_policy_name(iot_device):
 def processor_iam_role_name(iot_device):
   return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
+def processor_lambda_function_name_local(iot_device):
+  return iot_device["id"]
+
 def processor_lambda_function_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
+  return config["digital_twin_name"] + "-" + processor_lambda_function_name_local(iot_device) + "-processor"
 
 def twinmaker_component_type_id(iot_device):
   return config["digital_twin_name"] + "-" + iot_device["id"]

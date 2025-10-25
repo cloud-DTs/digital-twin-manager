@@ -1,13 +1,29 @@
 [
   {
-    "condition": "testEntityId.temperature-sensor-1.temperature == DOUBLE(30)",
+    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(30)",
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
       "autoDeploy": true,
       "feedback": {
-        "topic": "temperature-sensor-1",
-        "payload": "result"
+        "type": "mqtt",
+        "topic": "digital-twin-temperature-sensor-2",
+        "payload": {
+          "message": "hello world"
+        }
+      }
+    }
+  },
+  {
+    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(30)",
+    "action": {
+      "type": "lambda",
+      "functionName": "high-temperature-callback",
+      "autoDeploy": true,
+      "feedback": {
+        "type": "mqtt",
+        "iotDeviceId": "temperature-sensor-2",
+        "payload": "action-result"
       }
     }
   }

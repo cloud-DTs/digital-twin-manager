@@ -184,17 +184,18 @@ def create_processor_lambda_function(iot_device):
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response['Role']['Arn']
 
-  if os.path.exists(os.path.join(globals.project_path(), globals.lambda_functions_path, function_name)):
-    function_name_local = function_name
-  else:
-    function_name_local = "default-processor"
+  processors_path = "processors"
+  function_name_local = globals.processor_lambda_function_name_local(iot_device)
+
+  if not os.path.exists(os.path.join(globals.project_path(), globals.lambda_functions_path, processors_path, function_name_local)):
+    function_name_local = "_default"
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, function_name_local))},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.lambda_functions_path, processors_path, function_name_local))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
