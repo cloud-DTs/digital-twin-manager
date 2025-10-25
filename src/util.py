@@ -1,5 +1,4 @@
 import os
-import time
 import zipfile
 import globals
 from botocore.exceptions import ClientError
@@ -84,45 +83,6 @@ def get_grafana_workspace_id_by_name(workspace_name):
     operation_name = "get_grafana_workspace_id_by_name"
 
     raise ClientError(error_response, operation_name)
-
-def create_twinmaker_entity(entity_info, parent_info=None):
-  create_entity_params = {
-    "workspaceId": globals.twinmaker_workspace_name(),
-    "entityName": entity_info["id"],
-    "entityId": entity_info["id"],
-  }
-
-  if parent_info is not None:
-    create_entity_params["parentEntityId"] = parent_info["id"]
-
-  response = globals.aws_twinmaker_client.create_entity(**create_entity_params)
-
-  print(f"Created IoT TwinMaker Entity: {response["entityId"]}")
-
-  for child in entity_info["children"]:
-    if child["type"] == "entity":
-      create_twinmaker_entity(child, entity_info)
-    elif child["type"] == "component":
-      create_twinmaker_component(child, entity_info)
-
-def create_twinmaker_component(component_info, parent_info):
-  if "componentTypeId" in component_info:
-    component_type_id = component_info["componentTypeId"]
-  else:
-    component_type_id = f"{globals.config["digital_twin_name"]}-{component_info["iotDeviceId"]}"
-
-  globals.aws_twinmaker_client.update_entity(
-    workspaceId=globals.twinmaker_workspace_name(),
-    entityId=parent_info["id"],
-    componentUpdates={
-        component_info["name"]: {
-            "updateType": "CREATE",
-            "componentTypeId": component_type_id
-        }
-    }
-  )
-
-  print(f"Created IoT TwinMaker Component: {component_info["name"]}")
 
 def link_to_iam_role(role_name):
   return f"https://console.aws.amazon.com/iam/home?region={globals.aws_iam_client.meta.region_name}#/roles/{role_name}"

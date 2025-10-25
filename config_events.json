@@ -19,7 +19,7 @@
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
-      "autoDeploy": true,
+      "autoDeploy": false,
       "feedback": {
         "type": "mqtt",
         "iotDeviceId": "temperature-sensor-2",

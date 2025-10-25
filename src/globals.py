@@ -4,8 +4,9 @@ import boto3
 
 
 iot_data_path = "iot_devices_auth"
-lambda_functions_path = "lambda_functions"
-event_actions_path = "event_actions"
+core_lfs_path = "lambda_functions/core"
+processor_lfs_path = "lambda_functions/processors"
+event_action_lfs_path = "lambda_functions/event_actions"
 
 config = {}
 config_iot_devices = []
