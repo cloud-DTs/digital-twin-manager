@@ -5,9 +5,12 @@ import boto3
 
 DIGITAL_TWIN_INFO = json.loads(os.environ.get("DIGITAL_TWIN_INFO", None))
 TWINMAKER_WORKSPACE_NAME = os.environ.get("TWINMAKER_WORKSPACE_NAME", None)
+LAMBDA_CHAIN_STEP_FUNCTION_ARN = os.environ.get("LAMBDA_CHAIN_STEP_FUNCTION_ARN", None)
+EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN = os.environ.get("EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN", None)
 
 twinmaker_client = boto3.client("iottwinmaker")
 lambda_client = boto3.client("lambda")
+sf_client = boto3.client("stepfunctions")
 
 
 def fetch_value(entity_id, component_name, property_name):
@@ -68,9 +71,21 @@ def lambda_handler(event, context):
                 case "==": result = param1_value == param2_value
 
             if e["action"]["type"] == "lambda" and result:
-                payload = { "e": e }
-                lambda_client.invoke(FunctionName=e["action"]["functionName"], InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
-                # TODO: invoke stepfunction instead of function itself. Stepfunction has the event action as paremeter
+                if "feedback" not in e["action"]:
+                    payload = { "e": e }
+                    lambda_client.invoke(FunctionName=e["action"]["functionName"], InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
+                else:
+                    response = lambda_client.get_function(FunctionName=e["action"]["functionName"])
+                    action_function_arn = response["Configuration"]["FunctionArn"]
+
+                    sf_client.start_execution(
+                        stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
+                        input=json.dumps({
+                            "LambdaAArn": action_function_arn,
+                            "LambdaBArn": EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN,
+                            "InputData": { "e": e }
+                        })
+                    )
             else:
                 raise ValueError(f"Invalid action type: {e["action"]["type"]}")
 
