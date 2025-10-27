@@ -1683,11 +1683,12 @@ def create_grafana_workspace():
 
   while True:
     response = globals.aws_grafana_client.describe_workspace(workspaceId=workspace_id)
-    if response['workspace']['status'] == "ACTIVE":
+    if response["workspace"]["status"] == "ACTIVE":
       break
     time.sleep(2)
 
-  log(f"Created Grafana workspace: {workspace_name}")
+  print(f"Created Grafana workspace: {workspace_name}")
+  print(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
 
 def destroy_grafana_workspace():
   workspace_name = globals.grafana_workspace_name()
