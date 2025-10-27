@@ -1855,10 +1855,10 @@ def deploy():
   deploy_l3_cold()
   deploy_l3_archive()
   deploy_l4()
-  # deploy_l5()
+  deploy_l5()
 
 def destroy():
-  # destroy_l5()
+  destroy_l5()
   destroy_l4()
   destroy_l3_archive()
   destroy_l3_cold()
