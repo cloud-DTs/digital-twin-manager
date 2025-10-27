@@ -1,5 +1,7 @@
 import os
 import zipfile
+
+import urllib
 import globals
 from botocore.exceptions import ClientError
 
@@ -119,3 +121,7 @@ def link_to_twinmaker_component(workspace_name, entity_id, component_name):
 
 def link_to_grafana_workspace(workspace_id):
   return f"https://console.aws.amazon.com/grafana/home?region={globals.aws_grafana_client.meta.region_name}#/workspaces/{workspace_id}"
+
+def link_to_step_function(sf_arn):
+  encoded_arn = urllib.parse.quote(sf_arn, safe='')
+  return f"https://console.aws.amazon.com/states/home?region={globals.aws_sf_client.meta.region_name}#/statemachines/view/{encoded_arn}?type=standard"
