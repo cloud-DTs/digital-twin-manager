@@ -75,27 +75,27 @@ def check_persister_lambda_function():
     else:
       raise
 
-def check_event_checker_iam_role():
-  role_name = globals.event_checker_iam_role_name()
+def check_event_feedback_iam_role():
+  role_name = globals.event_feedback_iam_role_name()
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Event Checker IAM Role exists: {util.link_to_iam_role(role_name)}")
+    print(f"✅ Event-Feedback IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Event Checker IAM Role missing: {role_name}")
+      print(f"❌ Event-Feedback IAM Role missing: {role_name}")
     else:
       raise
 
-def check_event_checker_lambda_function():
-  function_name = globals.event_checker_lambda_function_name()
+def check_event_feedback_lambda_function():
+  function_name = globals.event_feedback_lambda_function_name()
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Event Checker Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    print(f"✅ Event-Feedback Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Event Checker Lambda Function missing: {function_name}")
+      print(f"❌ Event-Feedback Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -120,6 +120,33 @@ def check_event_checker_lambda_function():
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
       print(f"❌ Event-Checker Lambda Function missing: {function_name}")
+    else:
+      raise
+
+def check_lambda_chain_iam_role():
+  role_name = globals.lambda_chain_iam_role_name()
+
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Lambda-Chain IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Lambda-Chain IAM Role missing: {role_name}")
+    else:
+      raise
+
+def check_lambda_chain_step_function():
+  sf_name = globals.lambda_chain_step_function_name()
+  region = globals.aws_lambda_client.meta.region_name
+  account_id = globals.aws_sts_client.get_caller_identity()['Account']
+  sf_arn = f"arn:aws:states:{region}:{account_id}:stateMachine:{sf_name}"
+
+  try:
+    globals.aws_sf_client.describe_state_machine(stateMachineArn=sf_arn)
+    print(f"✅ Lambda-Chain Step Function exists: {util.link_to_step_function(sf_arn)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "StateMachineDoesNotExist":
+      print(f"❌ Lambda-Chain Step Function missing: {sf_name}")
     else:
       raise
 
@@ -390,8 +417,12 @@ def check_l1():
 def check_l2():
   check_persister_iam_role()
   check_persister_lambda_function()
+  check_event_feedback_iam_role()
+  check_event_feedback_lambda_function()
   check_event_checker_iam_role()
   check_event_checker_lambda_function()
+  check_lambda_chain_iam_role()
+  check_lambda_chain_step_function()
 
   for iot_device in globals.config_iot_devices:
     check_processor_iam_role(iot_device)

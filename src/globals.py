@@ -4,8 +4,9 @@ import boto3
 
 
 iot_data_path = "iot_devices_auth"
-lambda_functions_path = "lambda_functions"
-event_actions_path = "event_actions"
+core_lfs_path = "lambda_functions/core"
+processor_lfs_path = "lambda_functions/processors"
+event_action_lfs_path = "lambda_functions/event_actions"
 
 config = {}
 config_iot_devices = []
@@ -21,6 +22,7 @@ aws_s3_client = {}
 aws_twinmaker_client = {}
 aws_grafana_client = {}
 aws_logs_client = {}
+aws_sf_client = {}
 
 
 def project_path():
@@ -139,6 +141,14 @@ def initialize_aws_logs_client():
     aws_secret_access_key=config_credentials["aws_secret_access_key"],
     region_name=config_credentials["aws_region"])
 
+def initialize_aws_sf_client():
+  global config
+  global aws_sf_client
+  aws_sf_client = boto3.client("stepfunctions",
+    aws_access_key_id=config_credentials["aws_access_key_id"],
+    aws_secret_access_key=config_credentials["aws_secret_access_key"],
+    region_name=config_credentials["aws_region"])
+
 
 def dispatcher_iam_role_name():
   return config["digital_twin_name"] + "-dispatcher"
@@ -156,11 +166,23 @@ def persister_iam_role_name():
 def persister_lambda_function_name():
   return config["digital_twin_name"] + "-persister"
 
+def event_feedback_iam_role_name():
+  return config["digital_twin_name"] + "-event-feedback"
+
+def event_feedback_lambda_function_name():
+  return config["digital_twin_name"] + "-event-feedback"
+
 def event_checker_iam_role_name():
   return config["digital_twin_name"] + "-event-checker"
 
 def event_checker_lambda_function_name():
   return config["digital_twin_name"] + "-event-checker"
+
+def lambda_chain_iam_role_name():
+  return config["digital_twin_name"] + "-lambda-chain"
+
+def lambda_chain_step_function_name():
+  return config["digital_twin_name"] + "-lambda-chain"
 
 def hot_dynamodb_table_name():
   return config["digital_twin_name"] + "-hot-iot-data"
@@ -225,8 +247,11 @@ def iot_thing_policy_name(iot_device):
 def processor_iam_role_name(iot_device):
   return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
 
+def processor_lambda_function_name_local(iot_device):
+  return iot_device["id"]
+
 def processor_lambda_function_name(iot_device):
-  return config["digital_twin_name"] + "-" + iot_device["id"] + "-processor"
+  return config["digital_twin_name"] + "-" + processor_lambda_function_name_local(iot_device) + "-processor"
 
 def twinmaker_component_type_id(iot_device):
   return config["digital_twin_name"] + "-" + iot_device["id"]

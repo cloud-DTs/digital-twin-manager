@@ -77,14 +77,14 @@ def create_lambda_function(function_name):
   role_name = function_name
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
-  role_arn = response['Role']['Arn']
+  role_arn = response["Role"]["Arn"]
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.event_actions_path, function_name))},
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.event_action_lfs_path, function_name))},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -144,10 +144,6 @@ def info_lambda_actions():
       info_lambda_function(a["functionName"])
 
 
-
-def log(string):
-  print(f"Event Action Deployer: " + string)
-
 def deploy():
   deploy_lambda_actions()
 
@@ -160,3 +156,7 @@ def redeploy():
 
 def info():
   info_lambda_actions()
+
+
+def log(string):
+  print(f"Event Actions Deployer: " + string)

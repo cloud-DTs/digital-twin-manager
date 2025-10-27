@@ -1,14 +1,53 @@
-import json
-import os
 import time
 import globals
 import util
 from botocore.exceptions import ClientError
 
 
+
+def create_twinmaker_entity(entity_info, parent_info=None):
+  create_entity_params = {
+    "workspaceId": globals.twinmaker_workspace_name(),
+    "entityName": entity_info["id"],
+    "entityId": entity_info["id"],
+  }
+
+  if parent_info is not None:
+    create_entity_params["parentEntityId"] = parent_info["id"]
+
+  response = globals.aws_twinmaker_client.create_entity(**create_entity_params)
+
+  log(f"Created IoT TwinMaker Entity: {response["entityId"]}")
+
+  for child in entity_info["children"]:
+    if child["type"] == "entity":
+      create_twinmaker_entity(child, entity_info)
+    elif child["type"] == "component":
+      create_twinmaker_component(child, entity_info)
+
+def create_twinmaker_component(component_info, parent_info):
+  if "componentTypeId" in component_info:
+    component_type_id = component_info["componentTypeId"]
+  else:
+    component_type_id = f"{globals.config["digital_twin_name"]}-{component_info["iotDeviceId"]}"
+
+  globals.aws_twinmaker_client.update_entity(
+    workspaceId=globals.twinmaker_workspace_name(),
+    entityId=parent_info["id"],
+    componentUpdates={
+        component_info["name"]: {
+            "updateType": "CREATE",
+            "componentTypeId": component_type_id
+        }
+    }
+  )
+
+  log(f"Created IoT TwinMaker Component: {component_info["name"]}")
+
+
 def create_twinmaker_hierarchy():
   for entity in globals.config_hierarchy:
-    util.create_twinmaker_entity(entity)
+    create_twinmaker_entity(entity)
 
 def destroy_twinmaker_hierarchy():
   workspace_name = globals.twinmaker_workspace_name()
@@ -79,11 +118,6 @@ def info_twinmaker_hierarchy(hierarchy=None, parent=None):
         log(f"❌ IoT TwinMaker Component {entry["name"]} has the wrong component type: {component_info["componentTypeId"]}")
 
 
-
-def log(string):
-  print(f"Additional Deployer: " + string)
-
-
 def deploy_l4():
   create_twinmaker_hierarchy()
 
@@ -102,3 +136,7 @@ def destroy():
 
 def info():
   info_l4()
+
+
+def log(string):
+  print(f"Hierarchy Deployer: " + string)
