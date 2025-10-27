@@ -95,24 +95,6 @@ def main():
 
       elif command == "help":
         help_menu()
-
-      elif command == "test_c":
-        deployers.core_deployer.destroy_event_checker_iam_role()
-        deployers.core_deployer.create_event_checker_iam_role()
-
-        deployers.core_deployer.destroy_event_checker_lambda_function()
-        deployers.core_deployer.create_event_checker_lambda_function()
-
-        deployers.core_deployer.destroy_lambda_chain_iam_role()
-        deployers.core_deployer.create_lambda_chain_iam_role()
-
-        deployers.core_deployer.destroy_lambda_chain_step_function()
-        deployers.core_deployer.create_lambda_chain_step_function()
-      elif command == "test_d":
-
-        # deployers.core_deployer.create_lambda_chain_step_function()
-        deployers.core_deployer.destroy_lambda_chain_iam_role()
-
       elif command == "exit":
         print("Goodbye!")
         break

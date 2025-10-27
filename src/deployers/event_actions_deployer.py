@@ -77,7 +77,7 @@ def create_lambda_function(function_name):
   role_name = function_name
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
-  role_arn = response['Role']['Arn']
+  role_arn = response["Role"]["Arn"]
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,

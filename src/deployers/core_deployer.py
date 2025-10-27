@@ -276,6 +276,109 @@ def destroy_persister_lambda_function():
       raise
 
 
+def create_event_feedback_iam_role():
+  role_name = globals.event_feedback_iam_role_name()
+
+  globals.aws_iam_client.create_role(
+      RoleName=role_name,
+      AssumeRolePolicyDocument=json.dumps(
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        }
+      )
+  )
+
+  log(f"Created IAM role: {role_name}")
+
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AWSIoTDataAccess"
+  ]
+
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
+
+    log(f"Attached IAM policy ARN: {policy_arn}")
+
+  log(f"Waiting for propagation...")
+
+  time.sleep(20)
+
+def destroy_event_feedback_iam_role():
+  role_name = globals.event_feedback_iam_role_name()
+
+  try:
+    response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
+    for policy in response["AttachedPolicies"]:
+        globals.aws_iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
+
+    response = globals.aws_iam_client.list_role_policies(RoleName=role_name)
+    for policy_name in response["PolicyNames"]:
+        globals.aws_iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
+
+    response = globals.aws_iam_client.list_instance_profiles_for_role(RoleName=role_name)
+    for profile in response["InstanceProfiles"]:
+      globals.aws_iam_client.remove_role_from_instance_profile(
+        InstanceProfileName=profile["InstanceProfileName"],
+        RoleName=role_name
+      )
+
+    globals.aws_iam_client.delete_role(RoleName=role_name)
+    log(f"Deleted IAM role: {role_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "NoSuchEntity":
+      raise
+
+
+def create_event_feedback_lambda_function():
+  function_name = globals.event_feedback_lambda_function_name()
+  role_name = globals.event_feedback_iam_role_name()
+
+  response = globals.aws_iam_client.get_role(RoleName=role_name)
+  role_arn = response["Role"]["Arn"]
+
+  globals.aws_lambda_client.create_function(
+    FunctionName=function_name,
+    Runtime="python3.13",
+    Role=role_arn,
+    Handler="lambda_function.lambda_handler", #  file.function
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.core_lfs_path, "event-feedback"))},
+    Description="",
+    Timeout=3, # seconds
+    MemorySize=128, # MB
+    Publish=True,
+    Environment={
+      "Variables": {
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info())
+      }
+    }
+  )
+
+  log(f"Created Lambda function: {function_name}")
+
+def destroy_event_feedback_lambda_function():
+  function_name = globals.event_feedback_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.delete_function(FunctionName=function_name)
+    log(f"Deleted Lambda function: {function_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "ResourceNotFoundException":
+      raise
+
+
 def create_event_checker_iam_role():
   role_name = globals.event_checker_iam_role_name()
 
@@ -302,8 +405,9 @@ def create_event_checker_iam_role():
   policy_arns = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
+    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2",
     "arn:aws:iam::aws:policy/AWSLambda_ReadOnlyAccess",
-    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
+    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess"
   ]
 
   for policy_arn in policy_arns:
@@ -395,6 +499,7 @@ def create_event_checker_lambda_function():
   region = globals.aws_lambda_client.meta.region_name
   account_id = globals.aws_sts_client.get_caller_identity()['Account']
   lambda_chain_name = globals.lambda_chain_step_function_name()
+  lambda_chain_arn = f"arn:aws:states:{region}:{account_id}:stateMachine:{lambda_chain_name}"
 
   event_feedback_lambda_function = globals.event_feedback_lambda_function_name()
   response = globals.aws_lambda_client.get_function(FunctionName=event_feedback_lambda_function)
@@ -414,7 +519,7 @@ def create_event_checker_lambda_function():
       "Variables": {
         "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
         "TWINMAKER_WORKSPACE_NAME": globals.twinmaker_workspace_name(),
-        "LAMBDA_CHAIN_STEP_FUNCTION_ARN": f"arn:aws:states:{region}:{account_id}:stateMachine:{lambda_chain_name}",
+        "LAMBDA_CHAIN_STEP_FUNCTION_ARN": lambda_chain_arn,
         "EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN": event_feedback_lambda_function_arn
       }
     }
@@ -524,7 +629,7 @@ def create_lambda_chain_step_function():
             "FunctionName.$": "$.LambdaAArn",
             "Payload.$": "$.InputData"
           },
-          "OutputPath": "$.Payload",
+          "ResultPath": "$.LambdaAResult",
           "Next": "LambdaB"
         },
         "LambdaB": {
@@ -533,8 +638,8 @@ def create_lambda_chain_step_function():
           "Parameters": {
             "FunctionName.$": "$.LambdaBArn",
             "Payload": {
-              "event": "$.InputData",
-              "fromA.$": "$.result"
+              "fromA.$": "$.LambdaAResult.Payload",
+              "event.$": "$.InputData"
             }
           },
           "OutputPath": "$.Payload",
@@ -544,111 +649,34 @@ def create_lambda_chain_step_function():
     })
   )
 
+  log(f"Created Step Function: {sf_name}")
+
 def destroy_lambda_chain_step_function():
-  pass
-
-
-def create_event_feedback_iam_role():
-  role_name = globals.event_feedback_iam_role_name()
-
-  globals.aws_iam_client.create_role(
-      RoleName=role_name,
-      AssumeRolePolicyDocument=json.dumps(
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        }
-      )
-  )
-
-  log(f"Created IAM role: {role_name}")
-
-  policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    "arn:aws:iam::aws:policy/AWSIoTDataAccess"
-  ]
-
-  for policy_arn in policy_arns:
-    globals.aws_iam_client.attach_role_policy(
-      RoleName=role_name,
-      PolicyArn=policy_arn
-    )
-
-    log(f"Attached IAM policy ARN: {policy_arn}")
-
-  log(f"Waiting for propagation...")
-
-  time.sleep(20)
-
-def destroy_event_feedback_iam_role():
-  role_name = globals.event_feedback_iam_role_name()
+  sf_name = globals.lambda_chain_step_function_name()
+  region = globals.aws_lambda_client.meta.region_name
+  account_id = globals.aws_sts_client.get_caller_identity()['Account']
+  sf_arn = f"arn:aws:states:{region}:{account_id}:stateMachine:{sf_name}"
 
   try:
-    response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
-    for policy in response["AttachedPolicies"]:
-        globals.aws_iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
-
-    response = globals.aws_iam_client.list_role_policies(RoleName=role_name)
-    for policy_name in response["PolicyNames"]:
-        globals.aws_iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
-
-    response = globals.aws_iam_client.list_instance_profiles_for_role(RoleName=role_name)
-    for profile in response["InstanceProfiles"]:
-      globals.aws_iam_client.remove_role_from_instance_profile(
-        InstanceProfileName=profile["InstanceProfileName"],
-        RoleName=role_name
-      )
-
-    globals.aws_iam_client.delete_role(RoleName=role_name)
-    log(f"Deleted IAM role: {role_name}")
+    globals.aws_sf_client.describe_state_machine(stateMachineArn=sf_arn)
   except ClientError as e:
-    if e.response["Error"]["Code"] != "NoSuchEntity":
-      raise
+    if e.response["Error"]["Code"] == "StateMachineDoesNotExist":
+      return
 
+  globals.aws_sf_client.delete_state_machine(stateMachineArn=sf_arn)
+  log(f"Deletion of Step Function initiated: {sf_name}")
 
-def create_event_feedback_lambda_function():
-  function_name = globals.event_feedback_lambda_function_name()
-  role_name = globals.event_feedback_iam_role_name()
+  while True:
+    try:
+      globals.aws_sf_client.describe_state_machine(stateMachineArn=sf_arn)
+      time.sleep(2)
+    except ClientError as e:
+      if e.response["Error"]["Code"] == "StateMachineDoesNotExist":
+        break
+      else:
+        raise
 
-  response = globals.aws_iam_client.get_role(RoleName=role_name)
-  role_arn = response["Role"]["Arn"]
-
-  globals.aws_lambda_client.create_function(
-    FunctionName=function_name,
-    Runtime="python3.13",
-    Role=role_arn,
-    Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.core_lfs_path, "event-feedback"))},
-    Description="",
-    Timeout=3, # seconds
-    MemorySize=128, # MB
-    Publish=True,
-    Environment={
-      "Variables": {
-        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info())
-      }
-    }
-  )
-
-  log(f"Created Lambda function: {function_name}")
-
-def destroy_event_feedback_lambda_function():
-  function_name = globals.event_feedback_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.delete_function(FunctionName=function_name)
-    log(f"Deleted Lambda function: {function_name}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] != "ResourceNotFoundException":
-      raise
+  log(f"Deleted Step Function: {sf_name}")
 
 
 def create_hot_dynamodb_table():
@@ -1738,20 +1766,20 @@ def destroy_l1():
 def deploy_l2():
   create_persister_iam_role()
   create_persister_lambda_function()
+  create_event_feedback_iam_role()
+  create_event_feedback_lambda_function()
   create_event_checker_iam_role()
   create_event_checker_lambda_function()
   create_lambda_chain_iam_role()
   create_lambda_chain_step_function()
-  create_event_feedback_iam_role()
-  create_event_feedback_lambda_function()
 
 def destroy_l2():
-  destroy_event_feedback_lambda_function()
-  destroy_event_feedback_iam_role()
   destroy_lambda_chain_step_function()
   destroy_lambda_chain_iam_role()
   destroy_event_checker_lambda_function()
   destroy_event_checker_iam_role()
+  destroy_event_feedback_lambda_function()
+  destroy_event_feedback_iam_role()
   destroy_persister_lambda_function()
   destroy_persister_iam_role()
 

@@ -166,6 +166,12 @@ def persister_iam_role_name():
 def persister_lambda_function_name():
   return config["digital_twin_name"] + "-persister"
 
+def event_feedback_iam_role_name():
+  return config["digital_twin_name"] + "-event-feedback"
+
+def event_feedback_lambda_function_name():
+  return config["digital_twin_name"] + "-event-feedback"
+
 def event_checker_iam_role_name():
   return config["digital_twin_name"] + "-event-checker"
 
@@ -177,12 +183,6 @@ def lambda_chain_iam_role_name():
 
 def lambda_chain_step_function_name():
   return config["digital_twin_name"] + "-lambda-chain"
-
-def event_feedback_iam_role_name():
-  return config["digital_twin_name"] + "-feedback"
-
-def event_feedback_lambda_function_name():
-  return config["digital_twin_name"] + "-feedback"
 
 def hot_dynamodb_table_name():
   return config["digital_twin_name"] + "-hot-iot-data"
