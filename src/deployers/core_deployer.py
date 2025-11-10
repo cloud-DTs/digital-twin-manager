@@ -111,7 +111,8 @@ def destroy_dispatcher_lambda_function():
 
 def create_dispatcher_iot_rule():
   rule_name = globals.dispatcher_iot_rule_name()
-  sql = f"SELECT * FROM '{globals.config["digital_twin_name"]}/iot-data'"
+  topic = globals.dispatcher_iot_rule_topic()
+  sql = f"SELECT * FROM '{topic}'"
 
   function_name = globals.dispatcher_lambda_function_name()
 

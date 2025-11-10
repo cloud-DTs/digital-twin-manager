@@ -8,16 +8,12 @@
   {
     "id": "temperature-sensor-1-const",
     "properties": [
-      { "name": "some-const", "dataType": "DOUBLE", "initValue": 453.3 },
       { "name": "serial-number", "dataType": "STRING", "initValue": "temp-sens-143323" },
-      { "name": "non-const", "dataType": "STRING" }
+      { "name": "maxTemperature", "dataType": "DOUBLE", "initValue": 60.0 }
     ]
   },
   {
     "id": "temperature-sensor-2",
-    "constProperties": [
-      { "name": "serial-number", "dataType": "STRING", "value": "222" }
-    ],
     "properties": [
       { "name": "temperature", "dataType": "DOUBLE" }
     ]

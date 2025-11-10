@@ -1,0 +1,3 @@
+Digital Twin Manager
+
+A simple CLI tool to deploy, manage, and inspect AWS Digital Twin resources (IoT, Lambdas, events, hierarchies, etc.).

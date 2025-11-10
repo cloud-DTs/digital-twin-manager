@@ -10,7 +10,12 @@
           {
             "type": "component",
             "name": "temperature-sensor-1",
-            "componentTypeId": "digital-twin-temperature-sensor-1"
+            "componentTypeId": "dt-temperature-sensor-1"
+          },
+          {
+            "type": "component",
+            "name": "temperature-sensor-1-const",
+            "iotDeviceId": "temperature-sensor-1-const"
           }
         ]
       },

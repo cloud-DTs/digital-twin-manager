@@ -244,19 +244,6 @@ def create_twinmaker_component_type(iot_device):
         "isStoredExternally": True
       }
 
-  if "constProperties" in iot_device:
-    for const_property in iot_device["constProperties"]:
-      property_definitions[const_property["name"]] = {
-        "dataType": {
-          "type": const_property["dataType"]
-        },
-        "defaultValue": {
-          f"{const_property["dataType"].lower()}Value": const_property["value"]
-        },
-        "isTimeSeries": False,
-        "isStoredExternally": False
-      }
-
   functions = {}
 
   functions = {

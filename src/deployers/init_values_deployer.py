@@ -4,7 +4,7 @@ import json
 
 
 def post_init_values_to_iot_core():
-  topic = "digital-twin/iot-data"
+  topic = globals.dispatcher_iot_rule_topic()
 
   for iot_device in globals.config_iot_devices:
     has_init = any("initValue" in prop for prop in iot_device["properties"])

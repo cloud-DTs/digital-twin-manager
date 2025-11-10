@@ -7,6 +7,7 @@ import info
 import deployers.hierarchy_deployer
 import deployers.event_actions_deployer
 import deployers.init_values_deployer
+import sanity_checker
 
 def help_menu():
   print("""
@@ -58,6 +59,7 @@ def main():
       args = parts[1:]
 
       if command == "deploy":
+        sanity_checker.check()
         deployers.core_deployer.deploy()
         deployers.iot_deployer.deploy()
         deployers.hierarchy_deployer.deploy()

@@ -63,7 +63,6 @@ def digital_twin_info():
 
 
 def initialize_aws_iam_client():
-  global config
   global aws_iam_client
   aws_iam_client = boto3.client("iam",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -71,7 +70,6 @@ def initialize_aws_iam_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_lambda_client():
-  global config
   global aws_lambda_client
   aws_lambda_client = boto3.client("lambda",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -79,7 +77,6 @@ def initialize_aws_lambda_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_iot_client():
-  global config
   global aws_iot_client
   aws_iot_client = boto3.client("iot",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -87,7 +84,6 @@ def initialize_aws_iot_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_sts_client():
-  global config
   global aws_sts_client
   aws_sts_client = boto3.client("sts",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -95,7 +91,6 @@ def initialize_aws_sts_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_events_client():
-  global config
   global aws_events_client
   aws_events_client = boto3.client("events",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -103,7 +98,6 @@ def initialize_aws_events_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_dynamodb_client():
-  global config
   global aws_dynamodb_client
   aws_dynamodb_client = boto3.client("dynamodb",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -111,7 +105,6 @@ def initialize_aws_dynamodb_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_s3_client():
-  global config
   global aws_s3_client
   aws_s3_client = boto3.client("s3",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -119,7 +112,6 @@ def initialize_aws_s3_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_twinmaker_client():
-  global config
   global aws_twinmaker_client
   aws_twinmaker_client = boto3.client("iottwinmaker",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -127,7 +119,6 @@ def initialize_aws_twinmaker_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_grafana_client():
-  global config
   global aws_grafana_client
   aws_grafana_client = boto3.client("grafana",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -135,7 +126,6 @@ def initialize_aws_grafana_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_logs_client():
-  global config
   global aws_logs_client
   aws_logs_client = boto3.client("logs",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -143,7 +133,6 @@ def initialize_aws_logs_client():
     region_name=config_credentials["aws_region"])
 
 def initialize_aws_sf_client():
-  global config
   global aws_sf_client
   aws_sf_client = boto3.client("stepfunctions",
     aws_access_key_id=config_credentials["aws_access_key_id"],
@@ -167,6 +156,9 @@ def dispatcher_lambda_function_name():
 def dispatcher_iot_rule_name():
   rule_name = config["digital_twin_name"] + "-trigger-dispatcher"
   return rule_name.replace("-", "_")
+
+def dispatcher_iot_rule_topic():
+  return config["digital_twin_name"] + "/iot-data"
 
 def persister_iam_role_name():
   return config["digital_twin_name"] + "-persister"
@@ -214,10 +206,10 @@ def cold_archive_mover_event_rule_name():
   return config["digital_twin_name"] + "-cold-to-archive-mover"
 
 def cold_s3_bucket_name():
-  return config["digital_twin_name"] + "-cold-iot-data"
+  return (config["digital_twin_name"] + "-cold-iot-data").lower()
 
 def archive_s3_bucket_name():
-  return config["digital_twin_name"] + "-archive-iot-data"
+  return (config["digital_twin_name"] + "-archive-iot-data").lower()
 
 def hot_reader_iam_role_name():
   return config["digital_twin_name"] + "-hot-reader"
@@ -232,7 +224,7 @@ def hot_reader_last_entry_lambda_function_name():
   return config["digital_twin_name"] + "-hot-reader-last-entry"
 
 def twinmaker_s3_bucket_name():
-  return config["digital_twin_name"] + "-twinmaker"
+  return (config["digital_twin_name"] + "-twinmaker").lower()
 
 def twinmaker_iam_role_name():
   return config["digital_twin_name"] + "-twinmaker"

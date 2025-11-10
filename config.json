@@ -1,5 +1,5 @@
 {
-  "digital_twin_name": "digital-twin",
+  "digital_twin_name": "dt",
   "hot_storage_size_in_days": 30,
   "cold_storage_size_in_days": 90
 }

@@ -1,21 +1,21 @@
 [
   {
-    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(30)",
+    "condition": "room-1.temperature-sensor-2.temperature == room-1.temperature-sensor-2-const.maxTemperature",
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
       "autoDeploy": true,
       "feedback": {
         "type": "mqtt",
-        "topic": "digital-twin-temperature-sensor-2",
+        "topic": "dt-temperature-sensor-2",
         "payload": {
-          "message": "hello world"
+          "message": "Temperature too high!"
         }
       }
     }
   },
   {
-    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(30)",
+    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(40)",
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
