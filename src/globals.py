@@ -23,6 +23,7 @@ aws_twinmaker_client = {}
 aws_grafana_client = {}
 aws_logs_client = {}
 aws_sf_client = {}
+aws_iot_data_client = {}
 
 
 def project_path():
@@ -145,6 +146,13 @@ def initialize_aws_sf_client():
   global config
   global aws_sf_client
   aws_sf_client = boto3.client("stepfunctions",
+    aws_access_key_id=config_credentials["aws_access_key_id"],
+    aws_secret_access_key=config_credentials["aws_secret_access_key"],
+    region_name=config_credentials["aws_region"])
+
+def initialize_aws_iot_data_client():
+  global aws_iot_data_client
+  aws_iot_data_client = boto3.client("iot-data",
     aws_access_key_id=config_credentials["aws_access_key_id"],
     aws_secret_access_key=config_credentials["aws_secret_access_key"],
     region_name=config_credentials["aws_region"])

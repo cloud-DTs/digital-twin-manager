@@ -6,6 +6,7 @@ import deployers.iot_deployer
 import info
 import deployers.hierarchy_deployer
 import deployers.event_actions_deployer
+import deployers.init_values_deployer
 
 def help_menu():
   print("""
@@ -38,6 +39,7 @@ def main():
     globals.initialize_aws_grafana_client()
     globals.initialize_aws_logs_client()
     globals.initialize_aws_sf_client()
+    globals.initialize_aws_iot_data_client()
 
     print("Welcome to the Digital Twin Manager. Type 'help' for commands.")
 
@@ -60,7 +62,9 @@ def main():
         deployers.iot_deployer.deploy()
         deployers.hierarchy_deployer.deploy()
         deployers.event_actions_deployer.deploy()
+        deployers.init_values_deployer.deploy()
       elif command == "destroy":
+        deployers.init_values_deployer.destroy()
         deployers.event_actions_deployer.destroy()
         deployers.hierarchy_deployer.destroy()
         deployers.iot_deployer.destroy()
@@ -69,6 +73,7 @@ def main():
         info.check()
         deployers.hierarchy_deployer.info()
         deployers.event_actions_deployer.info()
+        deployers.init_values_deployer.info()
       elif command == "config_events_updated":
         deployers.event_actions_deployer.redeploy()
         deployers.core_deployer.redeploy_event_checker_lambda_function()
