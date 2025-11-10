@@ -16,10 +16,5 @@ def check_digital_twin_name():
     raise ValueError(f"Digital Twin Name does not satisfy this regex: {regex}")
 
 
-def check_bucket_names():
-  pass
-
-
 def check():
   check_digital_twin_name()
-  check_bucket_names()
