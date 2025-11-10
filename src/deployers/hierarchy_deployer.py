@@ -8,7 +8,7 @@ from botocore.exceptions import ClientError
 def create_twinmaker_entity(entity_info, parent_info=None):
   create_entity_params = {
     "workspaceId": globals.twinmaker_workspace_name(),
-    "entityName": entity_info["id"],
+    "entityName": entity_info.get("name") or entity_info["id"],
     "entityId": entity_info["id"],
   }
 
