@@ -1,6 +1,5 @@
 import os
 import zipfile
-
 import urllib
 import globals
 from botocore.exceptions import ClientError

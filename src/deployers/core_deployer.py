@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import json
 import os
 import time
@@ -705,18 +706,35 @@ def create_hot_dynamodb_table():
 
 def destroy_hot_dynamodb_table():
   table_name = globals.hot_dynamodb_table_name()
+  timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+  backup_name = f"{table_name}-backup-{timestamp}"
 
   try:
-    globals.aws_dynamodb_client.delete_table(TableName=table_name)
+    response = globals.aws_dynamodb_client.create_backup(TableName=table_name, BackupName=backup_name)
   except ClientError as e:
-    if e.response['Error']['Code'] == 'ResourceNotFoundException':
+    if e.response["Error"]["Code"] == "TableNotFoundException":
       return
     else:
       raise
 
+  backup_arn = response["BackupDetails"]["BackupArn"]
+  log(f"Backup of DynamoDb table initiated: {backup_name}, {backup_arn}")
+
+  while True:
+    response_d = globals.aws_dynamodb_client.describe_backup(BackupArn=backup_arn)
+    status = response_d["BackupDescription"]["BackupDetails"]["BackupStatus"]
+
+    if status == "AVAILABLE" or status == "ACTIVE":
+      break
+
+    time.sleep(5)
+
+  log("Backup creation of DynamoDb table succeeded.")
+
+  globals.aws_dynamodb_client.delete_table(TableName=table_name)
   log(f"Deletion of DynamoDb table initiated: {table_name}")
 
-  waiter = globals.aws_dynamodb_client.get_waiter('table_not_exists')
+  waiter = globals.aws_dynamodb_client.get_waiter("table_not_exists")
   waiter.wait(TableName=table_name)
 
   log(f"Deleted DynamoDb table: {table_name}")
@@ -1688,8 +1706,8 @@ def create_grafana_workspace():
       break
     time.sleep(2)
 
-  print(f"Created Grafana workspace: {workspace_name}")
-  print(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
+  log(f"Created Grafana workspace: {workspace_name}")
+  log(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
 
 def destroy_grafana_workspace():
   workspace_name = globals.grafana_workspace_name()
@@ -1850,22 +1868,22 @@ def destroy_l5():
 
 
 def deploy():
-  deploy_l1()
-  deploy_l2()
+  # deploy_l1()
+  # deploy_l2()
   deploy_l3_hot()
-  deploy_l3_cold()
-  deploy_l3_archive()
-  deploy_l4()
-  deploy_l5()
+  # deploy_l3_cold()
+  # deploy_l3_archive()
+  # deploy_l4()
+  # deploy_l5()
 
 def destroy():
-  destroy_l5()
-  destroy_l4()
-  destroy_l3_archive()
-  destroy_l3_cold()
+  # destroy_l5()
+  # destroy_l4()
+  # destroy_l3_archive()
+  # destroy_l3_cold()
   destroy_l3_hot()
-  destroy_l2()
-  destroy_l1()
+  # destroy_l2()
+  # destroy_l1()
 
 
 def log(string):
