@@ -73,18 +73,21 @@ def info_iam_role(role_name):
       raise
 
 
-def create_lambda_function(function_name):
+def create_lambda_function(function_name, pathToCodeFolder=None):
   role_name = function_name
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response["Role"]["Arn"]
+
+  if pathToCodeFolder == None:
+    pathToCodeFolder = os.path.join(globals.event_action_lfs_path, function_name)
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.event_action_lfs_path, function_name))},
+    Code={"ZipFile": util.compile_lambda_function(pathToCodeFolder)},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
@@ -123,11 +126,10 @@ def deploy_lambda_actions():
     if a["type"] == "lambda" and ("autoDeploy" not in a or a["autoDeploy"] == True):
       create_iam_role(a["functionName"])
 
-    log(f"Waiting for propagation...")
-    time.sleep(20)
+      log(f"Waiting for propagation...")
+      time.sleep(20)
 
-    if a["type"] == "lambda" and ("autoDeploy" not in a or a["autoDeploy"] == True):
-      create_lambda_function(a["functionName"])
+      create_lambda_function(a["functionName"], a.get("pathToCodeFolder"))
 
 def destroy_lambda_actions():
   for event in globals.config_events:

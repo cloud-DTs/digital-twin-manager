@@ -4,16 +4,31 @@ import urllib
 import globals
 from botocore.exceptions import ClientError
 
-def compile_lambda_function(relative_folder_path):
-  zip_path = zip_directory(relative_folder_path)
+def resolve_folder_path(folder_path):
+  rel_path = os.path.join(globals.project_path(), folder_path)
+
+  if os.path.exists(rel_path):
+    return rel_path
+
+  abs_path = os.path.abspath(folder_path)
+
+  if os.path.exists(abs_path):
+    return abs_path
+
+  raise FileNotFoundError(
+    f"Folder '{folder_path}' does not exist as relative or absolute path."
+  )
+
+def compile_lambda_function(folder_path):
+  zip_path = zip_directory(folder_path)
 
   with open(zip_path, "rb") as f:
     zip_code = f.read()
 
   return zip_code
 
-def zip_directory(relative_folder_path, zip_name='zipped.zip'):
-  folder_path = os.path.join(globals.project_path(), relative_folder_path)
+def zip_directory(folder_path, zip_name='zipped.zip'):
+  folder_path = resolve_folder_path(folder_path)
   output_path = os.path.join(folder_path, zip_name)
 
   with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
