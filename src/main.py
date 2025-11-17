@@ -59,17 +59,17 @@ def main():
       args = parts[1:]
 
       if command == "deploy":
-        # sanity_checker.check()
+        sanity_checker.check()
         deployers.core_deployer.deploy()
-        # deployers.iot_deployer.deploy()
-        # deployers.hierarchy_deployer.deploy()
-        # deployers.event_actions_deployer.deploy()
-        # deployers.init_values_deployer.deploy()
+        deployers.iot_deployer.deploy()
+        deployers.hierarchy_deployer.deploy()
+        deployers.event_actions_deployer.deploy()
+        deployers.init_values_deployer.deploy()
       elif command == "destroy":
-        # deployers.init_values_deployer.destroy()
-        # deployers.event_actions_deployer.destroy()
-        # deployers.hierarchy_deployer.destroy()
-        # deployers.iot_deployer.destroy()
+        deployers.init_values_deployer.destroy()
+        deployers.event_actions_deployer.destroy()
+        deployers.hierarchy_deployer.destroy()
+        deployers.iot_deployer.destroy()
         deployers.core_deployer.destroy()
       elif command == "info":
         info.check()

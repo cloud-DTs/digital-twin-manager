@@ -1868,22 +1868,22 @@ def destroy_l5():
 
 
 def deploy():
-  # deploy_l1()
-  # deploy_l2()
+  deploy_l1()
+  deploy_l2()
   deploy_l3_hot()
-  # deploy_l3_cold()
-  # deploy_l3_archive()
-  # deploy_l4()
-  # deploy_l5()
+  deploy_l3_cold()
+  deploy_l3_archive()
+  deploy_l4()
+  deploy_l5()
 
 def destroy():
-  # destroy_l5()
-  # destroy_l4()
-  # destroy_l3_archive()
-  # destroy_l3_cold()
+  destroy_l5()
+  destroy_l4()
+  destroy_l3_archive()
+  destroy_l3_cold()
   destroy_l3_hot()
-  # destroy_l2()
-  # destroy_l1()
+  destroy_l2()
+  destroy_l1()
 
 
 def log(string):
