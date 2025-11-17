@@ -73,21 +73,21 @@ def info_iam_role(role_name):
       raise
 
 
-def create_lambda_function(function_name, pathToCodeFolder=None):
+def create_lambda_function(function_name, path_to_code_folder=None):
   role_name = function_name
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
   role_arn = response["Role"]["Arn"]
 
-  if pathToCodeFolder == None:
-    pathToCodeFolder = os.path.join(globals.event_action_lfs_path, function_name)
+  if path_to_code_folder == None:
+    path_to_code_folder = os.path.join(globals.event_action_lfs_path, function_name)
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(pathToCodeFolder)},
+    Code={"ZipFile": util.compile_lambda_function(path_to_code_folder)},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB

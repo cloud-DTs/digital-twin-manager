@@ -179,22 +179,23 @@ def destroy_processor_iam_role(iot_device):
 
 def create_processor_lambda_function(iot_device):
   function_name = globals.processor_lambda_function_name(iot_device)
+  function_name_local = globals.processor_lambda_function_name_local(iot_device)
   role_name = globals.processor_iam_role_name(iot_device)
 
   response = globals.aws_iam_client.get_role(RoleName=role_name)
-  role_arn = response['Role']['Arn']
+  role_arn = response["Role"]["Arn"]
 
-  function_name_local = globals.processor_lambda_function_name_local(iot_device)
+  path_to_code_folder = os.path.join(globals.project_path(), globals.processor_lfs_path, function_name_local)
 
-  if not os.path.exists(os.path.join(globals.project_path(), globals.processor_lfs_path, function_name_local)):
-    function_name_local = "_default"
+  if not os.path.exists(path_to_code_folder):
+    path_to_code_folder = os.path.join(globals.project_path(), globals.core_lfs_path, "default-processor")
 
   globals.aws_lambda_client.create_function(
     FunctionName=function_name,
     Runtime="python3.13",
     Role=role_arn,
     Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.processor_lfs_path, function_name_local))},
+    Code={"ZipFile": util.compile_lambda_function(path_to_code_folder)},
     Description="",
     Timeout=3, # seconds
     MemorySize=128, # MB
