@@ -8,7 +8,6 @@
 - The core concept is a **deployer**. A deployer manages **deploy entities**, and each deploy entity is responsible for deploying, deleting, and retrieving information about a **resource entity**. A resource entity can represent one or more cloud resources (see example below).
 - Configuration files are used to define parameters for deployers.
 - The main function simply executes the `deploy`, `destroy`, or `info` function on all deployers based on user input.
-- Deployer example:
 
 ## Conventions
 - Every deployer should be implemented in its own file.
