@@ -1,5 +1,5 @@
 ## Usage
 - The Digital Twin can be configured through the configuration files.
-- The Digital Twin can be deployed with the `deploy` command.
-- The Digital Twin can be destroyed with the `destroy` command.
-- With the `info` command you can retrieve information about the Digital Twin cloud resources.
+- The Digital Twin can be deployed with the 'deploy' command.
+- The Digital Twin can be destroyed with the 'destroy' command.
+- With the 'info' command you can retrieve information about the Digital Twin cloud resources.
