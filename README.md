@@ -19,6 +19,7 @@
 ## Future Ideas
 - Improve the handling of constant values. This is less about the deployer itself and more about establishing a consistent mechanism for managing constants across the Digital Twin.
 - Possibly remove processor Lambda functions, or refactor them so the processor does not directly invoke the persister.
+- Use pagination in Boto3 calls to handle large result sets.
 - Object-oriented design. Create a `Deployer` class.
 - Testing system or unit tests.
 - Recovery mechanism for failed deployments. For example, store the point of failure and provide a `deploy_continue` option to resume.
