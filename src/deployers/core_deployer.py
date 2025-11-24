@@ -1516,6 +1516,20 @@ def deploy_twinmaker_s3_bucket():
     }
   )
 
+  globals.aws_s3_client.put_bucket_cors(
+      Bucket=bucket_name,
+      CORSConfiguration={
+        "CORSRules": [
+          {
+            "AllowedOrigins": ["*"],
+            "AllowedMethods": ["GET","HEAD"],
+            "AllowedHeaders": ["*"],
+            "ExposeHeaders": ["ETag"]
+          }
+        ]
+      }
+  )
+
   log(f"Created S3 Bucket: {bucket_name}")
 
 def destroy_twinmaker_s3_bucket():
@@ -1936,44 +1950,6 @@ def info_grafana_workspace():
       raise
 
 
-
-def add_cors_to_twinmaker_s3_bucket():
-  bucket_name = globals.twinmaker_s3_bucket_name()
-  grafana_workspace_id = util.get_grafana_workspace_id_by_name(globals.grafana_workspace_name())
-
-  globals.aws_s3_client.put_bucket_cors(
-      Bucket=bucket_name,
-      CORSConfiguration={
-        "CORSRules": [
-          {
-            "AllowedOrigins": [f"https://grafana.{globals.aws_grafana_client.meta.region_name}.amazonaws.com/workspaces/{grafana_workspace_id}"],
-            "AllowedMethods": ["GET"],
-            "AllowedHeaders": ["*"],
-            "MaxAgeSeconds": 3000
-          }
-        ]
-      }
-  )
-
-  log(f"CORS configuration applied to bucket: {bucket_name}")
-  log(f"------- allowed origin: {f"https://grafana.{globals.aws_grafana_client.meta.region_name}.amazonaws.com/workspaces/{grafana_workspace_id}"}")
-
-def remove_cors_from_twinmaker_s3_bucket():
-  bucket_name = globals.twinmaker_s3_bucket_name()
-
-  try:
-    globals.aws_s3_client.get_bucket_cors(Bucket=bucket_name)
-    globals.aws_s3_client.delete_bucket_cors(Bucket=bucket_name)
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "NoSuchBucket" or e.response["Error"]["Code"] == "NoSuchCORSConfiguration":
-      return
-    else:
-      raise
-
-  log(f"CORS configuration removed from bucket: {bucket_name}")
-
-
-
 def deploy_l1():
   deploy_dispatcher_iam_role()
   deploy_dispatcher_lambda_function()
@@ -2094,10 +2070,8 @@ def info_l4():
 def deploy_l5():
   deploy_grafana_iam_role()
   deploy_grafana_workspace()
-  add_cors_to_twinmaker_s3_bucket()
 
 def destroy_l5():
-  remove_cors_from_twinmaker_s3_bucket()
   destroy_grafana_workspace()
   destroy_grafana_iam_role()
 
@@ -2107,22 +2081,22 @@ def info_l5():
 
 
 def deploy():
-  deploy_l1()
-  deploy_l2()
-  deploy_l3_hot()
-  deploy_l3_cold()
-  deploy_l3_archive()
+  # deploy_l1()
+  # deploy_l2()
+  # deploy_l3_hot()
+  # deploy_l3_cold()
+  # deploy_l3_archive()
   deploy_l4()
-  deploy_l5()
+  # deploy_l5()
 
 def destroy():
-  destroy_l5()
+  # destroy_l5()
   destroy_l4()
-  destroy_l3_archive()
-  destroy_l3_cold()
-  destroy_l3_hot()
-  destroy_l2()
-  destroy_l1()
+  # destroy_l3_archive()
+  # destroy_l3_cold()
+  # destroy_l3_hot()
+  # destroy_l2()
+  # destroy_l1()
 
 def info():
   info_l1()
