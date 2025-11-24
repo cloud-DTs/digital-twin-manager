@@ -246,30 +246,6 @@ def check_hot_reader_lambda_function():
     else:
       raise
 
-def check_hot_reader_last_entry_iam_role():
-  role_name = globals.hot_reader_last_entry_iam_role_name()
-
-  try:
-    globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Hot Reader Last Entry IAM Role exists: {util.link_to_iam_role(role_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Hot Reader Last Entry IAM Role missing: {role_name}")
-    else:
-      raise
-
-def check_hot_reader_last_entry_lambda_function():
-  function_name = globals.hot_reader_last_entry_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Hot Reader Last Entry Lambda Function exists: {util.link_to_lambda_function(function_name)}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Hot Reader Last Entry Lambda Function missing: {function_name}")
-    else:
-      raise
-
 def check_cold_s3_bucket():
   bucket_name = globals.cold_s3_bucket_name()
 
@@ -435,8 +411,6 @@ def check_l3_hot():
   check_hot_cold_mover_event_rule()
   check_hot_reader_iam_role()
   check_hot_reader_lambda_function()
-  check_hot_reader_last_entry_iam_role()
-  check_hot_reader_last_entry_lambda_function()
 
 def check_l3_cold():
   check_cold_s3_bucket()

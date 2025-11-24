@@ -1,6 +1,5 @@
 import json
 import globals
-import lambda_manager
 import deployers.core_deployer
 import deployers.iot_deployer
 import info
@@ -15,10 +14,6 @@ def help_menu():
       deploy                                                            - Deploys core and IoT services and resources.
       destroy                                                           - Destroys core and IoT services and resources.
       info                                                              - Lists all the deployed resources.
-      config_events_updated                                             - Redeploys the events.
-      lambda_update <local_function_name> <o:environment>               - Deploys a new version of the specified lambda function.
-      lambda_logs <local_function_name> <o:n> <o:filter_system_logs>    - Fetches the last n logged messages of the specified lambda function.
-      lambda_invoke <local_function_name> <o:payload> <o:sync>          - Invokes the specified lambda function.
       help                                                              - Show this help menu.
       exit                                                              - Exit the program.
   """)
@@ -65,46 +60,27 @@ def main():
         deployers.hierarchy_deployer.deploy()
         deployers.event_actions_deployer.deploy()
         deployers.init_values_deployer.deploy()
+
       elif command == "destroy":
         deployers.init_values_deployer.destroy()
         deployers.event_actions_deployer.destroy()
         deployers.hierarchy_deployer.destroy()
         deployers.iot_deployer.destroy()
         deployers.core_deployer.destroy()
+
       elif command == "info":
         info.check()
         deployers.hierarchy_deployer.info()
         deployers.event_actions_deployer.info()
         deployers.init_values_deployer.info()
-      elif command == "config_events_updated":
-        deployers.event_actions_deployer.redeploy()
-        deployers.core_deployer.redeploy_event_checker_lambda_function()
-
-      elif command == "lambda_update":
-        if len(args) > 1:
-          lambda_manager.update_function(args[0], json.loads(args[1]))
-        else:
-          lambda_manager.update_function(args[0])
-      elif command == "lambda_logs":
-        if len(args) > 2:
-          print("".join(lambda_manager.fetch_logs(args[0], int(args[1]), args[2].lower() in ("true", "1", "yes", "y"))))
-        elif len(args) > 1:
-          print("".join(lambda_manager.fetch_logs(args[0], int(args[1]))))
-        else:
-          print("".join(lambda_manager.fetch_logs(args[0])))
-      elif command == "lambda_invoke":
-        if len(args) > 2:
-          lambda_manager.invoke_function(args[0], json.loads(args[1]), args[2].lower() in ("true", "1", "yes", "y"))
-        elif len(args) > 1:
-          lambda_manager.invoke_function(args[0], json.loads(args[1]))
-        else:
-          lambda_manager.invoke_function(args[0])
 
       elif command == "help":
         help_menu()
+
       elif command == "exit":
         print("Goodbye!")
         break
+
       else:
         print(f"Unknown command: {command}. Type 'help' for a list of commands.")
 

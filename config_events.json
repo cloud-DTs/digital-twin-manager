@@ -18,8 +18,9 @@
     "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(40)",
     "action": {
       "type": "lambda",
-      "functionName": "high-temperature-callback",
-      "autoDeploy": false,
+      "functionName": "high-temperature-callback-2",
+      "pathToCode": "lambda_functions/event_actions/high-temperature-callback-2",
+      "autoDeploy": true,
       "feedback": {
         "type": "mqtt",
         "iotDeviceId": "temperature-sensor-2",

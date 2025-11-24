@@ -129,7 +129,7 @@ def deploy_lambda_actions():
       log(f"Waiting for propagation...")
       time.sleep(20)
 
-      create_lambda_function(a["functionName"], a.get("pathToCodeFolder"))
+      create_lambda_function(a["functionName"], a.get("pathToCode"))
 
 def destroy_lambda_actions():
   for event in globals.config_events:
@@ -151,10 +151,6 @@ def deploy():
 
 def destroy():
   destroy_lambda_actions()
-
-def redeploy():
-  destroy_lambda_actions()
-  deploy_lambda_actions()
 
 def info():
   info_lambda_actions()

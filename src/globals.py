@@ -217,12 +217,6 @@ def hot_reader_iam_role_name():
 def hot_reader_lambda_function_name():
   return config["digital_twin_name"] + "-hot-reader"
 
-def hot_reader_last_entry_iam_role_name():
-  return config["digital_twin_name"] + "-hot-reader-last-entry"
-
-def hot_reader_last_entry_lambda_function_name():
-  return config["digital_twin_name"] + "-hot-reader-last-entry"
-
 def twinmaker_s3_bucket_name():
   return (config["digital_twin_name"] + "-twinmaker").lower()
 
