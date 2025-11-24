@@ -18,7 +18,6 @@
   This gives all Digital Twin resources a dedicated namespace and makes them clearly distinguishable from unrelated resources in the AWS account.
 
 ## Future Ideas
-- Use a single provider for layer 3. For AWS, consider using S3 lifecycle rules to transition hot → cold → archive data.
 - Improve the handling of constant values. This is less about the deployer itself and more about establishing a consistent mechanism for managing constants across the Digital Twin.
 - Possibly remove processor Lambda functions, or refactor them so the processor does not directly invoke the persister.
 - Object-oriented design. Create a `Deployer` class.
