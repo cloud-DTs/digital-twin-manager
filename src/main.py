@@ -1,8 +1,6 @@
-import json
 import globals
 import deployers.core_deployer
 import deployers.iot_deployer
-import info
 import deployers.hierarchy_deployer
 import deployers.event_actions_deployer
 import deployers.init_values_deployer
@@ -69,7 +67,8 @@ def main():
         deployers.core_deployer.destroy()
 
       elif command == "info":
-        info.check()
+        deployers.core_deployer.info()
+        deployers.iot_deployer.info()
         deployers.hierarchy_deployer.info()
         deployers.event_actions_deployer.info()
         deployers.init_values_deployer.info()

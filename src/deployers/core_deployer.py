@@ -7,7 +7,7 @@ import util
 from botocore.exceptions import ClientError
 
 
-def create_dispatcher_iam_role():
+def deploy_dispatcher_iam_role():
   role_name = globals.dispatcher_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -72,8 +72,20 @@ def destroy_dispatcher_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_dispatcher_iam_role():
+  role_name = globals.dispatcher_iam_role_name()
 
-def create_dispatcher_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Dispatcher IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Dispatcher IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_dispatcher_lambda_function():
   function_name = globals.dispatcher_lambda_function_name()
   role_name = globals.dispatcher_iam_role_name()
 
@@ -109,8 +121,20 @@ def destroy_dispatcher_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_dispatcher_lambda_function():
+  function_name = globals.dispatcher_lambda_function_name()
 
-def create_dispatcher_iot_rule():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Dispatcher Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Dispatcher Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_dispatcher_iot_rule():
   rule_name = globals.dispatcher_iot_rule_name()
   topic = globals.dispatcher_iot_rule_topic()
   sql = f"SELECT * FROM '{topic}'"
@@ -171,8 +195,20 @@ def destroy_dispatcher_iot_rule():
     except globals.aws_iot_client.exceptions.ResourceNotFoundException:
       pass
 
+def info_dispatcher_iot_rule():
+  rule_name = globals.dispatcher_iot_rule_name()
 
-def create_persister_iam_role():
+  try:
+    globals.aws_iot_client.get_topic_rule(ruleName=rule_name)
+    print(f"✅ Dispatcher Iot Rule exists: {util.link_to_iot_rule(rule_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "UnauthorizedException":
+      print(f"❌ Dispatcher IoT Rule missing: {rule_name}")
+    else:
+      raise
+
+
+def deploy_persister_iam_role():
   role_name = globals.persister_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -238,8 +274,20 @@ def destroy_persister_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_persister_iam_role():
+  role_name = globals.persister_iam_role_name()
 
-def create_persister_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Persister IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Persister IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_persister_lambda_function():
   function_name = globals.persister_lambda_function_name()
   role_name = globals.persister_iam_role_name()
 
@@ -277,8 +325,20 @@ def destroy_persister_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_persister_lambda_function():
+  function_name = globals.persister_lambda_function_name()
 
-def create_event_feedback_iam_role():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Persister Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Persister Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_event_feedback_iam_role():
   role_name = globals.event_feedback_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -343,8 +403,20 @@ def destroy_event_feedback_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_event_feedback_iam_role():
+  role_name = globals.event_feedback_iam_role_name()
 
-def create_event_feedback_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Event-Feedback IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Event-Feedback IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_event_feedback_lambda_function():
   function_name = globals.event_feedback_lambda_function_name()
   role_name = globals.event_feedback_iam_role_name()
 
@@ -380,8 +452,20 @@ def destroy_event_feedback_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_event_feedback_lambda_function():
+  function_name = globals.event_feedback_lambda_function_name()
 
-def create_event_checker_iam_role():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Event-Feedback Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Event-Feedback Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_event_checker_iam_role():
   role_name = globals.event_checker_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -490,8 +574,20 @@ def destroy_event_checker_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_event_checker_iam_role():
+  role_name = globals.event_checker_iam_role_name()
 
-def create_event_checker_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Event-Checker IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Event-Checker IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_event_checker_lambda_function():
   function_name = globals.event_checker_lambda_function_name()
   role_name = globals.event_checker_iam_role_name()
 
@@ -539,8 +635,20 @@ def destroy_event_checker_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_event_checker_lambda_function():
+  function_name = globals.event_checker_lambda_function_name()
 
-def create_lambda_chain_iam_role():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Event-Checker Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Event-Checker Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_lambda_chain_iam_role():
   role_name = globals.lambda_chain_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -605,8 +713,20 @@ def destroy_lambda_chain_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_lambda_chain_iam_role():
+  role_name = globals.lambda_chain_iam_role_name()
 
-def create_lambda_chain_step_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Lambda-Chain IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Lambda-Chain IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_lambda_chain_step_function():
   sf_name = globals.lambda_chain_step_function_name()
   role_name = globals.lambda_chain_iam_role_name()
 
@@ -676,8 +796,23 @@ def destroy_lambda_chain_step_function():
 
   log(f"Deleted Step Function: {sf_name}")
 
+def info_lambda_chain_step_function():
+  sf_name = globals.lambda_chain_step_function_name()
+  region = globals.aws_lambda_client.meta.region_name
+  account_id = globals.aws_sts_client.get_caller_identity()['Account']
+  sf_arn = f"arn:aws:states:{region}:{account_id}:stateMachine:{sf_name}"
 
-def create_hot_dynamodb_table():
+  try:
+    globals.aws_sf_client.describe_state_machine(stateMachineArn=sf_arn)
+    print(f"✅ Lambda-Chain Step Function exists: {util.link_to_step_function(sf_arn)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "StateMachineDoesNotExist":
+      print(f"❌ Lambda-Chain Step Function missing: {sf_name}")
+    else:
+      raise
+
+
+def deploy_hot_dynamodb_table():
   table_name = globals.hot_dynamodb_table_name()
 
   globals.aws_dynamodb_client.create_table(
@@ -735,8 +870,20 @@ def destroy_hot_dynamodb_table():
 
   log(f"Deleted DynamoDb table: {table_name}")
 
+def info_hot_dynamodb_table():
+  table_name = globals.hot_dynamodb_table_name()
 
-def create_hot_cold_mover_iam_role():
+  try:
+    globals.aws_dynamodb_client.describe_table(TableName=table_name)
+    print(f"✅ DynamoDb Table exists: {util.link_to_dynamodb_table(table_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ DynamoDb Table missing: {table_name}")
+    else:
+      raise
+
+
+def deploy_hot_cold_mover_iam_role():
   role_name = globals.hot_cold_mover_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -802,8 +949,20 @@ def destroy_hot_cold_mover_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_hot_cold_mover_iam_role():
+  role_name = globals.hot_cold_mover_iam_role_name()
 
-def create_hot_cold_mover_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Hot to Cold Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Hot to Cold Mover IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_hot_cold_mover_lambda_function():
   function_name = globals.hot_cold_mover_lambda_function_name()
   role_name = globals.hot_cold_mover_iam_role_name()
 
@@ -841,8 +1000,20 @@ def destroy_hot_cold_mover_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_hot_cold_mover_lambda_function():
+  function_name = globals.hot_cold_mover_lambda_function_name()
 
-def create_hot_cold_mover_event_rule():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Hot to Cold Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Hot to Cold Mover Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_hot_cold_mover_event_rule():
   rule_name = globals.hot_cold_mover_event_rule_name()
   schedule_expression = f"cron(0 12 * * ? *)"
 
@@ -909,211 +1080,20 @@ def destroy_hot_cold_mover_event_rule():
   except globals.aws_events_client.exceptions.ResourceNotFoundException:
     pass
 
-
-def create_cold_s3_bucket():
-  bucket_name = globals.cold_s3_bucket_name()
-
-  globals.aws_s3_client.create_bucket(
-    Bucket=bucket_name,
-    CreateBucketConfiguration={
-        "LocationConstraint": globals.aws_s3_client.meta.region_name
-    }
-  )
-
-  log(f"Created S3 Bucket: {bucket_name}")
-
-def destroy_cold_s3_bucket():
-  bucket_name = globals.cold_s3_bucket_name()
-
-  util.destroy_s3_bucket(bucket_name)
-
-
-def create_cold_archive_mover_iam_role():
-  role_name = globals.cold_archive_mover_iam_role_name()
-
-  globals.aws_iam_client.create_role(
-      RoleName=role_name,
-      AssumeRolePolicyDocument=json.dumps(
-        {
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        }
-      )
-  )
-
-  log(f"Created IAM role: {role_name}")
-
-  policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-  ]
-
-  for policy_arn in policy_arns:
-    globals.aws_iam_client.attach_role_policy(
-      RoleName=role_name,
-      PolicyArn=policy_arn
-    )
-
-    log(f"Attached IAM policy ARN: {policy_arn}")
-
-  log(f"Waiting for propagation...")
-
-  time.sleep(20)
-
-def destroy_cold_archive_mover_iam_role():
-  role_name = globals.cold_archive_mover_iam_role_name()
-
-  try:
-    response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
-    for policy in response["AttachedPolicies"]:
-        globals.aws_iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
-
-    response = globals.aws_iam_client.list_role_policies(RoleName=role_name)
-    for policy_name in response["PolicyNames"]:
-        globals.aws_iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
-
-    response = globals.aws_iam_client.list_instance_profiles_for_role(RoleName=role_name)
-    for profile in response["InstanceProfiles"]:
-      globals.aws_iam_client.remove_role_from_instance_profile(
-        InstanceProfileName=profile["InstanceProfileName"],
-        RoleName=role_name
-      )
-
-    globals.aws_iam_client.delete_role(RoleName=role_name)
-    log(f"Deleted IAM role: {role_name}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] != "NoSuchEntity":
-      raise
-
-
-def create_cold_archive_mover_lambda_function():
-  function_name = globals.cold_archive_mover_lambda_function_name()
-  role_name = globals.cold_archive_mover_iam_role_name()
-
-  response = globals.aws_iam_client.get_role(RoleName=role_name)
-  role_arn = response["Role"]["Arn"]
-
-  globals.aws_lambda_client.create_function(
-    FunctionName=function_name,
-    Runtime="python3.13",
-    Role=role_arn,
-    Handler="lambda_function.lambda_handler", #  file.function
-    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.core_lfs_path, "cold-to-archive-mover"))},
-    Description="",
-    Timeout=3, # seconds
-    MemorySize=128, # MB
-    Publish=True,
-    Environment={
-      "Variables": {
-        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
-        "SOURCE_S3_BUCKET_NAME": globals.cold_s3_bucket_name(),
-        "TARGET_S3_BUCKET_NAME": globals.archive_s3_bucket_name()
-      }
-    }
-  )
-
-  log(f"Created Lambda function: {function_name}")
-
-def destroy_cold_archive_mover_lambda_function():
-  function_name = globals.cold_archive_mover_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.delete_function(FunctionName=function_name)
-    log(f"Deleted Lambda function: {function_name}")
-  except ClientError as e:
-    if e.response["Error"]["Code"] != "ResourceNotFoundException":
-      raise
-
-
-def create_cold_archive_mover_event_rule():
-  rule_name = globals.cold_archive_mover_event_rule_name()
-  function_name = globals.cold_archive_mover_lambda_function_name()
-
-  schedule_expression = f"cron(0 18 * * ? *)"
-
-  rule_arn = globals.aws_events_client.put_rule(Name=rule_name, ScheduleExpression=schedule_expression, State="ENABLED")["RuleArn"]
-
-  log(f"Created EventBridge Rule: {rule_name}")
-
-  lambda_arn = globals.aws_lambda_client.get_function(FunctionName=function_name)["Configuration"]["FunctionArn"]
-
-  globals.aws_events_client.put_targets(
-    Rule=rule_name,
-    Targets=[
-        {
-            "Id": "1",
-            "Arn": lambda_arn,
-        }
-    ]
-  )
-
-  log(f"Added Lambda Function as target.")
-
-  globals.aws_lambda_client.add_permission(
-    FunctionName=function_name,
-    StatementId="events-invoke",
-    Action="lambda:InvokeFunction",
-    Principal="events.amazonaws.com",
-    SourceArn=rule_arn,
-  )
-
-  log(f"Added permission to Lambda Function so the rule can invoke the function.")
-
-def destroy_cold_archive_mover_event_rule():
-  rule_name = globals.cold_archive_mover_event_rule_name()
-  function_name = globals.cold_archive_mover_lambda_function_name()
-
-  try:
-    globals.aws_lambda_client.remove_permission(FunctionName=function_name, StatementId="events-invoke")
-    log(f"Removed permission from Lambda Function: {rule_name}, {function_name}")
-  except globals.aws_lambda_client.exceptions.ResourceNotFoundException:
-    pass
-
-  try:
-    response = globals.aws_events_client.list_targets_by_rule(Rule=rule_name, EventBusName="default")
-    target_ids = [t["Id"] for t in response.get("Targets", [])]
-
-    if target_ids:
-      globals.aws_events_client.remove_targets(Rule=rule_name, EventBusName="default", Ids=target_ids, Force=True)
-      log(f"Removed targets from EventBridge Rule: {target_ids}")
-  except globals.aws_events_client.exceptions.ResourceNotFoundException:
-    pass
+def info_hot_cold_mover_event_rule():
+  rule_name = globals.hot_cold_mover_event_rule_name()
 
   try:
     globals.aws_events_client.describe_rule(Name=rule_name)
-    globals.aws_events_client.delete_rule(Name=rule_name, Force=True)
-    log(f"Deleted EventBridge Rule: {rule_name}")
-  except globals.aws_events_client.exceptions.ResourceNotFoundException:
-    pass
+    print(f"✅ Hot to Cold Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Hot to Cold Mover EventBridge Rule missing: {rule_name}")
+    else:
+      raise
 
 
-def create_archive_s3_bucket():
-  bucket_name = globals.archive_s3_bucket_name()
-
-  globals.aws_s3_client.create_bucket(
-    Bucket=bucket_name,
-    CreateBucketConfiguration={
-        "LocationConstraint": globals.aws_s3_client.meta.region_name
-    }
-  )
-
-  log(f"Created S3 Bucket: {bucket_name}")
-
-def destroy_archive_s3_bucket():
-  bucket_name = globals.archive_s3_bucket_name()
-
-  util.destroy_s3_bucket(bucket_name)
-
-
-def create_hot_reader_iam_role():
+def deploy_hot_reader_iam_role():
   role_name = globals.hot_reader_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -1200,8 +1180,20 @@ def destroy_hot_reader_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_hot_reader_iam_role():
+  role_name = globals.hot_reader_iam_role_name()
 
-def create_hot_reader_lambda_function():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Hot Reader IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Hot Reader IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_hot_reader_lambda_function():
   function_name = globals.hot_reader_lambda_function_name()
   role_name = globals.hot_reader_iam_role_name()
 
@@ -1238,8 +1230,283 @@ def destroy_hot_reader_lambda_function():
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_hot_reader_lambda_function():
+  function_name = globals.hot_reader_lambda_function_name()
 
-def create_twinmaker_s3_bucket():
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Hot Reader Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Hot Reader Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_cold_s3_bucket():
+  bucket_name = globals.cold_s3_bucket_name()
+
+  globals.aws_s3_client.create_bucket(
+    Bucket=bucket_name,
+    CreateBucketConfiguration={
+        "LocationConstraint": globals.aws_s3_client.meta.region_name
+    }
+  )
+
+  log(f"Created S3 Bucket: {bucket_name}")
+
+def destroy_cold_s3_bucket():
+  bucket_name = globals.cold_s3_bucket_name()
+
+  util.destroy_s3_bucket(bucket_name)
+
+def info_cold_s3_bucket():
+  bucket_name = globals.cold_s3_bucket_name()
+
+  try:
+    globals.aws_s3_client.head_bucket(Bucket=bucket_name)
+    print(f"✅ Cold S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+  except ClientError as e:
+    if int(e.response["Error"]["Code"]) == 404:
+      print(f"❌ Cold S3 Bucket missing: {bucket_name}")
+    else:
+      raise
+
+
+def deploy_cold_archive_mover_iam_role():
+  role_name = globals.cold_archive_mover_iam_role_name()
+
+  globals.aws_iam_client.create_role(
+      RoleName=role_name,
+      AssumeRolePolicyDocument=json.dumps(
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        }
+      )
+  )
+
+  log(f"Created IAM role: {role_name}")
+
+  policy_arns = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  ]
+
+  for policy_arn in policy_arns:
+    globals.aws_iam_client.attach_role_policy(
+      RoleName=role_name,
+      PolicyArn=policy_arn
+    )
+
+    log(f"Attached IAM policy ARN: {policy_arn}")
+
+  log(f"Waiting for propagation...")
+
+  time.sleep(20)
+
+def destroy_cold_archive_mover_iam_role():
+  role_name = globals.cold_archive_mover_iam_role_name()
+
+  try:
+    response = globals.aws_iam_client.list_attached_role_policies(RoleName=role_name)
+    for policy in response["AttachedPolicies"]:
+        globals.aws_iam_client.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
+
+    response = globals.aws_iam_client.list_role_policies(RoleName=role_name)
+    for policy_name in response["PolicyNames"]:
+        globals.aws_iam_client.delete_role_policy(RoleName=role_name, PolicyName=policy_name)
+
+    response = globals.aws_iam_client.list_instance_profiles_for_role(RoleName=role_name)
+    for profile in response["InstanceProfiles"]:
+      globals.aws_iam_client.remove_role_from_instance_profile(
+        InstanceProfileName=profile["InstanceProfileName"],
+        RoleName=role_name
+      )
+
+    globals.aws_iam_client.delete_role(RoleName=role_name)
+    log(f"Deleted IAM role: {role_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "NoSuchEntity":
+      raise
+
+def info_cold_archive_mover_iam_role():
+  role_name = globals.cold_archive_mover_iam_role_name()
+
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Cold to Archive Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Cold to Archive Mover IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_cold_archive_mover_lambda_function():
+  function_name = globals.cold_archive_mover_lambda_function_name()
+  role_name = globals.cold_archive_mover_iam_role_name()
+
+  response = globals.aws_iam_client.get_role(RoleName=role_name)
+  role_arn = response["Role"]["Arn"]
+
+  globals.aws_lambda_client.create_function(
+    FunctionName=function_name,
+    Runtime="python3.13",
+    Role=role_arn,
+    Handler="lambda_function.lambda_handler", #  file.function
+    Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.core_lfs_path, "cold-to-archive-mover"))},
+    Description="",
+    Timeout=3, # seconds
+    MemorySize=128, # MB
+    Publish=True,
+    Environment={
+      "Variables": {
+        "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
+        "SOURCE_S3_BUCKET_NAME": globals.cold_s3_bucket_name(),
+        "TARGET_S3_BUCKET_NAME": globals.archive_s3_bucket_name()
+      }
+    }
+  )
+
+  log(f"Created Lambda function: {function_name}")
+
+def destroy_cold_archive_mover_lambda_function():
+  function_name = globals.cold_archive_mover_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.delete_function(FunctionName=function_name)
+    log(f"Deleted Lambda function: {function_name}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] != "ResourceNotFoundException":
+      raise
+
+def info_cold_archive_mover_lambda_function():
+  function_name = globals.cold_archive_mover_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Cold to Archive Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Cold to Archive Mover Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_cold_archive_mover_event_rule():
+  rule_name = globals.cold_archive_mover_event_rule_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
+
+  schedule_expression = f"cron(0 18 * * ? *)"
+
+  rule_arn = globals.aws_events_client.put_rule(Name=rule_name, ScheduleExpression=schedule_expression, State="ENABLED")["RuleArn"]
+
+  log(f"Created EventBridge Rule: {rule_name}")
+
+  lambda_arn = globals.aws_lambda_client.get_function(FunctionName=function_name)["Configuration"]["FunctionArn"]
+
+  globals.aws_events_client.put_targets(
+    Rule=rule_name,
+    Targets=[
+        {
+            "Id": "1",
+            "Arn": lambda_arn,
+        }
+    ]
+  )
+
+  log(f"Added Lambda Function as target.")
+
+  globals.aws_lambda_client.add_permission(
+    FunctionName=function_name,
+    StatementId="events-invoke",
+    Action="lambda:InvokeFunction",
+    Principal="events.amazonaws.com",
+    SourceArn=rule_arn,
+  )
+
+  log(f"Added permission to Lambda Function so the rule can invoke the function.")
+
+def destroy_cold_archive_mover_event_rule():
+  rule_name = globals.cold_archive_mover_event_rule_name()
+  function_name = globals.cold_archive_mover_lambda_function_name()
+
+  try:
+    globals.aws_lambda_client.remove_permission(FunctionName=function_name, StatementId="events-invoke")
+    log(f"Removed permission from Lambda Function: {rule_name}, {function_name}")
+  except globals.aws_lambda_client.exceptions.ResourceNotFoundException:
+    pass
+
+  try:
+    response = globals.aws_events_client.list_targets_by_rule(Rule=rule_name, EventBusName="default")
+    target_ids = [t["Id"] for t in response.get("Targets", [])]
+
+    if target_ids:
+      globals.aws_events_client.remove_targets(Rule=rule_name, EventBusName="default", Ids=target_ids, Force=True)
+      log(f"Removed targets from EventBridge Rule: {target_ids}")
+  except globals.aws_events_client.exceptions.ResourceNotFoundException:
+    pass
+
+  try:
+    globals.aws_events_client.describe_rule(Name=rule_name)
+    globals.aws_events_client.delete_rule(Name=rule_name, Force=True)
+    log(f"Deleted EventBridge Rule: {rule_name}")
+  except globals.aws_events_client.exceptions.ResourceNotFoundException:
+    pass
+
+def info_cold_archive_mover_event_rule():
+  rule_name = globals.cold_archive_mover_event_rule_name()
+
+  try:
+    globals.aws_events_client.describe_rule(Name=rule_name)
+    print(f"✅ Cold to Archive Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Cold to Archive Mover EventBridge Rule missing: {rule_name}")
+    else:
+      raise
+
+
+def deploy_archive_s3_bucket():
+  bucket_name = globals.archive_s3_bucket_name()
+
+  globals.aws_s3_client.create_bucket(
+    Bucket=bucket_name,
+    CreateBucketConfiguration={
+        "LocationConstraint": globals.aws_s3_client.meta.region_name
+    }
+  )
+
+  log(f"Created S3 Bucket: {bucket_name}")
+
+def destroy_archive_s3_bucket():
+  bucket_name = globals.archive_s3_bucket_name()
+
+  util.destroy_s3_bucket(bucket_name)
+
+def info_archive_s3_bucket():
+  bucket_name = globals.archive_s3_bucket_name()
+
+  try:
+    globals.aws_s3_client.head_bucket(Bucket=bucket_name)
+    print(f"✅ Archive S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+  except ClientError as e:
+    if int(e.response["Error"]["Code"]) == 404:
+      print(f"❌ Archive S3 Bucket missing: {bucket_name}")
+    else:
+      raise
+
+
+def deploy_twinmaker_s3_bucket():
   bucket_name = globals.twinmaker_s3_bucket_name()
 
   globals.aws_s3_client.create_bucket(
@@ -1256,8 +1523,20 @@ def destroy_twinmaker_s3_bucket():
 
   util.destroy_s3_bucket(bucket_name)
 
+def info_twinmaker_s3_bucket():
+  bucket_name = globals.twinmaker_s3_bucket_name()
 
-def create_twinmaker_iam_role():
+  try:
+    globals.aws_s3_client.head_bucket(Bucket=bucket_name)
+    print(f"✅ Twinmaker S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+  except ClientError as e:
+    if int(e.response["Error"]["Code"]) == 404:
+      print(f"❌ Twinmaker S3 Bucket missing: {bucket_name}")
+    else:
+      raise
+
+
+def deploy_twinmaker_iam_role():
   role_name = globals.twinmaker_iam_role_name()
 
   globals.aws_iam_client.create_role(
@@ -1329,8 +1608,20 @@ def destroy_twinmaker_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_twinmaker_iam_role():
+  role_name = globals.twinmaker_iam_role_name()
 
-def create_twinmaker_workspace():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Twinmaker IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Twinmaker IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_twinmaker_workspace():
   workspace_name = globals.twinmaker_workspace_name()
   role_name = globals.twinmaker_iam_role_name()
   bucket_name = globals.twinmaker_s3_bucket_name()
@@ -1418,8 +1709,20 @@ def destroy_twinmaker_workspace():
 
   log(f"Deleted IoT TwinMaker workspace: {workspace_name}")
 
+def info_twinmaker_workspace():
+  workspace_name = globals.twinmaker_workspace_name()
 
-def create_grafana_iam_role():
+  try:
+    globals.aws_twinmaker_client.get_workspace(workspaceId=workspace_name)
+    print(f"✅ Twinmaker Workspace exists: {util.link_to_twinmaker_workspace(workspace_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Twinmaker Workspace missing: {workspace_name}")
+    else:
+      raise
+
+
+def deploy_grafana_iam_role():
   role_name = globals.grafana_iam_role_name()
 
   response = globals.aws_iam_client.create_role(
@@ -1537,8 +1840,20 @@ def destroy_grafana_iam_role():
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_grafana_iam_role():
+  role_name = globals.grafana_iam_role_name()
 
-def create_grafana_workspace():
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Grafana IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Grafana IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_grafana_workspace():
   workspace_name = globals.grafana_workspace_name()
   role_name = globals.grafana_iam_role_name()
 
@@ -1606,6 +1921,21 @@ def destroy_grafana_workspace():
 
   log(f"Deleted Grafana workspace: {workspace_name}")
 
+def info_grafana_workspace():
+  workspace_name = globals.grafana_workspace_name()
+
+  try:
+    workspace_id = util.get_grafana_workspace_id_by_name(workspace_name)
+    response = globals.aws_grafana_client.describe_workspace(workspaceId=workspace_id)
+    print(f"✅ Grafana Workspace exists: {util.link_to_grafana_workspace(workspace_id)}")
+    print(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Grafana Workspace missing: {workspace_name}")
+    else:
+      raise
+
+
 
 def add_cors_to_twinmaker_s3_bucket():
   bucket_name = globals.twinmaker_s3_bucket_name()
@@ -1643,26 +1973,32 @@ def remove_cors_from_twinmaker_s3_bucket():
   log(f"CORS configuration removed from bucket: {bucket_name}")
 
 
+
 def deploy_l1():
-  create_dispatcher_iam_role()
-  create_dispatcher_lambda_function()
-  create_dispatcher_iot_rule()
+  deploy_dispatcher_iam_role()
+  deploy_dispatcher_lambda_function()
+  deploy_dispatcher_iot_rule()
 
 def destroy_l1():
   destroy_dispatcher_iot_rule()
   destroy_dispatcher_lambda_function()
   destroy_dispatcher_iam_role()
 
+def info_l1():
+  info_dispatcher_iam_role()
+  info_dispatcher_lambda_function()
+  info_dispatcher_iot_rule()
+
 
 def deploy_l2():
-  create_persister_iam_role()
-  create_persister_lambda_function()
-  create_event_feedback_iam_role()
-  create_event_feedback_lambda_function()
-  create_event_checker_iam_role()
-  create_event_checker_lambda_function()
-  create_lambda_chain_iam_role()
-  create_lambda_chain_step_function()
+  deploy_persister_iam_role()
+  deploy_persister_lambda_function()
+  deploy_event_feedback_iam_role()
+  deploy_event_feedback_lambda_function()
+  deploy_event_checker_iam_role()
+  deploy_event_checker_lambda_function()
+  deploy_lambda_chain_iam_role()
+  deploy_lambda_chain_step_function()
 
 def destroy_l2():
   destroy_lambda_chain_step_function()
@@ -1674,14 +2010,24 @@ def destroy_l2():
   destroy_persister_lambda_function()
   destroy_persister_iam_role()
 
+def info_l2():
+  info_persister_iam_role()
+  info_persister_lambda_function()
+  info_event_feedback_iam_role()
+  info_event_feedback_lambda_function()
+  info_event_checker_iam_role()
+  info_event_checker_lambda_function()
+  info_lambda_chain_iam_role()
+  info_lambda_chain_step_function()
+
 
 def deploy_l3_hot():
-  create_hot_dynamodb_table()
-  create_hot_cold_mover_iam_role()
-  create_hot_cold_mover_lambda_function()
-  create_hot_cold_mover_event_rule()
-  create_hot_reader_iam_role()
-  create_hot_reader_lambda_function()
+  deploy_hot_dynamodb_table()
+  deploy_hot_cold_mover_iam_role()
+  deploy_hot_cold_mover_lambda_function()
+  deploy_hot_cold_mover_event_rule()
+  deploy_hot_reader_iam_role()
+  deploy_hot_reader_lambda_function()
 
 def destroy_l3_hot():
   destroy_hot_reader_lambda_function()
@@ -1691,12 +2037,20 @@ def destroy_l3_hot():
   destroy_hot_cold_mover_iam_role()
   destroy_hot_dynamodb_table()
 
+def info_l3_hot():
+  info_hot_dynamodb_table()
+  info_hot_cold_mover_iam_role()
+  info_hot_cold_mover_lambda_function()
+  info_hot_cold_mover_event_rule()
+  info_hot_reader_iam_role()
+  info_hot_reader_lambda_function()
+
 
 def deploy_l3_cold():
-  create_cold_s3_bucket()
-  create_cold_archive_mover_iam_role()
-  create_cold_archive_mover_lambda_function()
-  create_cold_archive_mover_event_rule()
+  deploy_cold_s3_bucket()
+  deploy_cold_archive_mover_iam_role()
+  deploy_cold_archive_mover_lambda_function()
+  deploy_cold_archive_mover_event_rule()
 
 def destroy_l3_cold():
   destroy_cold_archive_mover_event_rule()
@@ -1704,34 +2058,52 @@ def destroy_l3_cold():
   destroy_cold_archive_mover_iam_role()
   destroy_cold_s3_bucket()
 
+def info_l3_cold():
+  info_cold_s3_bucket()
+  info_cold_archive_mover_iam_role()
+  info_cold_archive_mover_lambda_function()
+  info_cold_archive_mover_event_rule()
+
 
 def deploy_l3_archive():
-  create_archive_s3_bucket()
+  deploy_archive_s3_bucket()
 
 def destroy_l3_archive():
   destroy_archive_s3_bucket()
 
+def info_l3_archive():
+  info_archive_s3_bucket()
+
 
 def deploy_l4():
-  create_twinmaker_s3_bucket()
-  create_twinmaker_iam_role()
-  create_twinmaker_workspace()
+  deploy_twinmaker_s3_bucket()
+  deploy_twinmaker_iam_role()
+  deploy_twinmaker_workspace()
 
 def destroy_l4():
   destroy_twinmaker_workspace()
   destroy_twinmaker_iam_role()
   destroy_twinmaker_s3_bucket()
 
+def info_l4():
+  info_twinmaker_s3_bucket()
+  info_twinmaker_iam_role()
+  info_twinmaker_workspace()
+
 
 def deploy_l5():
-  create_grafana_iam_role()
-  create_grafana_workspace()
+  deploy_grafana_iam_role()
+  deploy_grafana_workspace()
   add_cors_to_twinmaker_s3_bucket()
 
 def destroy_l5():
   remove_cors_from_twinmaker_s3_bucket()
   destroy_grafana_workspace()
   destroy_grafana_iam_role()
+
+def info_l5():
+  info_grafana_iam_role()
+  info_grafana_workspace()
 
 
 def deploy():
@@ -1751,6 +2123,15 @@ def destroy():
   destroy_l3_hot()
   destroy_l2()
   destroy_l1()
+
+def info():
+  info_l1()
+  info_l2()
+  info_l3_hot()
+  info_l3_cold()
+  info_l3_archive()
+  info_l4()
+  info_l5()
 
 
 def log(string):

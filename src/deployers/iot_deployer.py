@@ -7,7 +7,7 @@ import time
 import util
 
 
-def create_iot_thing(iot_device):
+def deploy_iot_thing(iot_device):
   thing_name = globals.iot_thing_name(iot_device)
   policy_name = globals.iot_thing_policy_name(iot_device)
 
@@ -110,8 +110,20 @@ def destroy_iot_thing(iot_device):
   except FileNotFoundError:
     pass
 
+def info_iot_thing(iot_device):
+  thing_name = globals.iot_thing_name(iot_device)
 
-def create_processor_iam_role(iot_device):
+  try:
+    globals.aws_iot_client.describe_thing(thingName=thing_name)
+    print(f"✅ Iot Thing {thing_name} exists: {util.link_to_iot_thing(thing_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ IoT Thing {thing_name} missing: {thing_name}")
+    else:
+      raise
+
+
+def deploy_processor_iam_role(iot_device):
   role_name = globals.processor_iam_role_name(iot_device)
 
   globals.aws_iam_client.create_role(
@@ -176,8 +188,20 @@ def destroy_processor_iam_role(iot_device):
     if e.response["Error"]["Code"] != "NoSuchEntity":
       raise
 
+def info_processor_iam_role(iot_device):
+  role_name = globals.processor_iam_role_name(iot_device)
 
-def create_processor_lambda_function(iot_device):
+  try:
+    globals.aws_iam_client.get_role(RoleName=role_name)
+    print(f"✅ Processor {role_name} IAM Role exists: {util.link_to_iam_role(role_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "NoSuchEntity":
+      print(f"❌ Processor {role_name} IAM Role missing: {role_name}")
+    else:
+      raise
+
+
+def deploy_processor_lambda_function(iot_device):
   function_name = globals.processor_lambda_function_name(iot_device)
   function_name_local = globals.processor_lambda_function_name_local(iot_device)
   role_name = globals.processor_iam_role_name(iot_device)
@@ -220,8 +244,20 @@ def destroy_processor_lambda_function(iot_device):
     if e.response["Error"]["Code"] != "ResourceNotFoundException":
       raise
 
+def info_processor_lambda_function(iot_device):
+  function_name = globals.processor_lambda_function_name(iot_device)
 
-def create_twinmaker_component_type(iot_device):
+  try:
+    globals.aws_lambda_client.get_function(FunctionName=function_name)
+    print(f"✅ Processor {function_name} Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Processor {function_name} Lambda Function missing: {function_name}")
+    else:
+      raise
+
+
+def deploy_twinmaker_component_type(iot_device):
   connector_function_name = globals.hot_reader_lambda_function_name()
   workspace_name = globals.twinmaker_workspace_name()
   component_type_id = globals.twinmaker_component_type_id(iot_device)
@@ -328,34 +364,60 @@ def destroy_twinmaker_component_type(iot_device):
 
   log(f"Deleted IoT Twinmaker Component Type: {component_type_id}")
 
+def info_twinmaker_component_type(iot_device):
+  workspace_name = globals.twinmaker_workspace_name()
+  component_type_id = globals.twinmaker_component_type_id(iot_device)
+
+  try:
+    globals.aws_twinmaker_client.get_component_type(workspaceId=workspace_name, componentTypeId=component_type_id)
+    print(f"✅ Twinmaker Component Type {component_type_id} exists: {util.link_to_twinmaker_component_type(workspace_name, component_type_id)}")
+  except ClientError as e:
+    if e.response["Error"]["Code"] == "ResourceNotFoundException":
+      print(f"❌ Twinmaker Component Type {component_type_id} missing: {component_type_id}")
+    else:
+      raise
+
 
 def deploy_l1():
   for iot_device in globals.config_iot_devices:
-    create_iot_thing(iot_device)
+    deploy_iot_thing(iot_device)
 
 def destroy_l1():
   for iot_device in globals.config_iot_devices:
     destroy_iot_thing(iot_device)
 
+def info_l1():
+  for iot_device in globals.config_iot_devices:
+    info_iot_thing(iot_device)
+
 
 def deploy_l2():
   for iot_device in globals.config_iot_devices:
-    create_processor_iam_role(iot_device)
-    create_processor_lambda_function(iot_device)
+    deploy_processor_iam_role(iot_device)
+    deploy_processor_lambda_function(iot_device)
 
 def destroy_l2():
   for iot_device in globals.config_iot_devices:
     destroy_processor_lambda_function(iot_device)
     destroy_processor_iam_role(iot_device)
 
+def info_l2():
+  for iot_device in globals.config_iot_devices:
+    info_processor_iam_role(iot_device)
+    info_processor_lambda_function(iot_device)
+
 
 def deploy_l4():
   for iot_device in globals.config_iot_devices:
-    create_twinmaker_component_type(iot_device)
+    deploy_twinmaker_component_type(iot_device)
 
 def destroy_l4():
   for iot_device in globals.config_iot_devices:
     destroy_twinmaker_component_type(iot_device)
+
+def info_l4():
+  for iot_device in globals.config_iot_devices:
+    info_twinmaker_component_type(iot_device)
 
 
 def deploy():
@@ -367,6 +429,11 @@ def destroy():
   destroy_l4()
   destroy_l2()
   destroy_l1()
+
+def info():
+  info_l1()
+  info_l2()
+  info_l4()
 
 
 def log(string):
