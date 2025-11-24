@@ -115,10 +115,10 @@ def info_iot_thing(iot_device):
 
   try:
     globals.aws_iot_client.describe_thing(thingName=thing_name)
-    print(f"✅ Iot Thing {thing_name} exists: {util.link_to_iot_thing(thing_name)}")
+    log(f"✅ Iot Thing {thing_name} exists: {util.link_to_iot_thing(thing_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ IoT Thing {thing_name} missing: {thing_name}")
+      log(f"❌ IoT Thing {thing_name} missing: {thing_name}")
     else:
       raise
 
@@ -193,10 +193,10 @@ def info_processor_iam_role(iot_device):
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Processor {role_name} IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Processor {role_name} IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Processor {role_name} IAM Role missing: {role_name}")
+      log(f"❌ Processor {role_name} IAM Role missing: {role_name}")
     else:
       raise
 
@@ -249,10 +249,10 @@ def info_processor_lambda_function(iot_device):
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Processor {function_name} Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Processor {function_name} Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Processor {function_name} Lambda Function missing: {function_name}")
+      log(f"❌ Processor {function_name} Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -370,10 +370,10 @@ def info_twinmaker_component_type(iot_device):
 
   try:
     globals.aws_twinmaker_client.get_component_type(workspaceId=workspace_name, componentTypeId=component_type_id)
-    print(f"✅ Twinmaker Component Type {component_type_id} exists: {util.link_to_twinmaker_component_type(workspace_name, component_type_id)}")
+    log(f"✅ Twinmaker Component Type {component_type_id} exists: {util.link_to_twinmaker_component_type(workspace_name, component_type_id)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Twinmaker Component Type {component_type_id} missing: {component_type_id}")
+      log(f"❌ Twinmaker Component Type {component_type_id} missing: {component_type_id}")
     else:
       raise
 

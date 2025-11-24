@@ -77,10 +77,10 @@ def info_dispatcher_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Dispatcher IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Dispatcher IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Dispatcher IAM Role missing: {role_name}")
+      log(f"❌ Dispatcher IAM Role missing: {role_name}")
     else:
       raise
 
@@ -126,10 +126,10 @@ def info_dispatcher_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Dispatcher Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Dispatcher Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Dispatcher Lambda Function missing: {function_name}")
+      log(f"❌ Dispatcher Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -200,10 +200,10 @@ def info_dispatcher_iot_rule():
 
   try:
     globals.aws_iot_client.get_topic_rule(ruleName=rule_name)
-    print(f"✅ Dispatcher Iot Rule exists: {util.link_to_iot_rule(rule_name)}")
+    log(f"✅ Dispatcher Iot Rule exists: {util.link_to_iot_rule(rule_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "UnauthorizedException":
-      print(f"❌ Dispatcher IoT Rule missing: {rule_name}")
+      log(f"❌ Dispatcher IoT Rule missing: {rule_name}")
     else:
       raise
 
@@ -279,10 +279,10 @@ def info_persister_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Persister IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Persister IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Persister IAM Role missing: {role_name}")
+      log(f"❌ Persister IAM Role missing: {role_name}")
     else:
       raise
 
@@ -330,10 +330,10 @@ def info_persister_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Persister Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Persister Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Persister Lambda Function missing: {function_name}")
+      log(f"❌ Persister Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -408,10 +408,10 @@ def info_event_feedback_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Event-Feedback IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Event-Feedback IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Event-Feedback IAM Role missing: {role_name}")
+      log(f"❌ Event-Feedback IAM Role missing: {role_name}")
     else:
       raise
 
@@ -457,10 +457,10 @@ def info_event_feedback_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Event-Feedback Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Event-Feedback Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Event-Feedback Lambda Function missing: {function_name}")
+      log(f"❌ Event-Feedback Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -579,10 +579,10 @@ def info_event_checker_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Event-Checker IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Event-Checker IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Event-Checker IAM Role missing: {role_name}")
+      log(f"❌ Event-Checker IAM Role missing: {role_name}")
     else:
       raise
 
@@ -640,10 +640,10 @@ def info_event_checker_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Event-Checker Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Event-Checker Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Event-Checker Lambda Function missing: {function_name}")
+      log(f"❌ Event-Checker Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -718,10 +718,10 @@ def info_lambda_chain_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Lambda-Chain IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Lambda-Chain IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Lambda-Chain IAM Role missing: {role_name}")
+      log(f"❌ Lambda-Chain IAM Role missing: {role_name}")
     else:
       raise
 
@@ -804,10 +804,10 @@ def info_lambda_chain_step_function():
 
   try:
     globals.aws_sf_client.describe_state_machine(stateMachineArn=sf_arn)
-    print(f"✅ Lambda-Chain Step Function exists: {util.link_to_step_function(sf_arn)}")
+    log(f"✅ Lambda-Chain Step Function exists: {util.link_to_step_function(sf_arn)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "StateMachineDoesNotExist":
-      print(f"❌ Lambda-Chain Step Function missing: {sf_name}")
+      log(f"❌ Lambda-Chain Step Function missing: {sf_name}")
     else:
       raise
 
@@ -875,10 +875,10 @@ def info_hot_dynamodb_table():
 
   try:
     globals.aws_dynamodb_client.describe_table(TableName=table_name)
-    print(f"✅ DynamoDb Table exists: {util.link_to_dynamodb_table(table_name)}")
+    log(f"✅ DynamoDb Table exists: {util.link_to_dynamodb_table(table_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ DynamoDb Table missing: {table_name}")
+      log(f"❌ DynamoDb Table missing: {table_name}")
     else:
       raise
 
@@ -954,10 +954,10 @@ def info_hot_cold_mover_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Hot to Cold Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Hot to Cold Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Hot to Cold Mover IAM Role missing: {role_name}")
+      log(f"❌ Hot to Cold Mover IAM Role missing: {role_name}")
     else:
       raise
 
@@ -1005,10 +1005,10 @@ def info_hot_cold_mover_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Hot to Cold Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Hot to Cold Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Hot to Cold Mover Lambda Function missing: {function_name}")
+      log(f"❌ Hot to Cold Mover Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -1085,10 +1085,10 @@ def info_hot_cold_mover_event_rule():
 
   try:
     globals.aws_events_client.describe_rule(Name=rule_name)
-    print(f"✅ Hot to Cold Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
+    log(f"✅ Hot to Cold Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Hot to Cold Mover EventBridge Rule missing: {rule_name}")
+      log(f"❌ Hot to Cold Mover EventBridge Rule missing: {rule_name}")
     else:
       raise
 
@@ -1185,10 +1185,10 @@ def info_hot_reader_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Hot Reader IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Hot Reader IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Hot Reader IAM Role missing: {role_name}")
+      log(f"❌ Hot Reader IAM Role missing: {role_name}")
     else:
       raise
 
@@ -1235,10 +1235,10 @@ def info_hot_reader_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Hot Reader Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Hot Reader Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Hot Reader Lambda Function missing: {function_name}")
+      log(f"❌ Hot Reader Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -1265,10 +1265,10 @@ def info_cold_s3_bucket():
 
   try:
     globals.aws_s3_client.head_bucket(Bucket=bucket_name)
-    print(f"✅ Cold S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+    log(f"✅ Cold S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
   except ClientError as e:
     if int(e.response["Error"]["Code"]) == 404:
-      print(f"❌ Cold S3 Bucket missing: {bucket_name}")
+      log(f"❌ Cold S3 Bucket missing: {bucket_name}")
     else:
       raise
 
@@ -1343,10 +1343,10 @@ def info_cold_archive_mover_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Cold to Archive Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Cold to Archive Mover IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Cold to Archive Mover IAM Role missing: {role_name}")
+      log(f"❌ Cold to Archive Mover IAM Role missing: {role_name}")
     else:
       raise
 
@@ -1394,10 +1394,10 @@ def info_cold_archive_mover_lambda_function():
 
   try:
     globals.aws_lambda_client.get_function(FunctionName=function_name)
-    print(f"✅ Cold to Archive Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
+    log(f"✅ Cold to Archive Mover Lambda Function exists: {util.link_to_lambda_function(function_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Cold to Archive Mover Lambda Function missing: {function_name}")
+      log(f"❌ Cold to Archive Mover Lambda Function missing: {function_name}")
     else:
       raise
 
@@ -1468,10 +1468,10 @@ def info_cold_archive_mover_event_rule():
 
   try:
     globals.aws_events_client.describe_rule(Name=rule_name)
-    print(f"✅ Cold to Archive Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
+    log(f"✅ Cold to Archive Mover EventBridge Rule exists: {util.link_to_event_rule(rule_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Cold to Archive Mover EventBridge Rule missing: {rule_name}")
+      log(f"❌ Cold to Archive Mover EventBridge Rule missing: {rule_name}")
     else:
       raise
 
@@ -1498,10 +1498,10 @@ def info_archive_s3_bucket():
 
   try:
     globals.aws_s3_client.head_bucket(Bucket=bucket_name)
-    print(f"✅ Archive S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+    log(f"✅ Archive S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
   except ClientError as e:
     if int(e.response["Error"]["Code"]) == 404:
-      print(f"❌ Archive S3 Bucket missing: {bucket_name}")
+      log(f"❌ Archive S3 Bucket missing: {bucket_name}")
     else:
       raise
 
@@ -1542,10 +1542,10 @@ def info_twinmaker_s3_bucket():
 
   try:
     globals.aws_s3_client.head_bucket(Bucket=bucket_name)
-    print(f"✅ Twinmaker S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
+    log(f"✅ Twinmaker S3 Bucket exists: {util.link_to_s3_bucket(bucket_name)}")
   except ClientError as e:
     if int(e.response["Error"]["Code"]) == 404:
-      print(f"❌ Twinmaker S3 Bucket missing: {bucket_name}")
+      log(f"❌ Twinmaker S3 Bucket missing: {bucket_name}")
     else:
       raise
 
@@ -1627,10 +1627,10 @@ def info_twinmaker_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Twinmaker IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Twinmaker IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Twinmaker IAM Role missing: {role_name}")
+      log(f"❌ Twinmaker IAM Role missing: {role_name}")
     else:
       raise
 
@@ -1728,10 +1728,10 @@ def info_twinmaker_workspace():
 
   try:
     globals.aws_twinmaker_client.get_workspace(workspaceId=workspace_name)
-    print(f"✅ Twinmaker Workspace exists: {util.link_to_twinmaker_workspace(workspace_name)}")
+    log(f"✅ Twinmaker Workspace exists: {util.link_to_twinmaker_workspace(workspace_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Twinmaker Workspace missing: {workspace_name}")
+      log(f"❌ Twinmaker Workspace missing: {workspace_name}")
     else:
       raise
 
@@ -1859,10 +1859,10 @@ def info_grafana_iam_role():
 
   try:
     globals.aws_iam_client.get_role(RoleName=role_name)
-    print(f"✅ Grafana IAM Role exists: {util.link_to_iam_role(role_name)}")
+    log(f"✅ Grafana IAM Role exists: {util.link_to_iam_role(role_name)}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "NoSuchEntity":
-      print(f"❌ Grafana IAM Role missing: {role_name}")
+      log(f"❌ Grafana IAM Role missing: {role_name}")
     else:
       raise
 
@@ -1941,11 +1941,11 @@ def info_grafana_workspace():
   try:
     workspace_id = util.get_grafana_workspace_id_by_name(workspace_name)
     response = globals.aws_grafana_client.describe_workspace(workspaceId=workspace_id)
-    print(f"✅ Grafana Workspace exists: {util.link_to_grafana_workspace(workspace_id)}")
-    print(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
+    log(f"✅ Grafana Workspace exists: {util.link_to_grafana_workspace(workspace_id)}")
+    log(f"Grafana Login: https://{response["workspace"]["endpoint"]}")
   except ClientError as e:
     if e.response["Error"]["Code"] == "ResourceNotFoundException":
-      print(f"❌ Grafana Workspace missing: {workspace_name}")
+      log(f"❌ Grafana Workspace missing: {workspace_name}")
     else:
       raise
 
@@ -2081,22 +2081,22 @@ def info_l5():
 
 
 def deploy():
-  # deploy_l1()
-  # deploy_l2()
-  # deploy_l3_hot()
-  # deploy_l3_cold()
-  # deploy_l3_archive()
+  deploy_l1()
+  deploy_l2()
+  deploy_l3_hot()
+  deploy_l3_cold()
+  deploy_l3_archive()
   deploy_l4()
-  # deploy_l5()
+  deploy_l5()
 
 def destroy():
-  # destroy_l5()
+  destroy_l5()
   destroy_l4()
-  # destroy_l3_archive()
-  # destroy_l3_cold()
-  # destroy_l3_hot()
-  # destroy_l2()
-  # destroy_l1()
+  destroy_l3_archive()
+  destroy_l3_cold()
+  destroy_l3_hot()
+  destroy_l2()
+  destroy_l1()
 
 def info():
   info_l1()
