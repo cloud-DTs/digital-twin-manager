@@ -57,9 +57,10 @@ def destroy_s3_bucket(bucket_name):
       if 'Contents' in page:
         objects = [{'Key': obj['Key']} for obj in page['Contents']]
         globals.aws_s3_client.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-    print(f"Deleted all objects from S3 Bucket: {bucket_name}")
   except ClientError as e:
-    if e.response['Error']['Code'] != 'NoSuchBucket':
+    if e.response['Error']['Code'] == 'NoSuchBucket':
+      return False
+    else:
       raise
 
   try:
@@ -69,17 +70,17 @@ def destroy_s3_bucket(bucket_name):
       if versions:
         objects = [{'Key': v['Key'], 'VersionId': v['VersionId']} for v in versions]
         globals.aws_s3_client.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-    print(f"Deleted all object versions from S3 Bucket: {bucket_name}")
   except ClientError as e:
     if e.response['Error']['Code'] != 'NoSuchBucket':
       raise
 
   try:
     globals.aws_s3_client.delete_bucket(Bucket=bucket_name)
-    print(f"Deleted S3 Bucket: {bucket_name}")
   except ClientError as e:
     if e.response['Error']['Code'] != 'NoSuchBucket':
       raise
+
+  return True
 
 def get_grafana_workspace_id_by_name(workspace_name):
     paginator = globals.aws_grafana_client.get_paginator("list_workspaces")
