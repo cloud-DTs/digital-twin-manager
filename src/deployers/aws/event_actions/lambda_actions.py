@@ -78,14 +78,14 @@ class LambdaActionsDeployer(Deployer):
         raise
 
 
-  def _create_lambda_function(self, function_name, path_to_code_folder=None):
+  def _create_lambda_function(self, function_name, path_to_code_folder=None, local_function_name=None):
     role_name = function_name
 
     response = globals.aws_iam_client.get_role(RoleName=role_name)
     role_arn = response["Role"]["Arn"]
 
     if path_to_code_folder == None:
-      path_to_code_folder = os.path.join(globals.event_action_lfs_path, function_name)
+      path_to_code_folder = os.path.join(globals.event_action_lfs_path, local_function_name)
 
     globals.aws_lambda_client.create_function(
       FunctionName=function_name,
@@ -128,24 +128,34 @@ class LambdaActionsDeployer(Deployer):
   def deploy(self):
     for event in globals.config_events:
       a = event["action"]
-      if a["type"] == "lambda" and ("autoDeploy" not in a or a["autoDeploy"] == True):
-        self._create_iam_role(a["functionName"])
+      event_action_iam_role_name = globals.event_action_iam_role_name(a)
+      event_action_lambda_function_name = globals.event_action_lambda_function_name(a)
+      event_action_local_function_name = a["functionName"]
+
+      if a["type"] == "lambda" and not a.get("external"):
+        self._create_iam_role(event_action_iam_role_name)
 
         self.log(f"Waiting for propagation...")
         time.sleep(20)
 
-        self._create_lambda_function(a["functionName"], a.get("pathToCode"))
+        self._create_lambda_function(event_action_lambda_function_name, a.get("pathToCode"), event_action_local_function_name)
 
   def destroy(self):
     for event in globals.config_events:
       a = event["action"]
-      if a["type"] == "lambda" and ("autoDeploy" not in a or a["autoDeploy"] == True):
-        self._destroy_lambda_function(a["functionName"])
-        self._destroy_iam_role(a["functionName"])
+      event_action_iam_role_name = globals.event_action_iam_role_name(a)
+      event_action_lambda_function_name = globals.event_action_lambda_function_name(a)
+
+      if a["type"] == "lambda" and not a.get("external"):
+        self._destroy_lambda_function(event_action_lambda_function_name)
+        self._destroy_iam_role(event_action_iam_role_name)
 
   def info(self):
     for event in globals.config_events:
       a = event["action"]
-      if a["type"] == "lambda" and ("autoDeploy" not in a or a["autoDeploy"] == True):
-        self._info_iam_role(a["functionName"])
-        self._info_lambda_function(a["functionName"])
+      event_action_iam_role_name = globals.event_action_iam_role_name(a)
+      event_action_lambda_function_name = globals.event_action_lambda_function_name(a)
+
+      if a["type"] == "lambda" and not a.get("external"):
+        self._info_iam_role(event_action_iam_role_name)
+        self._info_lambda_function(event_action_lambda_function_name)

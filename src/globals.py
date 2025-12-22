@@ -249,3 +249,9 @@ def processor_lambda_function_name(iot_device):
 
 def twinmaker_component_type_id(iot_device):
   return config["digital_twin_name"] + "-" + iot_device["id"]
+
+def event_action_iam_role_name(event_action):
+  return config["digital_twin_name"] + "-" + event_action["functionName"]
+
+def event_action_lambda_function_name(event_action):
+  return config["digital_twin_name"] + "-" + event_action["functionName"]

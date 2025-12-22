@@ -18,10 +18,10 @@ class AllDeployer(Deployer):
     L3ColdDeployer().deploy()
     L3ArchiveDeployer().deploy()
     L4Deployer().deploy()
-    L5Deployer().deploy()
+    # L5Deployer().deploy()
 
   def destroy(self):
-    L5Deployer().destroy()
+    # L5Deployer().destroy()
     L4Deployer().destroy()
     L3ArchiveDeployer().destroy()
     L3ColdDeployer().destroy()

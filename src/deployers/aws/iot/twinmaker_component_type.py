@@ -121,7 +121,7 @@ class TwinmakerComponentTypeDeployer(Deployer):
 
     try:
       globals.aws_twinmaker_client.get_component_type(workspaceId=workspace_name, componentTypeId=component_type_id)
-      self.log(f"✅ Twinmaker Component Type {component_type_id} exists: {util.link_to(self, workspace_name, component_type_id)}")
+      self.log(f"✅ Twinmaker Component Type {component_type_id} exists: {util.link_to_twinmaker_component_type(workspace_name, component_type_id)}")
     except ClientError as e:
       if e.response["Error"]["Code"] == "ResourceNotFoundException":
         self.log(f"❌ Twinmaker Component Type {component_type_id} missing: {component_type_id}")

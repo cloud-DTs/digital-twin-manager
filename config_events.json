@@ -4,7 +4,6 @@
     "action": {
       "type": "lambda",
       "functionName": "high-temperature-callback",
-      "autoDeploy": true,
       "feedback": {
         "type": "mqtt",
         "topic": "dt-temperature-sensor-2",
@@ -20,7 +19,7 @@
       "type": "lambda",
       "functionName": "high-temperature-callback-2",
       "pathToCode": "lambda_functions/event_actions/high-temperature-callback-2",
-      "autoDeploy": true,
+      "external": true,
       "feedback": {
         "type": "mqtt",
         "iotDeviceId": "temperature-sensor-2",
