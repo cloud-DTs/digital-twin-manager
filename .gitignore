@@ -1,6 +1,5 @@
 config_credentials.json
 iot_devices_auth/
 
-src/__pycache__
-src/deployers/__pycache__
-iot_device_simulator/src/__pycache__
+__pycache__/
+*.py[cod]
