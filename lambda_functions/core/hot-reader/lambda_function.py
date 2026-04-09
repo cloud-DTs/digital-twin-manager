@@ -23,30 +23,63 @@ def lambda_handler(event, context):
 
     iot_device_id = component_type_id.removeprefix(DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-")
 
-    response = dynamodb_table.query(
-        KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                               Key("id").between(event["startTime"], event["endTime"])
+    start_time = event.get("startTime")
+    end_time = event.get("endTime")
+
+    if start_time and end_time:
+        db_response = dynamodb_table.query(
+            KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
+                                   Key("id").between(start_time, end_time)
         )
-    items = response["Items"]
+        items = db_response.get("Items", [])
+        print("DynamoDB items: " + json.dumps(items, default=str))
+        property_values = []
 
-    property_values = []
+        for property_name in event["selectedProperties"]:
+            raw_type = event["properties"][property_name]["definition"]["dataType"]["type"]
+            property_type_key = raw_type.lower() + "Value"
+            entry = {
+                "entityPropertyReference": {"propertyName": property_name},
+                "values": []
+            }
+            for item in items:
+                if property_name in item:
+                    entry["values"].append({
+                        "time": item["id"],
+                        "value": {property_type_key: item[property_name]}
+                    })
+            property_values.append(entry)
+        return {"propertyValues": property_values}
 
-    for property_name in event["selectedProperties"]:
-        property_type = f"{event["properties"][property_name]["definition"]["dataType"]["type"].capitalize()}Value"
+    else:
+        db_response = dynamodb_table.query(
+            KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id),
+            Limit=1,
+            ScanIndexForward=False
+        )
+        items = db_response.get("Items", [])
+        print("DynamoDB items: " + json.dumps(items, default=str))
+        property_values = {}
 
-        entry = {
-            "entityPropertyReference": {
-                "propertyName": property_name
-            },
-            "values": []
-        }
+        for property_name in event["selectedProperties"]:
+            raw_type = event["properties"][property_name]["definition"]["dataType"]["type"]
+            property_type_key = raw_type.lower() + "Value"
 
-        for item in items:
-            entry["values"].append({
-                "time": item["id"],
-                "value": { property_type: item[property_name] }
-            })
+            if items:
+                latest_item = items[0]
+                if property_name in latest_item:
+                    property_values[property_name] = {
+                        "propertyReference": {
+                            "propertyName": property_name,
+                            "componentName": event["componentName"],
+                            "entityId": event["entityId"]
+                        },
+                        "propertyValue": {
+                            "value": {
+                                property_type_key: latest_item[property_name]
+                            },
+                            "timestamp": latest_item["id"]
+                        }
+                    }
 
-        property_values.append(entry)
-
-    return { "propertyValues": property_values }
+        return {"propertyValues": property_values}

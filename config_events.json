@@ -1,30 +1,39 @@
 [
-  {
-    "condition": "room-1.temperature-sensor-2.temperature == room-1.temperature-sensor-2-const.maxTemperature",
-    "action": {
-      "type": "lambda",
-      "functionName": "high-temperature-callback",
-      "feedback": {
-        "type": "mqtt",
-        "topic": "dt-temperature-sensor-2",
-        "payload": {
-          "message": "Temperature too high!"
+    {
+        "condition": "mzd2dGWWdntbBdeCzpUZ8v.p13.consumption > dZbP84rWQjLX6jSpAyxLdJ.batteryconst_component.mComp",
+        "action": {
+            "type": "lambda",
+            "pathToCode": "/home/marcocotrotzo/PycharmProjects/digital-twin-manager/lambda_functions/event_actions/high-temperature-callback",
+            "functionName": "alertAction",
+            "external": false,
+            "feedback": {
+                "type": "mqtt",
+                "topic": "EXTERN_TPIC",
+                "payload": {
+                    "message": "High Consumption Alert"
+                }
+            }
         }
-      }
+    },
+    {
+        "condition": "mzd2dGWWdntbBdeCzpUZ8v.p13.consumption > dZbP84rWQjLX6jSpAyxLdJ.batteryconst_component.mComp",
+        "action": {
+            "type": "lambda",
+            "functionName": "alertAction",
+            "external": true,
+            "feedback": {
+                "type": "mqtt",
+                "iotDeviceId": "GaNW7B2mByyNdMXN7BfzKn",
+                "payload": "action-result"
+            }
+        }
+    },
+    {
+        "condition": "mzd2dGWWdntbBdeCzpUZ8v.p13.consumption > dZbP84rWQjLX6jSpAyxLdJ.batteryconst_component.mComp",
+        "action": {
+            "type": "lambda",
+            "functionName": "alertAction",
+            "external": true
+        }
     }
-  },
-  {
-    "condition": "room-1.temperature-sensor-2.temperature == DOUBLE(40)",
-    "action": {
-      "type": "lambda",
-      "functionName": "high-temperature-callback-2",
-      "pathToCode": "lambda_functions/event_actions/high-temperature-callback-2",
-      "external": true,
-      "feedback": {
-        "type": "mqtt",
-        "iotDeviceId": "temperature-sensor-2",
-        "payload": "action-result"
-      }
-    }
-  }
 ]

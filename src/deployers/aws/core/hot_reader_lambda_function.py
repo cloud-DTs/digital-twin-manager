@@ -35,6 +35,12 @@ class HotReaderLambdaFunctionDeployer(Deployer):
     )
 
     self.log(f"Created Lambda function: {function_name}")
+    globals.aws_lambda_client.add_permission(
+      FunctionName=function_name,
+      StatementId="AllowTwinmakerInvoke",
+      Action="lambda:InvokeFunction",
+      Principal="iottwinmaker.amazonaws.com"
+    )
 
   def destroy(self):
     function_name = globals.hot_reader_lambda_function_name()

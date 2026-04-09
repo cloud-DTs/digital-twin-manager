@@ -13,7 +13,8 @@ class InitValuesDeployer(Deployer):
 
     for iot_device in globals.config_iot_devices:
       has_init = any("initValue" in prop for prop in iot_device["properties"])
-
+      print("HAS Init .................................")
+      print(has_init)
       if not has_init:
         continue
 
@@ -23,6 +24,7 @@ class InitValuesDeployer(Deployer):
       }
 
       for property in iot_device["properties"]:
+        print("PROPERTY: ", property)
         payload[property["name"]] = property.get("initValue", None)
 
       globals.aws_iot_data_client.publish(
@@ -35,7 +37,7 @@ class InitValuesDeployer(Deployer):
 
 
   def deploy(self):
-    self._post_init_values_to_iot_core
+    self._post_init_values_to_iot_core()
 
   def destroy(self):
     pass

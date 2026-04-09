@@ -1,40 +1,82 @@
 [
-  {
-    "type": "entity",
-    "id": "room-1",
-    "children": [
-      {
+    {
+        "id": "JftZFPj77VLDDaUnMCpsvn",
         "type": "entity",
-        "id": "machine-1",
+        "name": "MicroGrid",
         "children": [
-          {
-            "type": "component",
-            "name": "temperature-sensor-1",
-            "componentTypeId": "dt-temperature-sensor-1"
-          },
-          {
-            "type": "component",
-            "name": "temperature-sensor-1-const",
-            "iotDeviceId": "temperature-sensor-1-const"
-          }
+            {
+                "id": "dZbP84rWQjLX6jSpAyxLdJ",
+                "type": "entity",
+                "name": "battery",
+                "children": [
+                    {
+                        "iotDeviceId": "mdpAqdD7fMGNUMkK3QWAU2",
+                        "type": "component",
+                        "name": "internalInverter"
+                    },
+                    {
+                        "iotDeviceId": "GaNW7B2mByyNdMXN7BfzKn",
+                        "type": "component",
+                        "name": "p12"
+                    },
+                    {
+                        "iotDeviceId": "dZbP84rWQjLX6jSpAyxLdJconst_component",
+                        "type": "component",
+                        "name": "batteryconst_component"
+                    }
+                ]
+            },
+            {
+                "id": "mzd2dGWWdntbBdeCzpUZ8v",
+                "type": "entity",
+                "name": "sieVercharge",
+                "children": [
+                    {
+                        "iotDeviceId": "LcE4QQRx8bR5ZVBgghXbC6",
+                        "type": "component",
+                        "name": "p13"
+                    },
+                    {
+                        "iotDeviceId": "mzd2dGWWdntbBdeCzpUZ8vconst_component",
+                        "type": "component",
+                        "name": "sieVerchargeconst_component"
+                    }
+                ]
+            },
+            {
+                "id": "Bas34LaGXRk4CgFNDw8YWe",
+                "type": "entity",
+                "name": "kebaP30",
+                "children": [
+                    {
+                        "iotDeviceId": "GCqPxSwMJcQFp9BHV4FDtZ",
+                        "type": "component",
+                        "name": "p14"
+                    },
+                    {
+                        "iotDeviceId": "Bas34LaGXRk4CgFNDw8YWeconst_component",
+                        "type": "component",
+                        "name": "kebaP30const_component"
+                    }
+                ]
+            },
+            {
+                "id": "NEG4C2iV7VoNpFRCsaw4Au",
+                "type": "entity",
+                "name": "edgeCaseNode",
+                "children": [
+                    {
+                        "iotDeviceId": "PvK3LFTavuQtvtspuib3uq",
+                        "type": "component",
+                        "name": "sensor"
+                    },
+                    {
+                        "iotDeviceId": "NEG4C2iV7VoNpFRCsaw4Auconst_component",
+                        "type": "component",
+                        "name": "edgeCaseNodeconst_component"
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "type": "component",
-        "name": "temperature-sensor-2",
-        "iotDeviceId": "temperature-sensor-2"
-      }
-    ]
-  },
-  {
-    "type": "entity",
-    "id": "room-2",
-    "children": [
-      {
-        "type": "component",
-        "name": "pressure-sensor-1",
-        "iotDeviceId": "pressure-sensor-1"
-      }
-    ]
-  }
+    }
 ]

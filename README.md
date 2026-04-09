@@ -19,3 +19,4 @@
 - Recovery mechanism for failed deployments. For example, store the point of failure and provide a `deploy_continue` option to resume.
 - Redeployment strategy. For example, when configuration changes, how should the system destroy the old state and deploy the new state?
 - Group IAM role deployments to speed up deployment (reducing propagation delays). But keep in mind that this may introduce coupling and reduce the self-contained design.
+"/home/marcocotrotzo/PycharmProjects/digital-twin-manager/lambda_functions/event_actions/high-temperature-callback"

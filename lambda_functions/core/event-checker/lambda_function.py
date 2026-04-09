@@ -12,28 +12,54 @@ twinmaker_client = boto3.client("iottwinmaker")
 lambda_client = boto3.client("lambda")
 sf_client = boto3.client("stepfunctions")
 
-
+from datetime import datetime, timezone, timedelta
 def fetch_value(entity_id, component_name, property_name):
-    response = twinmaker_client.get_property_value(
-        workspaceId=TWINMAKER_WORKSPACE_NAME,
-        entityId=entity_id,
-        componentName=component_name,
-        selectedProperties=[property_name]
-    )
+    from datetime import datetime, timezone, timedelta
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(hours=24)
 
-    property = list(response["propertyValues"].values())[0]
-    value = list(property["propertyValue"].values())[0]
+    try:
+        response = twinmaker_client.get_property_value_history(
+            workspaceId=TWINMAKER_WORKSPACE_NAME,
+            entityId=entity_id,
+            componentName=component_name,
+            selectedProperties=[property_name],
+            startTime=start_time.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            endTime=end_time.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+            maxResults=1,
+            orderByTime="DESCENDING"
+        )
+        print("RAW RESPONSE:", json.dumps(response, default=str))
+        if not response.get("propertyValues"):
+            return None
+        entry = response["propertyValues"][0]
+        if not entry.get("values"):
+            return None
+        return list(entry["values"][0]["value"].values())[0]
 
-    return value
-
-
+    except Exception:
+        # Fallback für statische Properties (Const-Values)
+        response = twinmaker_client.get_property_value(
+            workspaceId=TWINMAKER_WORKSPACE_NAME,
+            entityId=entity_id,
+            componentName=component_name,
+            selectedProperties=[property_name]
+        )
+        print("RAW RESPONSE (static):", json.dumps(response, default=str))
+        if not response.get("propertyValues"):
+            return None
+        property = list(response["propertyValues"].values())[0]
+        if not property.get("propertyValue"):
+            return None
+        typed_value = property["propertyValue"]["value"]
+        return list(typed_value.values())[0]
 def extract_const_value(string):
     if string.startswith("DOUBLE"):
         return float(string[7:-1])
     elif string.startswith("INTEGER"):
         return int(string[8:-1])
     elif string.startswith("STRING"):
-        string[7:-1]
+        return string[7:-1]
     return string
 
 
@@ -54,6 +80,9 @@ def lambda_handler(event, context):
                 param1_component_name = param1.split(".")[1]
                 param1_property_name = param1.split(".")[2]
                 param1_value = fetch_value(param1_entity_id, param1_component_name, param1_property_name)
+                if param1_value is None:
+                    print(f"No value yet for {param1}, skipping event")
+                    continue
             else:
                 param1_value = extract_const_value(param1)
 
@@ -62,30 +91,42 @@ def lambda_handler(event, context):
                 param2_component_name = param2.split(".")[1]
                 param2_property_name = param2.split(".")[2]
                 param2_value = fetch_value(param2_entity_id, param2_component_name, param2_property_name)
+                if param2_value is None:
+                    print(f"No value yet for {param2}, skipping event")
+                    continue
             else:
                 param2_value = extract_const_value(param2)
 
             match operation:
                 case "<": result = param1_value < param2_value
-                case ">": result = param1_value < param2_value
+                case ">": result = param1_value > param2_value
                 case "==": result = param1_value == param2_value
 
-            if e["action"]["type"] == "lambda" and result:
-                if "feedback" not in e["action"]:
-                    payload = { "e": e }
-                    lambda_client.invoke(FunctionName=e["action"]["functionName"], InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
-                else:
-                    response = lambda_client.get_function(FunctionName=e["action"]["functionName"])
-                    action_function_arn = response["Configuration"]["FunctionArn"]
+            if e["action"]["type"] == "lambda":
+                if result:
+                    if "feedback" not in e["action"]:
+                        payload = {"e": e}
+                        lambda_client.invoke(
+                            FunctionName=DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + e["action"][
+                                "functionName"],
+                            InvocationType="Event",
+                            Payload=json.dumps(payload).encode("utf-8")
+                        )
+                    else:
+                        response = lambda_client.get_function(
+                            FunctionName=DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + e["action"][
+                                "functionName"]
+                        )
+                        action_function_arn = response["Configuration"]["FunctionArn"]
 
-                    sf_client.start_execution(
-                        stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
-                        input=json.dumps({
-                            "LambdaAArn": action_function_arn,
-                            "LambdaBArn": EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN,
-                            "InputData": { "e": e }
-                        })
-                    )
+                        sf_client.start_execution(
+                            stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
+                            input=json.dumps({
+                                "LambdaAArn": action_function_arn,
+                                "LambdaBArn": EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN,
+                                "InputData": { "e": e }
+                            })
+                        )
             else:
                 raise ValueError(f"Invalid action type: {e["action"]["type"]}")
 

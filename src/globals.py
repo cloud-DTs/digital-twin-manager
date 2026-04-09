@@ -255,3 +255,12 @@ def event_action_iam_role_name(event_action):
 
 def event_action_lambda_function_name(event_action):
   return config["digital_twin_name"] + "-" + event_action["functionName"]
+
+def ssm_registry_prefix():
+  return "/" + config["digital_twin_name"] + "/event-registry"
+
+def event_registry_register_iam_role_name():
+  return config["digital_twin_name"] + "-event-registry-register"
+
+def event_registry_register_lambda_function_name():
+  return config["digital_twin_name"] + "-event-registry-register"

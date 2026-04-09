@@ -33,9 +33,18 @@ class TwinmakerComponentTypeDeployer(Deployer):
     functions = {
       "dataReader": {
         "implementedBy": {
-          "lambda": {
-            "arn": connector_function_arn
-          }
+          "lambda": {"arn": connector_function_arn}
+        }
+      },
+      "dataReaderByEntity": {
+        "implementedBy": {
+          "lambda": {"arn": connector_function_arn}
+        }
+      },
+      "attributePropertyValueReaderByEntity": {
+        "implementedBy": {
+          "lambda": {"arn": connector_function_arn},
+          "isNative": False
         }
       }
     }

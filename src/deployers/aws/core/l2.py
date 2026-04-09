@@ -2,6 +2,8 @@ from deployers.aws.core.event_checker_iam_role import EventCheckerIamRoleDeploye
 from deployers.aws.core.event_checker_lambda_function import EventCheckerLambdaFunctionDeployer
 from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
 from deployers.aws.core.event_feedback_lambda_function import EventFeedbackLambdaFunctionDeployer
+from deployers.aws.core.event_registry_register_iam_role import EventRegistryRegisterIamRoleDeployer
+from deployers.aws.core.event_registry_register_lambda_function import EventRegistryRegisterLambdaFunctionDeployer
 from deployers.aws.core.lambda_chain_iam_role import LambdaChainIamRoleDeployer
 from deployers.aws.core.lambda_chain_step_function import LambdaChainStepFunctionDeployer
 from deployers.aws.core.persister_iam_role import PersisterIamRoleDeployer
@@ -21,8 +23,12 @@ class L2Deployer(Deployer):
     EventCheckerLambdaFunctionDeployer().deploy()
     LambdaChainIamRoleDeployer().deploy()
     LambdaChainStepFunctionDeployer().deploy()
+    EventRegistryRegisterIamRoleDeployer().deploy()
+    EventRegistryRegisterLambdaFunctionDeployer().deploy()
 
   def destroy(self):
+    EventRegistryRegisterLambdaFunctionDeployer().destroy()
+    EventRegistryRegisterIamRoleDeployer().destroy()
     LambdaChainStepFunctionDeployer().destroy()
     LambdaChainIamRoleDeployer().destroy()
     EventCheckerLambdaFunctionDeployer().destroy()
@@ -41,3 +47,5 @@ class L2Deployer(Deployer):
     EventCheckerLambdaFunctionDeployer().info()
     LambdaChainIamRoleDeployer().info()
     LambdaChainStepFunctionDeployer().info()
+    EventRegistryRegisterIamRoleDeployer().info()
+    EventRegistryRegisterLambdaFunctionDeployer().info()
