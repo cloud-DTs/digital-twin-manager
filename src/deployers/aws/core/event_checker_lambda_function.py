@@ -40,7 +40,8 @@ class EventCheckerLambdaFunctionDeployer(Deployer):
           "DIGITAL_TWIN_INFO": json.dumps(globals.digital_twin_info()),
           "TWINMAKER_WORKSPACE_NAME": globals.twinmaker_workspace_name(),
           "LAMBDA_CHAIN_STEP_FUNCTION_ARN": lambda_chain_arn,
-          "EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN": event_feedback_lambda_function_arn
+          "EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN": event_feedback_lambda_function_arn,
+          "SSM_REGISTRY_PREFIX" : globals.ssm_registry_prefix()
         }
       }
     )

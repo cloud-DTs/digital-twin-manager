@@ -4,6 +4,7 @@ import deployers.aws.iot.all
 import deployers.aws.hierarchy.all
 import deployers.aws.event_actions.all
 import deployers.aws.init_values.all
+import generate_federation
 import sanity_checker
 
 def help_menu():
@@ -58,6 +59,7 @@ def main():
         deployers.aws.hierarchy.all.AllDeployer().deploy()
         deployers.aws.event_actions.all.AllDeployer().deploy()
         deployers.aws.init_values.all.AllDeployer().deploy()
+        generate_federation.generate_federation_input()
 
       elif command == "destroy":
         deployers.aws.init_values.all.AllDeployer().destroy()
