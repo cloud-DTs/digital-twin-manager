@@ -1,20 +1,23 @@
 import os
 import json
 import boto3
+import urllib.request
+from datetime import datetime, timezone, timedelta
 
 
 DIGITAL_TWIN_INFO = json.loads(os.environ.get("DIGITAL_TWIN_INFO", None))
 TWINMAKER_WORKSPACE_NAME = os.environ.get("TWINMAKER_WORKSPACE_NAME", None)
 LAMBDA_CHAIN_STEP_FUNCTION_ARN = os.environ.get("LAMBDA_CHAIN_STEP_FUNCTION_ARN", None)
 EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN = os.environ.get("EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN", None)
+SSM_REGISTRY_PREFIX = os.environ.get("SSM_REGISTRY_PREFIX", None)
 
 twinmaker_client = boto3.client("iottwinmaker")
 lambda_client = boto3.client("lambda")
 sf_client = boto3.client("stepfunctions")
+ssm_client = boto3.client("ssm")
 
-from datetime import datetime, timezone, timedelta
+
 def fetch_value(entity_id, component_name, property_name):
-    from datetime import datetime, timezone, timedelta
     end_time = datetime.now(timezone.utc)
     start_time = end_time - timedelta(hours=24)
 
@@ -29,7 +32,6 @@ def fetch_value(entity_id, component_name, property_name):
             maxResults=1,
             orderByTime="DESCENDING"
         )
-        print("RAW RESPONSE:", json.dumps(response, default=str))
         if not response.get("propertyValues"):
             return None
         entry = response["propertyValues"][0]
@@ -38,21 +40,20 @@ def fetch_value(entity_id, component_name, property_name):
         return list(entry["values"][0]["value"].values())[0]
 
     except Exception:
-        # Fallback für statische Properties (Const-Values)
         response = twinmaker_client.get_property_value(
             workspaceId=TWINMAKER_WORKSPACE_NAME,
             entityId=entity_id,
             componentName=component_name,
             selectedProperties=[property_name]
         )
-        print("RAW RESPONSE (static):", json.dumps(response, default=str))
         if not response.get("propertyValues"):
             return None
         property = list(response["propertyValues"].values())[0]
         if not property.get("propertyValue"):
             return None
-        typed_value = property["propertyValue"]["value"]
-        return list(typed_value.values())[0]
+        return list(property["propertyValue"]["value"].values())[0]
+
+
 def extract_const_value(string):
     if string.startswith("DOUBLE"):
         return float(string[7:-1])
@@ -63,72 +64,97 @@ def extract_const_value(string):
     return string
 
 
+def resolve_input_parameters(e):
+    input_params = {}
+    for param in e["action"].get("inputParameters", []):
+        if "value" in param:
+            input_params[param["name"]] = param["value"]
+        else:
+            parts = param["id"].split(".")
+            input_params[param["name"]] = fetch_value(parts[0], parts[1], parts[2])
+    return input_params
+
+
+def lookup_registry(event_name):
+    if not SSM_REGISTRY_PREFIX:
+        return None
+    param_name = f"{SSM_REGISTRY_PREFIX}/{event_name}"
+    try:
+        response = ssm_client.get_parameter(Name=param_name)
+        entry = json.loads(response["Parameter"]["Value"])
+        print(f"FunctionRegistry hit for '{event_name}': {entry}")
+        return entry.get("targets", [])
+    except ssm_client.exceptions.ParameterNotFound:
+        return None
+    except Exception as ex:
+        print(f"FunctionRegistry lookup failed (falling back to default): {ex}")
+        return None
+
+
+def resolve_lambda_arn(function_name):
+    response = lambda_client.get_function(FunctionName=function_name)
+    return response["Configuration"]["FunctionArn"]
+
+
+def fire_action(e, input_params, registry_entry):
+    action = e["action"]
+    has_feedback = "feedback" in action
+    payload = {"e": e, **input_params}
+
+    if registry_entry:
+        for entry in registry_entry:
+            address = entry["address"]
+            print(f"FunctionRegistry: redirecting to Step Function {address}")
+            sf_client.start_execution(
+                    stateMachineArn=address,
+                    input=json.dumps(payload)
+                )
+        return
+    
+    #Default execution
+    function_name = DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + action["functionName"]
+    if not has_feedback:
+        lambda_client.invoke(FunctionName=function_name, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
+    else:
+        action_function_arn = resolve_lambda_arn(function_name)
+        sf_client.start_execution(
+            stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
+            input=json.dumps({
+                "LambdaAArn": action_function_arn,
+                "LambdaBArn": EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN,
+                "InputData": payload
+            })
+        )
+
 def lambda_handler(event, context):
     print("Hello from Event-Checker!")
     print("Event: " + json.dumps(event))
-    print("Events: " + json.dumps(DIGITAL_TWIN_INFO["config_events"]))
 
     for e in DIGITAL_TWIN_INFO["config_events"]:
         try:
             condition = e["condition"]
-            param1 = condition.split()[0]
-            operation = condition.split()[1]
-            param2 = condition.split()[2]
+            param1, operation, param2 = condition.split()
 
-            if len(param1.split(".")) > 1:
-                param1_entity_id = param1.split(".")[0]
-                param1_component_name = param1.split(".")[1]
-                param1_property_name = param1.split(".")[2]
-                param1_value = fetch_value(param1_entity_id, param1_component_name, param1_property_name)
-                if param1_value is None:
-                    print(f"No value yet for {param1}, skipping event")
-                    continue
-            else:
-                param1_value = extract_const_value(param1)
+            param1_value = fetch_value(*param1.split(".")) if "." in param1 else extract_const_value(param1)
+            if param1_value is None:
+                print(f"No value yet for {param1}, skipping event")
+                continue
 
-            if len(param2.split(".")) > 1:
-                param2_entity_id = param2.split(".")[0]
-                param2_component_name = param2.split(".")[1]
-                param2_property_name = param2.split(".")[2]
-                param2_value = fetch_value(param2_entity_id, param2_component_name, param2_property_name)
-                if param2_value is None:
-                    print(f"No value yet for {param2}, skipping event")
-                    continue
-            else:
-                param2_value = extract_const_value(param2)
+            param2_value = fetch_value(*param2.split(".")) if "." in param2 else extract_const_value(param2)
+            if param2_value is None:
+                print(f"No value yet for {param2}, skipping event")
+                continue
 
             match operation:
-                case "<": result = param1_value < param2_value
-                case ">": result = param1_value > param2_value
+                case "<":  result = param1_value < param2_value
+                case ">":  result = param1_value > param2_value
                 case "==": result = param1_value == param2_value
+                case _:    raise ValueError(f"Unknown operator: {operation}")
 
-            if e["action"]["type"] == "lambda":
-                if result:
-                    if "feedback" not in e["action"]:
-                        payload = {"e": e}
-                        lambda_client.invoke(
-                            FunctionName=DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + e["action"][
-                                "functionName"],
-                            InvocationType="Event",
-                            Payload=json.dumps(payload).encode("utf-8")
-                        )
-                    else:
-                        response = lambda_client.get_function(
-                            FunctionName=DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + e["action"][
-                                "functionName"]
-                        )
-                        action_function_arn = response["Configuration"]["FunctionArn"]
-
-                        sf_client.start_execution(
-                            stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
-                            input=json.dumps({
-                                "LambdaAArn": action_function_arn,
-                                "LambdaBArn": EVENT_FEEDBACK_LAMBDA_FUNCTION_ARN,
-                                "InputData": { "e": e }
-                            })
-                        )
-            else:
-                raise ValueError(f"Invalid action type: {e["action"]["type"]}")
+            if e["action"]["type"] == "lambda" and result:
+                input_params = resolve_input_parameters(e)
+                registry_entry = lookup_registry(e["action"]["functionName"])
+                fire_action(e, input_params, registry_entry)
 
         except Exception as ex:
             print("Something went wrong: ", ex)

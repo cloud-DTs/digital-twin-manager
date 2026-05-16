@@ -1,0 +1,40 @@
+{
+  "name": "PV",
+  "region": "eu-central-1",
+  "ssm_registry_prefix": "/PV/event-registry",
+  "hot_reader_arn": "arn:aws:lambda:eu-central-1:717556240325:function:PV-hot-reader",
+  "strategies": [
+    {
+      "eventName": "lowOutput",
+      "inputParameters": [],
+      "outputParameters": []
+    },
+    {
+      "eventName": "peakProduction",
+      "inputParameters": [
+        {
+          "name": "test1",
+          "dataType": "DOUBLE",
+          "id": "NZrw6C5K5Edpk57vfJk96W.pV1.output"
+        },
+        {
+          "name": "test2",
+          "dataType": "DOUBLE",
+          "value": 8000.0,
+          "id": "NZrw6C5K5Edpk57vfJk96W.PVconst_component.peakThreshold"
+        }
+      ],
+      "outputParameters": [
+        {
+          "name": "test3",
+          "dataType": "STRING"
+        },
+        {
+          "name": "test4",
+          "dataType": "DOUBLE"
+        }
+      ]
+    }
+  ],
+  "twinmaker_workspace_id": "PV-twinmaker"
+}

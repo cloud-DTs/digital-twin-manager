@@ -1,79 +1,23 @@
 [
     {
-        "id": "JftZFPj77VLDDaUnMCpsvn",
+        "id": "QWB3zi3nv8UNdtvw8Fbkk8",
         "type": "entity",
-        "name": "MicroGrid",
+        "name": "PV",
         "children": [
             {
-                "id": "dZbP84rWQjLX6jSpAyxLdJ",
+                "id": "NZrw6C5K5Edpk57vfJk96W",
                 "type": "entity",
-                "name": "battery",
+                "name": "PV",
                 "children": [
                     {
-                        "iotDeviceId": "mdpAqdD7fMGNUMkK3QWAU2",
+                        "iotDeviceId": "8iZRaTVdVS4TJbSb8ndMAP",
                         "type": "component",
-                        "name": "internalInverter"
+                        "name": "pV1"
                     },
                     {
-                        "iotDeviceId": "GaNW7B2mByyNdMXN7BfzKn",
+                        "iotDeviceId": "NZrw6C5K5Edpk57vfJk96Wconst_component",
                         "type": "component",
-                        "name": "p12"
-                    },
-                    {
-                        "iotDeviceId": "dZbP84rWQjLX6jSpAyxLdJconst_component",
-                        "type": "component",
-                        "name": "batteryconst_component"
-                    }
-                ]
-            },
-            {
-                "id": "mzd2dGWWdntbBdeCzpUZ8v",
-                "type": "entity",
-                "name": "sieVercharge",
-                "children": [
-                    {
-                        "iotDeviceId": "LcE4QQRx8bR5ZVBgghXbC6",
-                        "type": "component",
-                        "name": "p13"
-                    },
-                    {
-                        "iotDeviceId": "mzd2dGWWdntbBdeCzpUZ8vconst_component",
-                        "type": "component",
-                        "name": "sieVerchargeconst_component"
-                    }
-                ]
-            },
-            {
-                "id": "Bas34LaGXRk4CgFNDw8YWe",
-                "type": "entity",
-                "name": "kebaP30",
-                "children": [
-                    {
-                        "iotDeviceId": "GCqPxSwMJcQFp9BHV4FDtZ",
-                        "type": "component",
-                        "name": "p14"
-                    },
-                    {
-                        "iotDeviceId": "Bas34LaGXRk4CgFNDw8YWeconst_component",
-                        "type": "component",
-                        "name": "kebaP30const_component"
-                    }
-                ]
-            },
-            {
-                "id": "NEG4C2iV7VoNpFRCsaw4Au",
-                "type": "entity",
-                "name": "edgeCaseNode",
-                "children": [
-                    {
-                        "iotDeviceId": "PvK3LFTavuQtvtspuib3uq",
-                        "type": "component",
-                        "name": "sensor"
-                    },
-                    {
-                        "iotDeviceId": "NEG4C2iV7VoNpFRCsaw4Auconst_component",
-                        "type": "component",
-                        "name": "edgeCaseNodeconst_component"
+                        "name": "PVconst_component"
                     }
                 ]
             }
