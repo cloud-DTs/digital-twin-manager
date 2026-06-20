@@ -23,7 +23,7 @@ class HotReaderLambdaFunctionDeployer(Deployer):
       Handler="lambda_function.lambda_handler", #  file.function
       Code={"ZipFile": util.compile_lambda_function(os.path.join(globals.core_lfs_path, "hot-reader"))},
       Description="",
-      Timeout=3, # seconds
+      Timeout=900, # seconds
       MemorySize=128, # MB
       Publish=True,
       Environment={

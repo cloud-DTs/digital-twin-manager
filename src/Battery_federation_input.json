@@ -5,39 +5,15 @@
   "hot_reader_arn": "arn:aws:lambda:eu-central-1:717556240325:function:Battery-hot-reader",
   "strategies": [
     {
-      "eventName": "lowCapacity",
-      "inputParameters": [],
-      "outputParameters": []
-    },
-    {
-      "eventName": "fullyCharged",
-      "inputParameters": [],
-      "outputParameters": []
-    },
-    {
-      "eventName": "overheatAlert",
+      "eventName": "status",
       "inputParameters": [
         {
-          "name": "test1",
-          "dataType": "DOUBLE",
-          "id": "Yg5PFZKrNUtE8t8KGqQPGS.p16.temperature"
-        },
-        {
-          "name": "test2",
-          "dataType": "DOUBLE",
-          "id": "Yg5PFZKrNUtE8t8KGqQPGS.p16.currentCapacity"
+          "name": "chargeValue",
+          "dataType": "INTEGER",
+          "id": "4udMBA6jAnnRf33MNHHP9P.p16.charges"
         }
       ],
-      "outputParameters": [
-        {
-          "name": "test3",
-          "dataType": "STRING"
-        },
-        {
-          "name": "test6",
-          "dataType": "DOUBLE"
-        }
-      ]
+      "outputParameters": []
     }
   ],
   "twinmaker_workspace_id": "Battery-twinmaker"

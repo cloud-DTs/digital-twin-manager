@@ -1,55 +1,24 @@
 [
     {
-        "condition": "NZrw6C5K5Edpk57vfJk96W.pV1.output < NZrw6C5K5Edpk57vfJk96W.PVconst_component.minOutput",
+        "condition": "4udMBA6jAnnRf33MNHHP9P.p16.isPlugged == 4udMBA6jAnnRf33MNHHP9P.Batteryconst_component.trueValue",
         "action": {
             "type": "lambda",
-            "pathToCode": "/home/marcocotrotzo/PycharmProjects/SymlCOnv/testLambdaFunctions/pv/lowOutput",
-            "functionName": "lowOutput",
+            "pathToCode": "/home/marcocotrotzo/PycharmProjects/SymlCOnv/input/sysml/testLambdaFunctions/battery/status",
+            "functionName": "status",
             "external": false,
             "feedback": {
                 "type": "mqtt",
-                "iotDeviceId": "8iZRaTVdVS4TJbSb8ndMAP",
-                "payload": "action-result"
-            },
-            "inputParameters": [],
-            "outputParameters": []
-        }
-    },
-    {
-        "condition": "NZrw6C5K5Edpk57vfJk96W.pV1.output > NZrw6C5K5Edpk57vfJk96W.PVconst_component.peakThreshold",
-        "action": {
-            "type": "lambda",
-            "pathToCode": "/home/marcocotrotzo/PycharmProjects/SymlCOnv/testLambdaFunctions/pv/peakProduction",
-            "functionName": "peakProduction",
-            "external": false,
-            "feedback": {
-                "type": "mqtt",
-                "iotDeviceId": "8iZRaTVdVS4TJbSb8ndMAP",
+                "topic": "Battery/iot-data",
                 "payload": "action-result"
             },
             "inputParameters": [
                 {
-                    "name": "test1",
-                    "dataType": "DOUBLE",
-                    "id": "NZrw6C5K5Edpk57vfJk96W.pV1.output"
-                },
-                {
-                    "name": "test2",
-                    "dataType": "DOUBLE",
-                    "value": 8000.0,
-                    "id": "NZrw6C5K5Edpk57vfJk96W.PVconst_component.peakThreshold"
+                    "name": "chargeValue",
+                    "dataType": "INTEGER",
+                    "id": "4udMBA6jAnnRf33MNHHP9P.p16.charges"
                 }
             ],
-            "outputParameters": [
-                {
-                    "name": "test3",
-                    "dataType": "STRING"
-                },
-                {
-                    "name": "test4",
-                    "dataType": "DOUBLE"
-                }
-            ]
+            "outputParameters": []
         }
     }
 ]

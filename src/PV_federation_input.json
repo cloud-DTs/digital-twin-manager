@@ -5,35 +5,16 @@
   "hot_reader_arn": "arn:aws:lambda:eu-central-1:717556240325:function:PV-hot-reader",
   "strategies": [
     {
-      "eventName": "lowOutput",
-      "inputParameters": [],
-      "outputParameters": []
-    },
-    {
-      "eventName": "peakProduction",
+      "eventName": "production",
       "inputParameters": [
         {
-          "name": "test1",
+          "name": "generatedPower",
           "dataType": "DOUBLE",
-          "id": "NZrw6C5K5Edpk57vfJk96W.pV1.output"
-        },
-        {
-          "name": "test2",
-          "dataType": "DOUBLE",
-          "value": 8000.0,
-          "id": "NZrw6C5K5Edpk57vfJk96W.PVconst_component.peakThreshold"
+          "value": 50.0,
+          "id": "QWB3zi3nv8UNdtvw8Fbkk8.PVconst_component.generatedPower"
         }
       ],
-      "outputParameters": [
-        {
-          "name": "test3",
-          "dataType": "STRING"
-        },
-        {
-          "name": "test4",
-          "dataType": "DOUBLE"
-        }
-      ]
+      "outputParameters": []
     }
   ],
   "twinmaker_workspace_id": "PV-twinmaker"

@@ -7,9 +7,9 @@ class L5Deployer(Deployer):
     print(message)
 
   def deploy(self):
-    #GrafanaIamRoleDeployer().deploy()
-    #GrafanaWorkspaceDeployer().deploy()
-    pass
+    GrafanaIamRoleDeployer().deploy()
+    GrafanaWorkspaceDeployer().deploy()
+    
 
   def destroy(self):
     GrafanaWorkspaceDeployer().destroy()

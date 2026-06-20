@@ -17,6 +17,17 @@ sf_client = boto3.client("stepfunctions")
 ssm_client = boto3.client("ssm")
 
 
+def unwrap_data_value(value):
+    if not isinstance(value, dict) or len(value) != 1:
+        return value
+    key, val = next(iter(value.items()))
+    if key == "listValue":
+        return [unwrap_data_value(v) for v in val]
+    if key == "mapValue":
+        return {k: unwrap_data_value(v) for k, v in val.items()}
+    return val
+
+
 def fetch_value(entity_id, component_name, property_name):
     end_time = datetime.now(timezone.utc)
     start_time = end_time - timedelta(hours=24)
@@ -37,7 +48,7 @@ def fetch_value(entity_id, component_name, property_name):
         entry = response["propertyValues"][0]
         if not entry.get("values"):
             return None
-        return list(entry["values"][0]["value"].values())[0]
+        return unwrap_data_value(entry["values"][0]["value"])
 
     except Exception:
         response = twinmaker_client.get_property_value(
@@ -51,7 +62,7 @@ def fetch_value(entity_id, component_name, property_name):
         property = list(response["propertyValues"].values())[0]
         if not property.get("propertyValue"):
             return None
-        return list(property["propertyValue"]["value"].values())[0]
+        return unwrap_data_value(property["propertyValue"]["value"])
 
 
 def extract_const_value(string):
@@ -100,7 +111,7 @@ def fire_action(e, input_params, registry_entry):
     action = e["action"]
     has_feedback = "feedback" in action
     payload = {"e": e, **input_params}
-
+    print(f"Fire action {action}")
     if registry_entry:
         for entry in registry_entry:
             address = entry["address"]
@@ -116,8 +127,9 @@ def fire_action(e, input_params, registry_entry):
     if not has_feedback:
         lambda_client.invoke(FunctionName=function_name, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))
     else:
+        print(f"Invoking Lambda function {function_name} with feedback")
         action_function_arn = resolve_lambda_arn(function_name)
-        sf_client.start_execution(
+        response = sf_client.start_execution(
             stateMachineArn=LAMBDA_CHAIN_STEP_FUNCTION_ARN,
             input=json.dumps({
                 "LambdaAArn": action_function_arn,
@@ -125,6 +137,7 @@ def fire_action(e, input_params, registry_entry):
                 "InputData": payload
             })
         )
+        print(f"Step Function started! Response: {json.dumps(response, default=str)}")
 
 def lambda_handler(event, context):
     print("Hello from Event-Checker!")

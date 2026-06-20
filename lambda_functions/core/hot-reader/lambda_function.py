@@ -27,10 +27,18 @@ def lambda_handler(event, context):
     end_time = event.get("endTime")
 
     if start_time and end_time:
-        db_response = dynamodb_table.query(
-            KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                                   Key("id").between(start_time, end_time)
+        order_by_time = event.get("orderByTime", "ASCENDING")
+        query_kwargs = dict(
+        KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
+                               Key("id").between(start_time, end_time),
+        ScanIndexForward=(order_by_time != "DESCENDING"),
         )
+        max_results = event.get("maxResults")
+        if max_results:
+            query_kwargs["Limit"] = max_results
+
+        db_response = dynamodb_table.query(**query_kwargs)
+    
         items = db_response.get("Items", [])
         print("DynamoDB items: " + json.dumps(items, default=str))
         property_values = []

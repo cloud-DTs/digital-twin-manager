@@ -4,6 +4,18 @@ from botocore.exceptions import ClientError
 import time
 import util
 
+VECTOR_NESTED_TYPES = {
+    "VECTOR_DOUBLE": "DOUBLE",
+    "VECTOR_INTEGER": "INTEGER",
+    "VECTOR_STRING": "STRING",
+}
+
+def build_data_type(data_type_str):
+    nested = VECTOR_NESTED_TYPES.get(data_type_str)
+    if nested:
+        return {"type": "LIST", "nestedType": {"type": nested}}
+    return {"type": data_type_str}
+
 class TwinmakerComponentTypeDeployer(Deployer):
   def log(self, message):
     print(f"IoT: {message}")
@@ -21,9 +33,7 @@ class TwinmakerComponentTypeDeployer(Deployer):
     if "properties" in iot_device:
       for property in iot_device["properties"]:
         property_definitions[property["name"]] = {
-          "dataType": {
-            "type": property["dataType"]
-          },
+          "dataType": build_data_type(property["dataType"]),
           "isTimeSeries": True,
           "isStoredExternally": True
         }

@@ -1,25 +1,18 @@
 [
     {
-        "id": "QWB3zi3nv8UNdtvw8Fbkk8",
+        "id": "4udMBA6jAnnRf33MNHHP9P",
         "type": "entity",
-        "name": "PV",
+        "name": "Battery",
         "children": [
             {
-                "id": "NZrw6C5K5Edpk57vfJk96W",
-                "type": "entity",
-                "name": "PV",
-                "children": [
-                    {
-                        "iotDeviceId": "8iZRaTVdVS4TJbSb8ndMAP",
-                        "type": "component",
-                        "name": "pV1"
-                    },
-                    {
-                        "iotDeviceId": "NZrw6C5K5Edpk57vfJk96Wconst_component",
-                        "type": "component",
-                        "name": "PVconst_component"
-                    }
-                ]
+                "iotDeviceId": "SwiB9jTPm8kzDXz6chmo5T",
+                "type": "component",
+                "name": "p16"
+            },
+            {
+                "iotDeviceId": "4udMBA6jAnnRf33MNHHP9Pconst_component",
+                "type": "component",
+                "name": "Batteryconst_component"
             }
         ]
     }
