@@ -1,21 +1,48 @@
 import json
 import os
+from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Key
 
-
 DIGITAL_TWIN_INFO = json.loads(os.environ.get("DIGITAL_TWIN_INFO", None))
 DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", None)
+
+SCAN_LIMIT = 500
+PAGE_SIZE = 200
 
 twinmaker_client = boto3.client("iottwinmaker")
 dynamodb_resource = boto3.resource("dynamodb")
 dynamodb_table = dynamodb_resource.Table(DYNAMODB_TABLE_NAME)
 
 
-def lambda_handler(event, context):
-    print("Hello from Hot Reader!")
-    print("Event: " + json.dumps(event))
+def to_native(value, raw_type):
+    if isinstance(value, Decimal):
+        if raw_type in ("INTEGER", "LONG"):
+            return int(value)
+        return float(value)
+    return value
 
+
+def scan_items(key_condition, scan_forward):
+    items = []
+    last_evaluated_key = None
+    while len(items) < SCAN_LIMIT:
+        query_kwargs = dict(
+            KeyConditionExpression=key_condition,
+            ScanIndexForward=scan_forward,
+            Limit=PAGE_SIZE,
+        )
+        if last_evaluated_key:
+            query_kwargs["ExclusiveStartKey"] = last_evaluated_key
+        db_response = dynamodb_table.query(**query_kwargs)
+        items.extend(db_response.get("Items", []))
+        last_evaluated_key = db_response.get("LastEvaluatedKey")
+        if not last_evaluated_key:
+            break
+    return items
+
+
+def lambda_handler(event, context):
     entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])
     components = entity.get("components", {})
     component_info = components.get(event["componentName"])
@@ -28,21 +55,13 @@ def lambda_handler(event, context):
 
     if start_time and end_time:
         order_by_time = event.get("orderByTime", "ASCENDING")
-        query_kwargs = dict(
-        KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id) &
-                               Key("id").between(start_time, end_time),
-        ScanIndexForward=(order_by_time != "DESCENDING"),
-        )
+        scan_forward = (order_by_time != "DESCENDING")
         max_results = event.get("maxResults")
-        if max_results:
-            query_kwargs["Limit"] = max_results
 
-        db_response = dynamodb_table.query(**query_kwargs)
-    
-        items = db_response.get("Items", [])
-        print("DynamoDB items: " + json.dumps(items, default=str))
+        key_condition = Key("iotDeviceId").eq(iot_device_id) & Key("id").between(start_time, end_time)
+        items = scan_items(key_condition, scan_forward)
+
         property_values = []
-
         for property_name in event["selectedProperties"]:
             raw_type = event["properties"][property_name]["definition"]["dataType"]["type"]
             property_type_key = raw_type.lower() + "Value"
@@ -51,31 +70,27 @@ def lambda_handler(event, context):
                 "values": []
             }
             for item in items:
-                if property_name in item:
+                if property_name in item and item[property_name] is not None:
                     entry["values"].append({
                         "time": item["id"],
-                        "value": {property_type_key: item[property_name]}
+                        "value": {property_type_key: to_native(item[property_name], raw_type)}
                     })
+                    if max_results and len(entry["values"]) >= max_results:
+                        break
             property_values.append(entry)
         return {"propertyValues": property_values}
 
     else:
-        db_response = dynamodb_table.query(
-            KeyConditionExpression=Key("iotDeviceId").eq(iot_device_id),
-            Limit=1,
-            ScanIndexForward=False
-        )
-        items = db_response.get("Items", [])
-        print("DynamoDB items: " + json.dumps(items, default=str))
+        key_condition = Key("iotDeviceId").eq(iot_device_id)
+        items = scan_items(key_condition, scan_forward=False)
         property_values = {}
 
         for property_name in event["selectedProperties"]:
             raw_type = event["properties"][property_name]["definition"]["dataType"]["type"]
             property_type_key = raw_type.lower() + "Value"
 
-            if items:
-                latest_item = items[0]
-                if property_name in latest_item:
+            for item in items:
+                if property_name in item and item[property_name] is not None:
                     property_values[property_name] = {
                         "propertyReference": {
                             "propertyName": property_name,
@@ -84,10 +99,11 @@ def lambda_handler(event, context):
                         },
                         "propertyValue": {
                             "value": {
-                                property_type_key: latest_item[property_name]
+                                property_type_key: to_native(item[property_name], raw_type)
                             },
-                            "timestamp": latest_item["id"]
+                            "timestamp": item["id"]
                         }
                     }
+                    break
 
         return {"propertyValues": property_values}

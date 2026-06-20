@@ -1,21 +1,17 @@
 [
     {
-        "condition": "4udMBA6jAnnRf33MNHHP9P.p16.isPlugged == 4udMBA6jAnnRf33MNHHP9P.Batteryconst_component.trueValue",
+        "condition": "QWB3zi3nv8UNdtvw8Fbkk8.PVconst_component.generatedPower == QWB3zi3nv8UNdtvw8Fbkk8.PVconst_component.generatedPower",
         "action": {
             "type": "lambda",
-            "pathToCode": "/home/marcocotrotzo/PycharmProjects/SymlCOnv/input/sysml/testLambdaFunctions/battery/status",
-            "functionName": "status",
+            "pathToCode": "/home/marcocotrotzo/PycharmProjects/SymlCOnv/input/sysml/testLambdaFunctions/pv/production",
+            "functionName": "production",
             "external": false,
-            "feedback": {
-                "type": "mqtt",
-                "topic": "Battery/iot-data",
-                "payload": "action-result"
-            },
             "inputParameters": [
                 {
-                    "name": "chargeValue",
-                    "dataType": "INTEGER",
-                    "id": "4udMBA6jAnnRf33MNHHP9P.p16.charges"
+                    "name": "generatedPower",
+                    "dataType": "DOUBLE",
+                    "value": 50.0,
+                    "id": "QWB3zi3nv8UNdtvw8Fbkk8.PVconst_component.generatedPower"
                 }
             ],
             "outputParameters": []

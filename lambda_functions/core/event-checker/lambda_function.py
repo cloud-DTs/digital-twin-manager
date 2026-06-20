@@ -43,26 +43,37 @@ def fetch_value(entity_id, component_name, property_name):
             maxResults=1,
             orderByTime="DESCENDING"
         )
+        print(f"fetch_value({property_name}) history response: {json.dumps(response, default=str)}")
         if not response.get("propertyValues"):
+            print(f"fetch_value({property_name}) history: no propertyValues, returning None")
             return None
         entry = response["propertyValues"][0]
         if not entry.get("values"):
+            print(f"fetch_value({property_name}) history: empty values list, returning None")
             return None
         return unwrap_data_value(entry["values"][0]["value"])
 
-    except Exception:
-        response = twinmaker_client.get_property_value(
-            workspaceId=TWINMAKER_WORKSPACE_NAME,
-            entityId=entity_id,
-            componentName=component_name,
-            selectedProperties=[property_name]
-        )
-        if not response.get("propertyValues"):
-            return None
-        property = list(response["propertyValues"].values())[0]
-        if not property.get("propertyValue"):
-            return None
-        return unwrap_data_value(property["propertyValue"]["value"])
+    except Exception as ex:
+        print(f"fetch_value({property_name}) history call raised {type(ex).__name__}: {ex}, falling back to get_property_value")
+        try:
+            response = twinmaker_client.get_property_value(
+                workspaceId=TWINMAKER_WORKSPACE_NAME,
+                entityId=entity_id,
+                componentName=component_name,
+                selectedProperties=[property_name]
+            )
+            print(f"fetch_value({property_name}) latest response: {json.dumps(response, default=str)}")
+            if not response.get("propertyValues"):
+                print(f"fetch_value({property_name}) latest: no propertyValues, returning None")
+                return None
+            property = list(response["propertyValues"].values())[0]
+            if not property.get("propertyValue"):
+                print(f"fetch_value({property_name}) latest: no propertyValue, returning None")
+                return None
+            return unwrap_data_value(property["propertyValue"]["value"])
+        except Exception as fallback_ex:
+            print(f"fetch_value({property_name}) fallback call also raised {type(fallback_ex).__name__}: {fallback_ex}")
+            raise
 
 
 def extract_const_value(string):
@@ -121,7 +132,7 @@ def fire_action(e, input_params, registry_entry):
                     input=json.dumps(payload)
                 )
         return
-    
+
     #Default execution
     function_name = DIGITAL_TWIN_INFO["config"]["digital_twin_name"] + "-" + action["functionName"]
     if not has_feedback:
@@ -166,6 +177,7 @@ def lambda_handler(event, context):
 
             if e["action"]["type"] == "lambda" and result:
                 input_params = resolve_input_parameters(e)
+                print(f"Resolved input_params: {input_params}")
                 registry_entry = lookup_registry(e["action"]["functionName"])
                 fire_action(e, input_params, registry_entry)
 
