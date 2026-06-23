@@ -154,10 +154,20 @@ def lambda_handler(event, context):
     print("Hello from Event-Checker!")
     print("Event: " + json.dumps(event))
 
+    trigger_keys = set(event.keys()) - {"iotDeviceId", "time"}
+    print(f"Trigger keys: {trigger_keys}")
+
     for e in DIGITAL_TWIN_INFO["config_events"]:
         try:
             condition = e["condition"]
             param1, operation, param2 = condition.split()
+
+            condition_properties = {p.split(".")[-1] for p in [param1, param2] if "." in p}
+            print(f"Checking condition '{condition}' — relevant properties: {condition_properties}")
+
+            if trigger_keys and not trigger_keys.intersection(condition_properties):
+                print(f"Skipping — trigger {trigger_keys} not relevant for {condition_properties}")
+                continue
 
             param1_value = fetch_value(*param1.split(".")) if "." in param1 else extract_const_value(param1)
             if param1_value is None:
@@ -169,17 +179,23 @@ def lambda_handler(event, context):
                 print(f"No value yet for {param2}, skipping event")
                 continue
 
+            print(f"Evaluating: {param1_value} {operation} {param2_value}")
+
             match operation:
                 case "<":  result = param1_value < param2_value
                 case ">":  result = param1_value > param2_value
                 case "==": result = param1_value == param2_value
                 case _:    raise ValueError(f"Unknown operator: {operation}")
 
+            print(f"Condition result: {result}")
+
             if e["action"]["type"] == "lambda" and result:
                 input_params = resolve_input_parameters(e)
                 print(f"Resolved input_params: {input_params}")
                 registry_entry = lookup_registry(e["action"]["functionName"])
                 fire_action(e, input_params, registry_entry)
+            else:
+                print(f"Condition false or action type not lambda — not firing")
 
         except Exception as ex:
-            print("Something went wrong: ", ex)
+            print(f"Something went wrong for condition '{e.get('condition', '?')}': {ex}")

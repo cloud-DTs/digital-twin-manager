@@ -3,3 +3,5 @@ iot_devices_auth/
 
 __pycache__/
 *.py[cod]
+
+src/venv/
