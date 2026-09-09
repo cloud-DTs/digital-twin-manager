@@ -64,6 +64,28 @@ class ColdS3BucketDeployer(Deployer):
       }
     )
 
+    globals.aws_s3_client.put_public_access_block(
+      Bucket=bucket_name,
+      PublicAccessBlockConfiguration={
+        "BlockPublicAcls": True,
+        "IgnorePublicAcls": True,
+        "BlockPublicPolicy": True,
+        "RestrictPublicBuckets": True,
+      },
+    )
+
+    globals.aws_s3_client.put_bucket_versioning(
+      Bucket=bucket_name,
+      VersioningConfiguration={"Status": "Enabled"},
+    )
+
+    globals.aws_s3_client.put_bucket_encryption(
+      Bucket=bucket_name,
+      ServerSideEncryptionConfiguration={
+        "Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]
+      },
+    )
+
     self.log(f"Created S3 Bucket: {bucket_name}")
 
   def destroy(self, bucket_name=None):

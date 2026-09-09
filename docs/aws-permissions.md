@@ -112,7 +112,10 @@ dynamodb:DescribeTable
 dynamodb:DeleteTable
 dynamodb:CreateBackup
 dynamodb:DescribeBackup
+dynamodb:UpdateContinuousBackups
 ```
+
+`dynamodb:UpdateContinuousBackups` enables Point-in-Time Recovery on the Hot table immediately after it becomes active.
 
 ### S3
 
@@ -121,6 +124,9 @@ Used for TwinMaker, cold storage, and archive buckets. The destroy flow empties 
 ```text
 s3:CreateBucket
 s3:PutBucketCORS
+s3:PutBucketPublicAccessBlock
+s3:PutBucketVersioning
+s3:PutEncryptionConfiguration
 s3:GetBucketLocation
 s3:ListBucket
 s3:ListBucketVersions
@@ -128,6 +134,8 @@ s3:DeleteObject
 s3:DeleteObjectVersion
 s3:DeleteBucket
 ```
+
+`s3:PutBucketPublicAccessBlock`, `s3:PutBucketVersioning`, and `s3:PutEncryptionConfiguration` are used immediately after `s3:CreateBucket` for all three buckets (TwinMaker, cold, archive) to block public access, enable versioning, and enable SSE-S3 encryption. This closed a gap where those buckets relied entirely on the AWS account's org-level default for public-access protection and had no versioning to protect against accidental overwrite/delete — see the ICSA evaluation (`EVALUATION.md` in the bundle root) for the audit that found it.
 
 ### AWS IoT TwinMaker
 
@@ -317,7 +325,8 @@ The following policy is intended for the IAM principal whose access keys are sto
         "dynamodb:DescribeTable",
         "dynamodb:DeleteTable",
         "dynamodb:CreateBackup",
-        "dynamodb:DescribeBackup"
+        "dynamodb:DescribeBackup",
+        "dynamodb:UpdateContinuousBackups"
       ],
       "Resource": "*"
     },
@@ -327,6 +336,9 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "s3:CreateBucket",
         "s3:PutBucketCORS",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
         "s3:GetBucketLocation",
         "s3:ListBucket",
         "s3:ListBucketVersions",
@@ -427,6 +439,8 @@ Two statements are intentionally broader than "this twin's own resources" and ar
 ### Reconciliation caveat
 
 None of these roles' `plan()` methods compare policy *content* — only the role *name*. A policy-content change in code only takes effect the next time a role is freshly created; it does not retrofit an already-deployed role with the same name. To apply a scoped policy to an existing twin, `destroy` and `deploy` that twin's core IAM roles (or the whole twin).
+
+The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
 
 ## Notes
 
