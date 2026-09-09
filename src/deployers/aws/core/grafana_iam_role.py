@@ -114,10 +114,7 @@ class GrafanaIamRoleDeployer(Deployer):
             {
               "Effect": "Allow",
               "Action": "s3:GetObject",
-              "Resource": [
-                aws_arns.s3_bucket_arn(bucket_name),
-                aws_arns.s3_bucket_objects_arn(bucket_name)
-              ]
+              "Resource": aws_arns.s3_bucket_objects_arn(bucket_name)
             },
             {
               "Effect": "Allow",

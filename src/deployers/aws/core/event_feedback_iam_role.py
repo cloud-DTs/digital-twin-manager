@@ -24,8 +24,15 @@ class EventFeedbackIamRoleDeployer(Deployer):
       if not feedback or feedback.get("type") != "mqtt":
         continue
 
-      topic = feedback.get("topic") or f"{digital_twin_name}-{feedback.get('iotDeviceId')}"
-      topics.add(topic)
+      topic = feedback.get("topic")
+      iot_device_id = feedback.get("iotDeviceId")
+
+      if not topic and not iot_device_id:
+        raise ValueError(
+          f"mqtt feedback for digital twin '{digital_twin_name}' must set 'topic' or 'iotDeviceId'."
+        )
+
+      topics.add(topic or f"{digital_twin_name}-{iot_device_id}")
 
     return sorted(topics)
 
