@@ -64,8 +64,8 @@ class TwinmakerHierarchyDeployer(Deployer):
           configured_iot_device_ids,
           missing_iot_device_ids,
         )
-      elif child["type"] == "component" and "componentTypeId" not in child:
-        iot_device_id = child.get("iotDeviceId")
+      elif child["type"] == "component" and "iotDeviceId" in child:
+        iot_device_id = child["iotDeviceId"]
 
         if iot_device_id not in configured_iot_device_ids:
           missing_iot_device_ids.add(iot_device_id)
@@ -155,22 +155,29 @@ class TwinmakerHierarchyDeployer(Deployer):
         self._deploy_twinmaker_component(child, entity_info, workspace_name)
 
   def _deploy_twinmaker_component(self, component_info, parent_info, workspace_name):
-    if "componentTypeId" in component_info:
-      component_type_id = component_info["componentTypeId"]
-    else:
-      component_type_id = resource_names.twinmaker_component_type_id_from_device_id(
-        globals.config,
-        str(component_info["iotDeviceId"]),
-      )
+    component_type_id = resource_names.hierarchy_component_type_id(
+      globals.config,
+      component_info,
+    )
+
+    component_update = {
+      "updateType": "CREATE",
+      "componentTypeId": component_type_id,
+    }
+
+    if "iotDeviceId" in component_info:
+      component_update["propertyUpdates"] = {
+        "iotDeviceId": {
+          "updateType": "CREATE",
+          "value": {"stringValue": str(component_info["iotDeviceId"])},
+        }
+      }
 
     globals.aws_twinmaker_client.update_entity(
       workspaceId=workspace_name,
       entityId=parent_info["id"],
       componentUpdates={
-          component_info["name"]: {
-              "updateType": "CREATE",
-              "componentTypeId": component_type_id
-          }
+          component_info["name"]: component_update
       }
     )
 
@@ -356,15 +363,10 @@ class TwinmakerHierarchyDeployer(Deployer):
 
         component_info = parent["components"][entry["name"]]
 
-        if "componentTypeId" in entry:
-          entry_component_type_id = entry["componentTypeId"]
-        else:
-          entry_component_type_id = (
-            resource_names.twinmaker_component_type_id_from_device_id(
-              globals.config,
-              str(entry["iotDeviceId"]),
-            )
-          )
+        entry_component_type_id = resource_names.hierarchy_component_type_id(
+          globals.config,
+          entry,
+        )
 
         if component_info["componentTypeId"] != entry_component_type_id:
           self.log(f"❌ IoT TwinMaker Component {entry["name"]} has the wrong component type: {component_info["componentTypeId"]}")

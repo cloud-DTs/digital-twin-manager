@@ -112,7 +112,10 @@ dynamodb:DescribeTable
 dynamodb:DeleteTable
 dynamodb:CreateBackup
 dynamodb:DescribeBackup
+dynamodb:UpdateContinuousBackups
 ```
+
+`dynamodb:UpdateContinuousBackups` enables Point-in-Time Recovery on the Hot table immediately after it becomes active.
 
 ### S3
 
@@ -121,6 +124,9 @@ Used for TwinMaker, cold storage, and archive buckets. The destroy flow empties 
 ```text
 s3:CreateBucket
 s3:PutBucketCORS
+s3:PutBucketPublicAccessBlock
+s3:PutBucketVersioning
+s3:PutEncryptionConfiguration
 s3:GetBucketLocation
 s3:ListBucket
 s3:ListBucketVersions
@@ -128,6 +134,8 @@ s3:DeleteObject
 s3:DeleteObjectVersion
 s3:DeleteBucket
 ```
+
+`s3:PutBucketPublicAccessBlock`, `s3:PutBucketVersioning`, and `s3:PutEncryptionConfiguration` are used immediately after `s3:CreateBucket` for all three buckets (TwinMaker, cold, archive) to block public access, enable versioning, and enable SSE-S3 encryption. This closed a gap where those buckets relied entirely on the AWS account's org-level default for public-access protection and had no versioning to protect against accidental overwrite/delete — see the ICSA evaluation (`EVALUATION.md` in the bundle root) for the audit that found it.
 
 ### AWS IoT TwinMaker
 
@@ -317,7 +325,8 @@ The following policy is intended for the IAM principal whose access keys are sto
         "dynamodb:DescribeTable",
         "dynamodb:DeleteTable",
         "dynamodb:CreateBackup",
-        "dynamodb:DescribeBackup"
+        "dynamodb:DescribeBackup",
+        "dynamodb:UpdateContinuousBackups"
       ],
       "Resource": "*"
     },
@@ -327,6 +336,9 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "s3:CreateBucket",
         "s3:PutBucketCORS",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
         "s3:GetBucketLocation",
         "s3:ListBucket",
         "s3:ListBucketVersions",
@@ -395,19 +407,40 @@ The following policy is intended for the IAM principal whose access keys are sto
 
 The permissions above are for the deployment principal. During deployment, the application creates runtime roles and attaches AWS managed or inline policies to those roles. Those runtime policies are not required directly on the deployment principal, except that the principal needs IAM permissions to create and attach them.
 
-Examples of runtime policies attached by the application include:
+Managed policies attached by the application:
 
 ```text
 arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 arn:aws:iam::aws:policy/service-role/AWSLambdaRole
-arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2
-arn:aws:iam::aws:policy/AWSLambda_ReadOnlyAccess
-arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
-arn:aws:iam::aws:policy/AWSIoTDataAccess
-arn:aws:iam::aws:policy/AmazonS3FullAccess
 ```
 
-The Event-checker Lambda receives an inline `ssm:GetParameter` policy for the `/<digitalTwinName>/event-registry/*` parameter path. The deployment principal does not call SSM directly; it creates that inline runtime policy with `iam:PutRolePolicy`. The external federation component that populates the registry needs its own SSM write permissions.
+`AWSLambdaBasicExecutionRole` (CloudWatch Logs) is attached to every runtime role. `AWSLambdaRole` (`lambda:InvokeFunction` on all functions) is attached only to the Dispatcher, LambdaChain, and per-device Processor roles, which invoke a downstream Lambda whose exact name isn't fixed at role-creation time. No runtime role uses an AWS-managed `*FullAccess`/`*ReadOnlyAccess`/`*DataAccess` policy — each role that needs DynamoDB, S3, IoT TwinMaker, Lambda, or Step Functions access gets a scoped inline policy instead (see below). This replaced an earlier version of this document/implementation where several roles held `AmazonDynamoDBFullAccess_v2`, `AWSLambda_ReadOnlyAccess`, `AWSStepFunctionsFullAccess`, `AWSIoTDataAccess`, and `AmazonS3FullAccess` — a source-level audit (see the ICSA evaluation, `EVALUATION.md` in the bundle root) found these granted far more than the corresponding Lambda's own source code ever calls.
+
+### Inline Runtime Policies (Scoped)
+
+Each policy is scoped to only the resources that role's Lambda (or, for TwinMaker/Grafana, AWS service) actually calls, using ARN builders in `src/deployers/aws/core/aws_arns.py`.
+
+| Role | Grants | Scoped to |
+|---|---|---|
+| Persister | `dynamodb:PutItem`; `lambda:InvokeFunction` | this twin's Hot table; the Event-Checker Lambda |
+| Event-Checker | `iottwinmaker:GetPropertyValueHistory`/`GetPropertyValue`; `lambda:GetFunction`/`InvokeFunction`; `states:StartExecution` | this twin's TwinMaker workspace; this twin's own `{digitalTwinName}-*` Lambda functions; this twin's LambdaChain state machine |
+| TwinMaker service role | `s3:GetObject`/`PutObject`/`DeleteObject`/`ListBucket`; `lambda:InvokeFunction` | this twin's TwinMaker S3 bucket; the Hot Reader Lambda |
+| Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity` | this twin's Hot table; this twin's TwinMaker workspace |
+| Hot-to-Cold Mover | `dynamodb:Query`/`BatchWriteItem`; `s3:PutObject` | this twin's Hot table; this twin's Cold bucket |
+| Cold-to-Archive Mover | `s3:ListBucket`/`GetObject`/`DeleteObject` (source); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
+| Event-Feedback | `iot:Publish` | every MQTT feedback topic found in `config_events.json` at deploy time (enumerated, not wildcarded) |
+| Grafana execution role | `s3:GetObject`; `iottwinmaker:Get*`/`List*`; `iottwinmaker:ListWorkspaces` | this twin's TwinMaker S3 bucket; this twin's TwinMaker workspace; `Resource:"*"` (see exception below) |
+
+Two statements are intentionally broader than "this twin's own resources" and are documented exceptions, not leftover over-broad grants:
+
+- **Grafana's `iottwinmaker:ListWorkspaces` on `Resource:"*"`** — this is AWS's own documented requirement for the `grafana-iot-twinmaker-app` plugin (a List-level action that can't be scoped to one workspace; see [AWS's dashboard IAM role guide](https://docs.aws.amazon.com/iot-twinmaker/latest/guide/dashboard-IAM-role.html)), not an oversight. The rest of that role's policy matches AWS's documented "no video permissions" template. Grafana deployment is disabled by default via `deploy_managed_grafana`.
+- There is deliberately **no third exception for cross-twin federation.** The repo has a "FunctionRegistry" SSM-registry lookup in Event-Checker (`lookup_registry()` in `lambda_functions/core/event-checker/lambda_function.py`, merged from elsewhere — see git history) that lets one twin invoke another twin's Lambda/Step Function. This scoping fix intentionally removed the `ssm:GetParameter` permission that supported it, since federation is out of scope for the current evaluation. The runtime code still *attempts* the SSM call unconditionally (`SSM_REGISTRY_PREFIX` is always set), but its failure is caught by a broad exception handler and falls back to normal local invocation — so this shows up as a harmless `AccessDenied` line in CloudWatch Logs on every action, not a functional break. If federation is needed again, re-adding a scoped `ssm:GetParameter` statement and a bounded federation-target exception is a follow-up, not part of this fix.
+
+### Reconciliation caveat
+
+None of these roles' `plan()` methods compare policy *content* — only the role *name*. A policy-content change in code only takes effect the next time a role is freshly created; it does not retrofit an already-deployed role with the same name. To apply a scoped policy to an existing twin, `destroy` and `deploy` that twin's core IAM roles (or the whole twin).
+
+The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
 
 ## Notes
 

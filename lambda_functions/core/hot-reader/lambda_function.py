@@ -46,9 +46,8 @@ def lambda_handler(event, context):
     entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])
     components = entity.get("components", {})
     component_info = components.get(event["componentName"])
-    component_type_id = component_info.get("componentTypeId")
 
-    iot_device_id = component_type_id.removeprefix(DIGITAL_TWIN_NAME + "-")
+    iot_device_id = component_info["properties"]["iotDeviceId"]["value"]["stringValue"]
 
     start_time = event.get("startTime")
     end_time = event.get("endTime")

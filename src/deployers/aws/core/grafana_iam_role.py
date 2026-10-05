@@ -1,6 +1,7 @@
 from deployers.base import Deployer
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
+from deployers.aws.core import aws_arns
 from dependency_graph import plan_graph_ids
 import deployment_state
 import json
@@ -94,6 +95,15 @@ class GrafanaIamRoleDeployer(Deployer):
 
     policy_name = "GrafanaExecutionPolicy"
 
+    bucket_name = globals.twinmaker_s3_bucket_name()
+    workspace_name = globals.twinmaker_workspace_name()
+
+    # Grants match AWS's documented "no video permissions" dashboard policy for
+    # the grafana-iot-twinmaker-app plugin:
+    # https://docs.aws.amazon.com/iot-twinmaker/latest/guide/dashboard-IAM-role.html
+    # iottwinmaker:ListWorkspaces on Resource:"*" is AWS's own requirement (a
+    # List-level action that can't be scoped to a single workspace), not a
+    # leftover wildcard.
     globals.aws_iam_client.put_role_policy(
       RoleName=role_name,
       PolicyName=policy_name,
@@ -103,28 +113,23 @@ class GrafanaIamRoleDeployer(Deployer):
           "Statement": [
             {
               "Effect": "Allow",
+              "Action": "s3:GetObject",
+              "Resource": aws_arns.s3_bucket_objects_arn(bucket_name)
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iottwinmaker:Get*",
+                "iottwinmaker:List*"
+              ],
+              "Resource": [
+                aws_arns.twinmaker_workspace_arn(workspace_name),
+                aws_arns.twinmaker_workspace_children_arn(workspace_name)
+              ]
+            },
+            {
+              "Effect": "Allow",
               "Action": "iottwinmaker:ListWorkspaces",
-              "Resource": "*"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "iottwinmaker:*",
-              ],
-              "Resource": "*"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "dynamodb:*",
-              ],
-              "Resource": "*"
-            },
-            {
-              "Effect": "Allow",
-              "Action": [
-                "s3:*"
-              ],
               "Resource": "*"
             }
           ]

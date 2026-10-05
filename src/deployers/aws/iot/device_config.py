@@ -17,6 +17,10 @@ def _iot_device_from_component(component):
     if key not in COMPONENT_INSTANCE_KEYS
   }
   iot_device["id"] = component["iotDeviceId"]
+
+  if "componentTypeId" in component:
+    iot_device["componentTypeId"] = component["componentTypeId"]
+
   iot_device.setdefault("properties", [])
   return iot_device
 
@@ -58,8 +62,43 @@ def _collect_iot_devices(entry, iot_devices, iot_devices_by_id):
   _collect_iot_devices(entry.get("children", []), iot_devices, iot_devices_by_id)
 
 
-def effective_iot_devices(config_iot_devices):
+def _component_type_ids_from_hierarchy(config_hierarchy):
+  component_type_ids_by_device_id = {}
+
+  def _walk(entry):
+    if isinstance(entry, list):
+      for child in entry:
+        _walk(child)
+      return
+
+    if not isinstance(entry, dict):
+      return
+
+    if (
+      entry.get("type") == "component"
+      and "iotDeviceId" in entry
+      and "componentTypeId" in entry
+    ):
+      component_type_ids_by_device_id[entry["iotDeviceId"]] = entry["componentTypeId"]
+
+    _walk(entry.get("children", []))
+
+  _walk(config_hierarchy)
+  return component_type_ids_by_device_id
+
+
+def effective_iot_devices(config_iot_devices, config_hierarchy=None):
   iot_devices = []
   iot_devices_by_id = {}
   _collect_iot_devices(config_iot_devices, iot_devices, iot_devices_by_id)
+
+  if config_hierarchy:
+    component_type_ids_by_device_id = _component_type_ids_from_hierarchy(config_hierarchy)
+
+    for iot_device in iot_devices:
+      component_type_id = component_type_ids_by_device_id.get(iot_device["id"])
+
+      if component_type_id is not None:
+        iot_device["componentTypeId"] = component_type_id
+
   return iot_devices

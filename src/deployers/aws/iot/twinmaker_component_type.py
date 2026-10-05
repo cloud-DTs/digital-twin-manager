@@ -4,6 +4,7 @@ from deployers.base import Deployer
 from dependency_graph import plan_graph_ids
 import globals
 import deployment_state
+import resource_names
 from botocore.exceptions import ClientError
 import time
 import util
@@ -34,6 +35,12 @@ class TwinmakerComponentTypeDeployer(Deployer):
         "isStoredExternally": True
       }
 
+    property_definitions["iotDeviceId"] = {
+      "dataType": {"type": "STRING"},
+      "isTimeSeries": False,
+      "isStoredExternally": False,
+    }
+
     return property_definitions
 
   def plan(self, previous_iot_device, desired_iot_device):
@@ -52,11 +59,15 @@ class TwinmakerComponentTypeDeployer(Deployer):
       if desired_iot_device else None
     )
     previous_graph_id = (
-      plan_graph_ids.device_component_type(previous_iot_device)
+      plan_graph_ids.device_component_type(
+        resource_names.component_type_logical_id(previous_iot_device)
+      )
       if previous_iot_device else None
     )
     desired_graph_id = (
-      plan_graph_ids.device_component_type(desired_iot_device)
+      plan_graph_ids.device_component_type(
+        resource_names.component_type_logical_id(desired_iot_device)
+      )
       if desired_iot_device else None
     )
 

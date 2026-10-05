@@ -152,14 +152,15 @@ def _validate_component_name(value, field, seen_component_names):
 def _validate_component_type_source(component, field):
   source_keys = COMPONENT_SOURCE_KEYS & component.keys()
 
-  if len(source_keys) != 1:
+  if not source_keys:
     raise ValueError(
-      f"{field} must contain exactly one of: {keys_text(COMPONENT_SOURCE_KEYS)}"
+      f"{field} must contain at least one of: {keys_text(COMPONENT_SOURCE_KEYS)}"
     )
 
   if "iotDeviceId" in component:
     _validate_iot_device_id(component["iotDeviceId"], f"{field}.iotDeviceId")
-  else:
+
+  if "componentTypeId" in component:
     _validate_component_type_id(
       component["componentTypeId"],
       f"{field}.componentTypeId",
