@@ -69,6 +69,31 @@ class PlanAnalysisConfigFixtureTests(unittest.TestCase):
         assert_expected_counts(self, counts_before_analysis, expected_counts)
         self.assertEqual([], blocked_action_summaries(plan_groups))
 
+  def test_shared_component_type_is_deployed_once(self) -> None:
+    load_plan_analysis_case("shared-component-type")
+
+    with redirect_stdout(StringIO()):
+      plan_groups = build_plan_groups()
+
+    main._analyze_plan_dependencies(plan_groups)
+
+    self.assertEqual([], blocked_action_summaries(plan_groups))
+
+    component_type_deploys = [
+      action
+      for _, layer_name, action in iter_plan_actions(plan_groups)
+      if layer_name == "iot_l4"
+      and action["resource_type"] == "twinmaker_component_type"
+      and action["action"] == "DEPLOY"
+    ]
+
+    self.assertEqual(
+      1,
+      len(component_type_deploys),
+      "Two IoT devices sharing one componentTypeId should deploy a single "
+      f"TwinMaker Component Type, got: {component_type_deploys}",
+    )
+
   def test_synthetic_blocker_cases_have_expected_blockers(self) -> None:
     for case_name, blocker_text in SYNTHETIC_BLOCKER_CASES:
       with self.subTest(case_name=case_name):

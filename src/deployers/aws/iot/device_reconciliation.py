@@ -8,11 +8,14 @@ def _devices_by_id(iot_devices):
 
 
 def previous_iot_devices():
-  return effective_iot_devices(deployment_state.last_applied_config_iot_devices)
+  return effective_iot_devices(
+    deployment_state.last_applied_config_iot_devices,
+    deployment_state.last_applied_config_hierarchy,
+  )
 
 
 def desired_iot_devices():
-  return effective_iot_devices(globals.config_iot_devices)
+  return effective_iot_devices(globals.config_iot_devices, globals.config_hierarchy)
 
 
 def reconciled_iot_devices():

@@ -24,8 +24,21 @@ class ConfigHierarchyValidationTests(unittest.TestCase):
     value = valid_config_hierarchy()
     del value[0]["children"][0]["iotDeviceId"]
 
-    with self.assertRaisesRegex(ValueError, "exactly one"):
+    with self.assertRaisesRegex(ValueError, "at least one"):
       config_hierarchy.validate(value)
+
+  def test_component_with_component_type_id_only_passes(self) -> None:
+    value = valid_config_hierarchy()
+    del value[0]["children"][0]["iotDeviceId"]
+    value[0]["children"][0]["componentTypeId"] = "shared-sensor-type"
+
+    config_hierarchy.validate(value)
+
+  def test_component_with_both_sources_passes(self) -> None:
+    value = valid_config_hierarchy()
+    value[0]["children"][0]["componentTypeId"] = "shared-sensor-type"
+
+    config_hierarchy.validate(value)
 
   def test_duplicate_entity_id_fails(self) -> None:
     value = valid_config_hierarchy()

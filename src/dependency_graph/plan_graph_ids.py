@@ -133,10 +133,10 @@ def processor_lambda(iot_device: Mapping[str, Any]) -> str:
   )
 
 
-def device_component_type(iot_device: Mapping[str, Any]) -> str:
+def device_component_type(component_type_logical_id: str) -> str:
   return runtime_node_id(
     "iot:l4:device_component_type:twinmaker_component_type",
-    str(iot_device["id"]),
+    component_type_logical_id,
   )
 
 
