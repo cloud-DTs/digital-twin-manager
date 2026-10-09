@@ -1,6 +1,11 @@
 import os
+import base64
+import hashlib
+import io
+import posixpath
 import zipfile
 import urllib
+from pathlib import PureWindowsPath
 import globals
 from botocore.exceptions import ClientError
 
@@ -45,11 +50,55 @@ def resolve_folder_path(folder_path):
 
 def compile_lambda_function(folder_path, extra_files=None):
   zip_path = zip_directory(folder_path, extra_files=extra_files)
+  with open(zip_path, "rb") as source:
+    return source.read()
 
-  with open(zip_path, "rb") as f:
-    zip_code = f.read()
 
-  return zip_code
+def compile_reproducible_lambda_function(
+  folder_path, extra_files=None, *, compression=zipfile.ZIP_STORED,
+  preserve_executable=False,
+):
+  folder_path = resolve_folder_path(folder_path)
+  entries = {}
+  modes = {}
+  for root, dirs, files in os.walk(folder_path):
+    dirs[:] = [name for name in dirs if name != "__pycache__"]
+    for file in files:
+      if file == "zipped.zip" or file.endswith((".pyc", ".pyo")):
+        continue
+      full_path = os.path.join(root, file)
+      arcname = os.path.relpath(full_path, folder_path).replace(os.sep, "/")
+      with open(full_path, "rb") as source:
+        entries[arcname] = source.read()
+      executable = preserve_executable and os.stat(full_path).st_mode & 0o111
+      modes[arcname] = 0o100755 if executable else 0o100644
+
+  for arcname, contents in (extra_files or {}).items():
+    normalized_arcname = posixpath.normpath(arcname.replace("\\", "/"))
+    if (
+      PureWindowsPath(arcname).drive
+      or normalized_arcname.startswith("/")
+      or normalized_arcname in (".", "..")
+      or normalized_arcname.startswith("../")
+    ):
+      raise ValueError(f"Lambda archive path must stay inside the archive: {arcname}")
+    if normalized_arcname in entries:
+      raise ValueError(f"Lambda archive already contains: {normalized_arcname}")
+    entries[normalized_arcname] = contents
+
+  buffer = io.BytesIO()
+  # Fixed metadata and entry order make repeated builds reproducible.
+  with zipfile.ZipFile(buffer, "w", compression=compression) as archive:
+    for arcname, contents in sorted(entries.items()):
+      info = zipfile.ZipInfo(arcname, date_time=(1980, 1, 1, 0, 0, 0))
+      info.create_system = 3
+      info.external_attr = modes.get(arcname, 0o100644) << 16
+      archive.writestr(info, contents, compress_type=compression, compresslevel=6)
+  return buffer.getvalue()
+
+
+def lambda_code_sha256(zip_code):
+  return base64.b64encode(hashlib.sha256(zip_code).digest()).decode("ascii")
 
 def zip_directory(folder_path, zip_name='zipped.zip', extra_files=None):
   folder_path = resolve_folder_path(folder_path)

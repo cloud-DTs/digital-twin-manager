@@ -41,7 +41,20 @@ class AllDeployer(Deployer):
 
     deployer_class().apply(group_plan, action_name)
 
+  def validate_plan(self, plan):
+    # Check every pending Lambda before deleting resources or updating prerequisites.
+    for group_plan in plan:
+      deployer_class = self.GROUP_DEPLOYERS.get(group_plan["group"])
+      if deployer_class is None:
+        raise ValueError(f"Unknown plan group: {group_plan['group']}")
+      deployer = deployer_class()
+      validate = getattr(deployer, "validate_plan", None)
+      if validate is not None:
+        validate(group_plan)
+
   def apply(self, plan):
+    self.validate_plan(plan)
+
     for group_plan in destroy_groups(plan):
       self._apply_group(group_plan, ACTION_DESTROY)
 

@@ -5,7 +5,7 @@ This document describes the IAM permissions required by `digital-twin-manager` w
 The permission set is derived from:
 
 - Direct Boto3 calls in `src/`.
-- The command flow in `src/main.py` for `deploy`, `info`, and `destroy`.
+- The command flow in `src/main.py` for `deploy`, `plan`, `apply`, `info`, and `destroy`.
 - AWS dependent permissions required by services such as Lambda, Step Functions, AWS IoT TwinMaker, and Amazon Managed Grafana.
 
 The policy examples use `Resource: "*"` because the application creates resources with names derived from `digital_twin_name`, IoT device IDs, event action configuration, and generated AWS resource ARNs. A production policy should narrow resources where possible.
@@ -29,6 +29,7 @@ Used to create and remove runtime IAM roles for Lambda, Step Functions, TwinMake
 ```text
 iam:CreateRole
 iam:GetRole
+iam:GetRolePolicy
 iam:UpdateAssumeRolePolicy
 iam:PutRolePolicy
 iam:DeleteRolePolicy
@@ -42,7 +43,7 @@ iam:DeleteRole
 iam:PassRole
 ```
 
-`iam:PassRole` is not called as a Boto3 IAM operation, but it is required when the application passes role ARNs to Lambda, Step Functions, TwinMaker, and Grafana create operations.
+`iam:PassRole` is not called as a Boto3 IAM operation, but it is required when the application passes role ARNs to Lambda, Step Functions, TwinMaker, and Grafana create operations, and to Lambda configuration updates.
 
 ### Lambda
 
@@ -51,6 +52,8 @@ Used for core Lambdas, per-device processor Lambdas, optional internal event act
 ```text
 lambda:CreateFunction
 lambda:GetFunction
+lambda:UpdateFunctionCode
+lambda:UpdateFunctionConfiguration
 lambda:GetPolicy
 lambda:DeleteFunction
 lambda:AddPermission
@@ -58,6 +61,8 @@ lambda:RemovePermission
 ```
 
 Internal event action Lambdas are only created when `config_events.json` contains an action with `"external": false`. The current checked-in configuration uses `"external": true`, but the application code supports internal actions.
+
+Planning reads `CodeSha256`, `RevisionId` and function settings from AWS for all manager-owned core, processor and internal Event Action Lambdas. Hot Reader planning also reads its role policy. Code changes use `UpdateFunctionCode`; settings changes use `UpdateFunctionConfiguration`. Both calls use `RevisionId` to reject concurrent changes. After a configuration update, the code update uses the revision returned by that operation. The `function_updated_v2` waiter uses `GetFunction`; it does not require another read permission.
 
 ### AWS IoT
 
@@ -233,6 +238,7 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "iam:CreateRole",
         "iam:GetRole",
+        "iam:GetRolePolicy",
         "iam:UpdateAssumeRolePolicy",
         "iam:PutRolePolicy",
         "iam:DeleteRolePolicy",
@@ -269,6 +275,8 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "lambda:CreateFunction",
         "lambda:GetFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
         "lambda:GetPolicy",
         "lambda:DeleteFunction",
         "lambda:AddPermission",
@@ -425,7 +433,7 @@ Each policy is scoped to only the resources that role's Lambda (or, for TwinMake
 | Persister | `dynamodb:PutItem`; `lambda:InvokeFunction` | this twin's Hot table; the Event-Checker Lambda |
 | Event-Checker | `iottwinmaker:GetPropertyValueHistory`/`GetPropertyValue`; `lambda:GetFunction`/`InvokeFunction`; `states:StartExecution` | this twin's TwinMaker workspace; this twin's own `{digitalTwinName}-*` Lambda functions; this twin's LambdaChain state machine |
 | TwinMaker service role | `s3:GetObject`/`PutObject`/`DeleteObject`/`ListBucket`; `lambda:InvokeFunction` | this twin's TwinMaker S3 bucket; the Hot Reader Lambda |
-| Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity` | this twin's Hot table; this twin's TwinMaker workspace |
+| Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity`/`GetComponentType` | this twin's Hot table; this twin's TwinMaker workspace and its entities/component types |
 | Hot-to-Cold Mover | `dynamodb:Query`/`BatchWriteItem`; `s3:PutObject` | this twin's Hot table; this twin's Cold bucket |
 | Cold-to-Archive Mover | `s3:ListBucket`/`GetObject`/`DeleteObject` (source); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
 | Event-Feedback | `iot:Publish` | every MQTT feedback topic found in `config_events.json` at deploy time (enumerated, not wildcarded) |

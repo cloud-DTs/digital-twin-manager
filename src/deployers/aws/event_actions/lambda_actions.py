@@ -1,9 +1,13 @@
 import deployment_state
 import resource_names
-from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
-from deployers.aws.core.json_helpers import normalized_json, content_changed
+from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY, ACTION_UPDATE
+from deployers.aws.core.json_helpers import content_changed
 from deployers.aws.core.plan_actions import plan_action
 from deployers.base import Deployer
+from deployers.aws.lambda_function import (
+  LambdaDefinition, aws_snapshot, create_lambda, function_configuration, plan_lambda,
+  update_lambda, validate_aws_plan, validate_local_plan,
+)
 from dependency_graph import plan_graph_ids
 import json
 import os
@@ -84,27 +88,14 @@ class LambdaActionsDeployer(Deployer):
         raise
 
 
-  def _create_lambda_function(self, function_name, path_to_code_folder=None, local_function_name=None):
-    role_name = function_name
-
-    response = globals.aws_iam_client.get_role(RoleName=role_name)
-    role_arn = response["Role"]["Arn"]
-
-    if path_to_code_folder == None:
-      path_to_code_folder = os.path.join(globals.event_action_lfs_path, local_function_name)
-
-    globals.aws_lambda_client.create_function(
-      FunctionName=function_name,
-      Runtime="python3.13",
-      Role=role_arn,
-      Handler="lambda_function.lambda_handler", #  file.function
-      Code={"ZipFile": util.compile_lambda_function(path_to_code_folder)},
-      Description="",
-      Timeout=3, # seconds
-      MemorySize=128, # MB
-      Publish=True,
+  def _create_lambda_function(self, function_name, path_to_code_folder=None, local_function_name=None, zip_code=None):
+    definition = LambdaDefinition(
+      function_name=function_name,
+      role_name=function_name,
+      code_path=path_to_code_folder or os.path.join(globals.event_action_lfs_path, local_function_name),
+      graph_id="",
     )
-
+    create_lambda(definition, zip_code=zip_code)
     self.log(f"Created Lambda function: {function_name}")
 
   def _destroy_lambda_function(self, function_name):
@@ -171,7 +162,7 @@ class LambdaActionsDeployer(Deployer):
     )
     return resource_name, resource_name
 
-  def _deploy_event_action(self, event: dict, digital_twin_name: str):
+  def _deploy_event_action(self, event: dict, digital_twin_name: str, zip_code=None, reuse_role=False):
     event_action = event["action"]
 
     if event_action["type"] != "lambda" or event_action.get("external"):
@@ -183,7 +174,15 @@ class LambdaActionsDeployer(Deployer):
     )
     local_function_name = event_action["functionName"]
 
-    self._create_iam_role(iam_role_name)
+    if reuse_role:
+      try:
+        globals.aws_iam_client.get_role(RoleName=iam_role_name)
+      except ClientError as error:
+        if error.response["Error"]["Code"] != "NoSuchEntity":
+          raise
+        self._create_iam_role(iam_role_name)
+    else:
+      self._create_iam_role(iam_role_name)
 
     self.log(f"Waiting for propagation...")
     time.sleep(20)
@@ -192,6 +191,7 @@ class LambdaActionsDeployer(Deployer):
       lambda_function_name,
       event_action.get("pathToCode"),
       local_function_name,
+      zip_code=zip_code,
     )
 
   def _destroy_event_action(self, event: dict, digital_twin_name: str):
@@ -208,72 +208,83 @@ class LambdaActionsDeployer(Deployer):
     self._destroy_lambda_function(lambda_function_name)
     self._destroy_iam_role(iam_role_name)
 
+  def _lambda_definition(self, event, digital_twin_name=None):
+    event_action = event["action"]
+    if event_action["type"] != "lambda" or event_action.get("external"):
+      return None
+    role_name, function_name = self._event_action_resource_names(
+      event, digital_twin_name or resource_names.digital_twin_name(globals.config),
+    )
+    return LambdaDefinition(
+      function_name=function_name,
+      role_name=role_name,
+      code_path=event_action.get("pathToCode") or os.path.join(globals.event_action_lfs_path, event_action["functionName"]),
+      graph_id=plan_graph_ids.event_action(self._root_event_id(event)),
+    )
+
+  def validate_plan(self, action, replacement_names=()):
+    event = self._root_event(globals.config_events, action["resource"])
+    definition = self._lambda_definition(event)
+    if definition is None:
+      if "code_sha256" in action or action["action"] == ACTION_UPDATE:
+        raise ValueError("Event Action configuration changed after planning. Run 'plan' again.")
+      return
+    validate_local_plan(action, definition)
+    validate_aws_plan(action, definition, allow_replacement=definition.function_name in replacement_names)
+
+  def replacement_function_names(self, actions):
+    names = set()
+    for action in actions:
+      if action["action"] != ACTION_DESTROY or action.get("blocked", False):
+        continue
+      event = self._root_event(deployment_state.last_applied_config_events, action["resource"])
+      definition = self._lambda_definition(event, deployment_state.last_applied_digital_twin_name())
+      if definition is not None:
+        names.add(definition.function_name)
+    return names
+
   def plan(self):
-    previous_actions = deployment_state.last_applied_config_events
-    desired_actions = globals.config_events
-
-    previous_actions_by_id = self._root_events_by_id(previous_actions)
-    desired_actions_by_id = self._root_events_by_id(desired_actions)
-
+    previous = self._root_events_by_id(deployment_state.last_applied_config_events)
+    desired = self._root_events_by_id(globals.config_events)
     actions = []
-
-    for action_id in self._ordered_root_ids(previous_actions_by_id, desired_actions_by_id):
-      previous_action = previous_actions_by_id.get(action_id)
-      desired_action = desired_actions_by_id.get(action_id)
-
-      if previous_action is None:
-        self.log(f"Event Action {action_id} is new.")
-        actions.append(
-          plan_action(
-            action_id,
-            "event_action",
-            action="DEPLOY",
-            graph_id=plan_graph_ids.event_action(action_id),
-          )
-        )
+    for action_id in self._ordered_root_ids(previous, desired):
+      previous_event = previous.get(action_id)
+      desired_event = desired.get(action_id)
+      graph_id = plan_graph_ids.event_action(action_id)
+      if desired_event is None:
+        actions.append(plan_action(action_id, "event_action", action=ACTION_DESTROY, graph_id=graph_id))
         continue
-
-      if desired_action is None:
-        self.log(f"Event Action {action_id} was removed from config.")
-        actions.append(
-          plan_action(
-            action_id,
-            "event_action",
-            action="DESTROY",
-            graph_id=plan_graph_ids.event_action(action_id),
-          )
+      definition = self._lambda_definition(desired_event)
+      if definition is not None:
+        previous_definition = (
+          self._lambda_definition(previous_event, deployment_state.last_applied_digital_twin_name())
+          if previous_event is not None else None
         )
+        actions.extend(plan_lambda(
+          definition, previous_definition.function_name if previous_definition else None,
+          resource=action_id, resource_type="event_action",
+        ))
+      elif previous_event is None:
+        actions.append(plan_action(action_id, "event_action", action=ACTION_DEPLOY, graph_id=graph_id))
+      elif content_changed(previous_event, desired_event):
+        actions.extend([
+          plan_action(action_id, "event_action", action=ACTION_DESTROY, graph_id=graph_id),
+          plan_action(action_id, "event_action", action=ACTION_DEPLOY, graph_id=graph_id),
+        ])
+      else:
+        actions.append(plan_action(action_id, "event_action", graph_id=graph_id))
+    # A condition change can change the event ID while retaining the Lambda name.
+    replacement_names = self.replacement_function_names(actions)
+    for action in actions:
+      if action["action"] != ACTION_DEPLOY or action.get("lambda_function_name") not in replacement_names:
         continue
-
-      if not content_changed(previous_action, desired_action):
-        self.log(f"Event Action {action_id} is up to date.")
-        actions.append(
-          plan_action(
-            action_id,
-            "event_action",
-            graph_id=plan_graph_ids.event_action(action_id),
-          )
-        )
-        continue
-
-      self.log(f"Event Action {action_id} has changed.")
-      actions.extend([
-        plan_action(
-          action_id,
-          "event_action",
-          action="DESTROY",
-          graph_id=plan_graph_ids.event_action(action_id),
-        ),
-        plan_action(
-          action_id,
-          "event_action",
-          action="DEPLOY",
-          graph_id=plan_graph_ids.event_action(action_id),
-        ),
-      ])
-
+      configuration = function_configuration(action["lambda_function_name"])
+      if configuration is not None:
+        if configuration.get("LastUpdateStatus") == "InProgress" or configuration.get("State") == "Pending":
+          raise RuntimeError("Event Action Lambda is being updated in AWS. Retry planning after completion.")
+        action["aws_configuration"] = aws_snapshot(configuration)
+        action["revision_id"] = configuration.get("RevisionId")
     return actions
-
 
   def deploy(self):
     for event in globals.config_events:
@@ -285,23 +296,29 @@ class LambdaActionsDeployer(Deployer):
 
   def apply(self, action, resource):
     if action["action"] == ACTION_DESTROY:
-      event = self._root_event(
-        deployment_state.last_applied_config_events,
-        resource,
-      )
-      self._destroy_event_action(
-        event,
-        deployment_state.last_applied_digital_twin_name(),
-      )
-    elif action["action"] == ACTION_DEPLOY:
-      event = self._root_event(
-        globals.config_events,
-        resource,
-      )
-      self._deploy_event_action(
-        event,
-        resource_names.digital_twin_name(globals.config),
-      )
+      event = self._root_event(deployment_state.last_applied_config_events, resource)
+      self._destroy_event_action(event, deployment_state.last_applied_digital_twin_name())
+    elif action["action"] in (ACTION_DEPLOY, ACTION_UPDATE):
+      event = self._root_event(globals.config_events, resource)
+      definition = self._lambda_definition(event)
+      if definition is None:
+        if action["action"] == ACTION_UPDATE or "code_sha256" in action:
+          raise ValueError("Event Action configuration changed after planning. Run 'plan' again.")
+        return
+      if action["action"] == ACTION_UPDATE:
+        update_lambda(action, definition)
+        self.log(f"Updated Lambda function: {definition.function_name}")
+      else:
+        code = validate_local_plan(action, definition)
+        previous_event = self._root_events_by_id(deployment_state.last_applied_config_events).get(resource)
+        previous_definition = (
+          self._lambda_definition(previous_event, deployment_state.last_applied_digital_twin_name())
+          if previous_event is not None else None
+        )
+        reuse_role = previous_definition is not None and previous_definition.function_name == definition.function_name
+        self._deploy_event_action(
+          event, resource_names.digital_twin_name(globals.config), zip_code=code, reuse_role=reuse_role,
+        )
     else:
       raise ValueError(f"Unsupported event_actions action: {action['action']}")
 

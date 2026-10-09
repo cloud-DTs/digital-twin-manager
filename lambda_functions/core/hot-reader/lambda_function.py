@@ -42,12 +42,41 @@ def scan_items(key_condition, scan_forward):
     return items
 
 
+def resolve_iot_device_id(event, component_info):
+    if not isinstance(component_info, dict):
+        raise ValueError(f"TwinMaker component not found: {event['componentName']}")
+
+    properties = component_info.get("properties", {})
+    if "iotDeviceId" in properties:
+        device_property = properties["iotDeviceId"]
+        value = device_property.get("value", {}) if isinstance(device_property, dict) else {}
+        device_id = value.get("stringValue") if isinstance(value, dict) else None
+        if not isinstance(device_id, str) or not device_id.strip():
+            raise ValueError(f"Component {event['componentName']} has no valid iotDeviceId value.")
+        return device_id
+
+    component_type_id = component_info.get("componentTypeId")
+    prefix = DIGITAL_TWIN_NAME + "-"
+    if not isinstance(component_type_id, str) or not component_type_id.startswith(prefix):
+        raise ValueError("Cannot derive an IoT device ID from an external component type.")
+
+    # Old managed types used the device ID as their suffix and had no native ID property.
+    component_type = twinmaker_client.get_component_type(
+        workspaceId=event["workspaceId"], componentTypeId=component_type_id,
+    )
+    if "iotDeviceId" in component_type.get("propertyDefinitions", {}):
+        raise ValueError(f"Component {event['componentName']} is missing its iotDeviceId value.")
+    device_id = component_type_id.removeprefix(prefix)
+    if not device_id:
+        raise ValueError("Legacy component type has an empty IoT device ID.")
+    return device_id
+
+
 def lambda_handler(event, context):
     entity = twinmaker_client.get_entity(workspaceId=event["workspaceId"], entityId=event["entityId"])
     components = entity.get("components", {})
     component_info = components.get(event["componentName"])
-
-    iot_device_id = component_info["properties"]["iotDeviceId"]["value"]["stringValue"]
+    iot_device_id = resolve_iot_device_id(event, component_info)
 
     start_time = event.get("startTime")
     end_time = event.get("endTime")

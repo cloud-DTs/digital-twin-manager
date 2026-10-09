@@ -7,8 +7,27 @@ from deployers.aws.core.l4 import L4Deployer
 from deployers.aws.core.l5 import L5Deployer
 from deployers.aws.apply_actions import ACTION_DEPLOY, ACTION_DESTROY
 from deployers.base import Deployer
+from deployers.aws.lambda_function import needs_lambda_validation
+from deployers.aws.core.dispatcher_lambda_function import DispatcherLambdaFunctionDeployer
+from deployers.aws.core.persister_lambda_function import PersisterLambdaFunctionDeployer
+from deployers.aws.core.event_checker_lambda_function import EventCheckerLambdaFunctionDeployer
+from deployers.aws.core.event_feedback_lambda_function import EventFeedbackLambdaFunctionDeployer
+from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
+from deployers.aws.core.hot_cold_mover_lambda_function import HotColdMoverLambdaFunctionDeployer
+from deployers.aws.core.cold_archive_mover_lambda_function import ColdArchiveMoverLambdaFunctionDeployer
+from dependency_graph import plan_graph_ids
 
 class AllDeployer(Deployer):
+  LAMBDA_DEPLOYERS = {
+    plan_graph_ids.DISPATCHER_LAMBDA: DispatcherLambdaFunctionDeployer,
+    plan_graph_ids.PERSISTER_LAMBDA: PersisterLambdaFunctionDeployer,
+    plan_graph_ids.EVENT_CHECKER_LAMBDA: EventCheckerLambdaFunctionDeployer,
+    plan_graph_ids.EVENT_FEEDBACK_LAMBDA: EventFeedbackLambdaFunctionDeployer,
+    plan_graph_ids.HOT_READER_LAMBDA: HotReaderLambdaFunctionDeployer,
+    plan_graph_ids.HOT_COLD_MOVER_LAMBDA: HotColdMoverLambdaFunctionDeployer,
+    plan_graph_ids.COLD_ARCHIVE_MOVER_LAMBDA: ColdArchiveMoverLambdaFunctionDeployer,
+  }
+
   LAYERS = [
     ("core_l1", L1Deployer),
     ("core_l2", L2Deployer),
@@ -30,6 +49,18 @@ class AllDeployer(Deployer):
         for _, deployer_class in self.LAYERS
       ],
     }
+
+  def validate_plan(self, group_plan):
+    for layer in group_plan["layers"]:
+      for action in layer["actions"]:
+        if action["resource_type"] != "lambda_function" or not needs_lambda_validation(action):
+          continue
+        deployer_class = self.LAMBDA_DEPLOYERS.get(action.get("graph_id"))
+        if deployer_class is None:
+          raise ValueError("Unknown core Lambda in plan. Run 'plan' again.")
+        deployer = deployer_class()
+        deployer.validate_code_plan(action)
+        deployer.validate_aws_code_plan(action)
 
   def apply(self, group_plan, action_name):
     layers_by_name = {

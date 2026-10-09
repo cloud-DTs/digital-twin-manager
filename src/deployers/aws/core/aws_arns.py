@@ -1,6 +1,11 @@
 import globals
 
 
+def iam_role_arn(role_name):
+  account_id = globals.aws_sts_client.get_caller_identity()["Account"]
+  return f"arn:aws:iam::{account_id}:role/{role_name}"
+
+
 def lambda_function_arn(function_name):
   region = globals.aws_lambda_client.meta.region_name
   account_id = globals.aws_sts_client.get_caller_identity()["Account"]
@@ -43,8 +48,8 @@ def iot_topic_arn(topic_name):
   return f"arn:aws:iot:{region}:{account_id}:topic/{topic_name}"
 
 
-def state_machine_arn(state_machine_name):
-  region = globals.aws_sf_client.meta.region_name
+def state_machine_arn(state_machine_name, region=None):
+  region = region or globals.aws_sf_client.meta.region_name
   account_id = globals.aws_sts_client.get_caller_identity()["Account"]
   return f"arn:aws:states:{region}:{account_id}:stateMachine:{state_machine_name}"
 
