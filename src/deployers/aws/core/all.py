@@ -12,6 +12,7 @@ from deployers.aws.core.dispatcher_lambda_function import DispatcherLambdaFuncti
 from deployers.aws.core.persister_lambda_function import PersisterLambdaFunctionDeployer
 from deployers.aws.core.event_checker_lambda_function import EventCheckerLambdaFunctionDeployer
 from deployers.aws.core.event_feedback_lambda_function import EventFeedbackLambdaFunctionDeployer
+from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
 from deployers.aws.core.hot_cold_mover_lambda_function import HotColdMoverLambdaFunctionDeployer
 from deployers.aws.core.cold_archive_mover_lambda_function import ColdArchiveMoverLambdaFunctionDeployer
@@ -53,7 +54,11 @@ class AllDeployer(Deployer):
   def validate_plan(self, group_plan):
     for layer in group_plan["layers"]:
       for action in layer["actions"]:
-        if action["resource_type"] != "lambda_function" or not needs_lambda_validation(action):
+        if not needs_lambda_validation(action):
+          continue
+        if action.get("graph_id") == plan_graph_ids.EVENT_FEEDBACK_IAM:
+          EventFeedbackIamRoleDeployer().validate_plan(action)
+        if action["resource_type"] != "lambda_function":
           continue
         deployer_class = self.LAMBDA_DEPLOYERS.get(action.get("graph_id"))
         if deployer_class is None:

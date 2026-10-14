@@ -8,6 +8,8 @@ Run `plan`, then `apply`, to update an existing deployment. For every manager-ow
 
 Before changing any resource, `apply` checks the planned Lambda packages, settings and AWS revisions, including `NO_CHANGE` actions. If they changed after planning, run `plan` again. Updates use `RevisionId`, wait for AWS completion and verify the deployed hash and settings before processing dependent resources. External Event Action Lambdas are not managed. Functions deployed with the previous ZIP packaging can require one initial code update. Saved plans without the new Lambda metadata must be regenerated.
 
+MQTT Event Feedback planning compares the role's `EventFeedbackScopedAccess` policy in AWS with the configured topics. Topic changes update that policy without replacing the role. Adding the first MQTT feedback creates the policy; removing the last one deletes it. Before `apply` changes any resource, it checks the planned topic policy against the current configuration and the saved AWS policy snapshot. Create a new plan if either changed, or if the saved plan lacks Event Feedback policy metadata.
+
 The Hot Reader supports both shared Component Types with an `iotDeviceId` property and legacy per-device types without that property. Legacy reads check the Component Type schema before deriving the device ID from its name. A shared type with a missing device ID produces an error. The role policy update grants `iottwinmaker:GetComponentType` for this check. Deployer credentials need `iam:GetRolePolicy`, `lambda:UpdateFunctionCode` and `lambda:UpdateFunctionConfiguration`; see [AWS permissions](docs/aws-permissions.md). No code hash needs to be added to `init-state`.
 
 ## Conventions

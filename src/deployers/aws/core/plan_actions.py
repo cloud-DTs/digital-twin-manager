@@ -72,7 +72,8 @@ class PlannedAction(TypedDict):
     lambda_function_name: NotRequired[str]
     lambda_configuration: NotRequired[dict]
     aws_configuration: NotRequired[dict]
-    policy_document: NotRequired[dict]
+    policy_document: NotRequired[dict | None]
+    aws_policy_document: NotRequired[dict | None]
 
 
 class PlannedActionValues(TypedDict, total=False):
@@ -88,7 +89,8 @@ class PlannedActionValues(TypedDict, total=False):
     lambda_function_name: str
     lambda_configuration: dict
     aws_configuration: dict
-    policy_document: dict
+    policy_document: dict | None
+    aws_policy_document: dict | None
 
 
 def plan_action(

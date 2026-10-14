@@ -26,6 +26,8 @@ sts:GetCallerIdentity
 
 Used to create and remove runtime IAM roles for Lambda, Step Functions, TwinMaker, and Grafana. The application also attaches AWS managed policies and writes inline policies to those roles.
 
+Hot Reader and Event Feedback planning read the current inline policies with `GetRolePolicy`. Event Feedback uses `PutRolePolicy` to add or update permissions when MQTT topics change. When the last MQTT feedback is removed, it uses `DeleteRolePolicy` to remove only `EventFeedbackScopedAccess`. The role and its attached AWS managed policies remain in place. Event Feedback policy updates run before EventChecker code updates in `core_l2`.
+
 ```text
 iam:CreateRole
 iam:GetRole
@@ -436,7 +438,7 @@ Each policy is scoped to only the resources that role's Lambda (or, for TwinMake
 | Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity`/`GetComponentType` | this twin's Hot table; this twin's TwinMaker workspace and its entities/component types |
 | Hot-to-Cold Mover | `dynamodb:Query`/`BatchWriteItem`; `s3:PutObject` | this twin's Hot table; this twin's Cold bucket |
 | Cold-to-Archive Mover | `s3:ListBucket`/`GetObject`/`DeleteObject` (source); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
-| Event-Feedback | `iot:Publish` | every MQTT feedback topic found in `config_events.json` at deploy time (enumerated, not wildcarded) |
+| Event-Feedback | `iot:Publish` | MQTT feedback topics configured in `config_events.json`; reconciled by `plan` and `apply` |
 | Grafana execution role | `s3:GetObject`; `iottwinmaker:Get*`/`List*`; `iottwinmaker:ListWorkspaces` | this twin's TwinMaker S3 bucket; this twin's TwinMaker workspace; `Resource:"*"` (see exception below) |
 
 Two statements are intentionally broader than "this twin's own resources" and are documented exceptions, not leftover over-broad grants:
@@ -446,7 +448,7 @@ Two statements are intentionally broader than "this twin's own resources" and ar
 
 ### Reconciliation caveat
 
-None of these roles' `plan()` methods compare policy *content* — only the role *name*. A policy-content change in code only takes effect the next time a role is freshly created; it does not retrofit an already-deployed role with the same name. To apply a scoped policy to an existing twin, `destroy` and `deploy` that twin's core IAM roles (or the whole twin).
+Hot Reader and Event Feedback compare their desired inline policy content with AWS and plan `UPDATE` when it differs. Run `plan`, then `apply`, to reconcile those policies without replacing the roles. Other runtime IAM role planners still compare only role names. Changes to their inline policy content require redeploying the affected roles.
 
 The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
 
