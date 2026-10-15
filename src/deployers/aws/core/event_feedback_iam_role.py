@@ -1,6 +1,8 @@
 from deployers.base import Deployer
+from deployers.aws.core.trust_policy import service_trust_policy
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
+from deployers.aws.core import aws_arns
 from dependency_graph import plan_graph_ids
 import json
 import time
@@ -12,6 +14,28 @@ from botocore.exceptions import ClientError
 class EventFeedbackIamRoleDeployer(Deployer):
   def log(self, message):
     print(f"Core: {message}")
+
+  def _mqtt_feedback_topics(self):
+    digital_twin_name = globals.config["digital_twin_name"]
+    topics = set()
+
+    for event in globals.config_events:
+      feedback = event.get("action", {}).get("feedback")
+
+      if not feedback or feedback.get("type") != "mqtt":
+        continue
+
+      topic = feedback.get("topic")
+      iot_device_id = feedback.get("iotDeviceId")
+
+      if not topic and not iot_device_id:
+        raise ValueError(
+          f"mqtt feedback for digital twin '{digital_twin_name}' must set 'topic' or 'iotDeviceId'."
+        )
+
+      topics.add(topic or f"{digital_twin_name}-{iot_device_id}")
+
+    return sorted(topics)
 
   def plan(self):
     previous_role_name = deployment_state.last_applied_event_feedback_iam_role_name()
@@ -49,18 +73,7 @@ class EventFeedbackIamRoleDeployer(Deployer):
     globals.aws_iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }
+          service_trust_policy("lambda.amazonaws.com")
         )
     )
 
@@ -68,7 +81,6 @@ class EventFeedbackIamRoleDeployer(Deployer):
 
     policy_arns = [
       "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-      "arn:aws:iam::aws:policy/AWSIoTDataAccess"
     ]
 
     for policy_arn in policy_arns:
@@ -78,6 +90,31 @@ class EventFeedbackIamRoleDeployer(Deployer):
       )
 
       self.log(f"Attached IAM policy ARN: {policy_arn}")
+
+    topics = self._mqtt_feedback_topics()
+
+    if topics:
+      policy_name = "EventFeedbackScopedAccess"
+
+      globals.aws_iam_client.put_role_policy(
+        RoleName=role_name,
+        PolicyName=policy_name,
+        PolicyDocument=json.dumps(
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": "iot:Publish",
+                "Resource": [aws_arns.iot_topic_arn(topic) for topic in topics]
+              }
+            ]
+          }
+        )
+      )
+      self.log(f"Attached inline IAM policy: {policy_name}")
+    else:
+      self.log("No mqtt feedback topics configured — skipping inline IAM policy.")
 
     self.log(f"Waiting for propagation...")
 
