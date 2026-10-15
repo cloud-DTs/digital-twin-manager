@@ -8,40 +8,14 @@ import resource_names
 from botocore.exceptions import ClientError
 import time
 import util
-
-VECTOR_NESTED_TYPES = {
-    "VECTOR_DOUBLE": "DOUBLE",
-    "VECTOR_INTEGER": "INTEGER",
-    "VECTOR_STRING": "STRING",
-}
-
-def build_data_type(data_type_str):
-    nested = VECTOR_NESTED_TYPES.get(data_type_str)
-    if nested:
-        return {"type": "LIST", "nestedType": {"type": nested}}
-    return {"type": data_type_str}
+from twinmaker_schema import build_data_type, build_property_definitions
 
 class TwinmakerComponentTypeDeployer(Deployer):
   def log(self, message):
     print(f"IoT: {message}")
 
   def _property_definitions(self, iot_device):
-    property_definitions = {}
-
-    for iot_property in iot_device.get("properties", []):
-      property_definitions[iot_property["name"]] = {
-        "dataType": build_data_type(iot_property["dataType"]),
-        "isTimeSeries": True,
-        "isStoredExternally": True
-      }
-
-    property_definitions["iotDeviceId"] = {
-      "dataType": {"type": "STRING"},
-      "isTimeSeries": False,
-      "isStoredExternally": False,
-    }
-
-    return property_definitions
+    return build_property_definitions(iot_device)
 
   def plan(self, previous_iot_device, desired_iot_device):
     previous_connector_function_name = deployment_state.last_applied_hot_reader_lambda_function_name()

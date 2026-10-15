@@ -7,6 +7,7 @@ from deployers.aws.apply_actions import pending_actions
 from deployers.base import Deployer
 import deployment_state
 import globals
+from validation import component_types
 
 class L4Deployer(Deployer):
   def log(self, message):
@@ -25,20 +26,8 @@ class L4Deployer(Deployer):
 
     return order, groups
 
-  def _validate_shared_schema(self, component_type_id, iot_devices):
-    deployer = TwinmakerComponentTypeDeployer()
-    reference_device = iot_devices[0]
-    reference_properties = deployer._property_definitions(reference_device)
-
-    for iot_device in iot_devices[1:]:
-      if deployer._property_definitions(iot_device) != reference_properties:
-        raise ValueError(
-          "IoT devices sharing TwinMaker Component Type "
-          f"{component_type_id} have different properties: "
-          f"{reference_device['id']} vs {iot_device['id']}"
-        )
-
   def plan(self):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     previous_order, previous_groups = self._group_by_component_type(
       previous_iot_devices(),
       deployment_state.last_applied_twinmaker_component_type_id,
@@ -59,9 +48,6 @@ class L4Deployer(Deployer):
     for component_type_id in component_type_ids:
       previous_group = previous_groups.get(component_type_id)
       desired_group = desired_groups.get(component_type_id)
-
-      if desired_group:
-        self._validate_shared_schema(component_type_id, desired_group)
 
       actions.extend(
         TwinmakerComponentTypeDeployer().plan(
@@ -91,6 +77,7 @@ class L4Deployer(Deployer):
     return None
 
   def apply(self, layer_plan, action_name):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     layer_name = layer_plan["layer"]
     actions = pending_actions(layer_plan["actions"], action_name)
 
@@ -117,6 +104,7 @@ class L4Deployer(Deployer):
       deployment_state.mark_plan_action_processed("iot", layer_name, action)
 
   def deploy(self):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     _, groups = self._group_by_component_type(
       desired_iot_devices(), globals.twinmaker_component_type_id
     )

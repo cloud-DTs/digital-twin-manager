@@ -5,6 +5,8 @@ import deployers.aws.init_values.all
 import deployers.aws.iot.all
 from deployers.aws.apply_actions import ACTION_DEPLOY, ACTION_DESTROY, deploy_groups, destroy_groups
 from deployers.base import Deployer
+import globals
+from validation import component_types
 
 
 class AllDeployer(Deployer):
@@ -19,10 +21,12 @@ class AllDeployer(Deployer):
   def log(self, message):
     print(message)
 
-  # TODO: move methods call from main
   def deploy(self):
-    pass
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
+    for deployer_class in self.GROUP_DEPLOYERS.values():
+      deployer_class().deploy()
 
+  # TODO: move destroy and info calls from main.
   def destroy(self):
     pass
 
@@ -30,7 +34,8 @@ class AllDeployer(Deployer):
     pass
 
   def plan(self):
-    pass
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
+    return [deployer_class().plan() for deployer_class in self.GROUP_DEPLOYERS.values()]
 
   def _apply_group(self, group_plan, action_name):
     group_name = group_plan["group"]
@@ -42,6 +47,7 @@ class AllDeployer(Deployer):
     deployer_class().apply(group_plan, action_name)
 
   def validate_plan(self, plan):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     # Check every pending Lambda before deleting resources or updating prerequisites.
     for group_plan in plan:
       deployer_class = self.GROUP_DEPLOYERS.get(group_plan["group"])
