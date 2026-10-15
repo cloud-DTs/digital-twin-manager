@@ -70,7 +70,9 @@ class HotReaderLambdaFunctionDeployer(Deployer):
       FunctionName=function_name,
       StatementId="AllowTwinmakerInvoke",
       Action="lambda:InvokeFunction",
-      Principal="iottwinmaker.amazonaws.com"
+      Principal="iottwinmaker.amazonaws.com",
+      # Without this, TwinMaker workspaces in any AWS account could invoke the function.
+      SourceAccount=globals.aws_sts_client.get_caller_identity()["Account"]
     )
 
   def destroy(self, function_name=None):

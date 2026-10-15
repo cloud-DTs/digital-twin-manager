@@ -452,6 +452,8 @@ Devices must connect with their `iotDeviceId` as the MQTT client ID (as the simu
 
 Every runtime role's trust policy (Lambda, Step Functions, TwinMaker, Grafana) is built by `service_trust_policy()` in `src/deployers/aws/core/trust_policy.py`. It adds an `aws:SourceAccount` condition set to the deploying account, so the service principal can only assume the role on behalf of resources in this account (cross-service confused deputy protection). No `aws:SourceArn` is set, because the resources that assume these roles do not exist yet when the role is created.
 
+The Hot Reader Lambda's resource policy (`AllowTwinmakerInvoke`, created in `hot_reader_lambda_function.py`) follows the same rule: it lets `iottwinmaker.amazonaws.com` invoke the function only with `SourceAccount` set to the deploying account. Without it, a TwinMaker workspace in any AWS account could invoke the function and read the twin's data.
+
 Like the inline policies, this only applies to freshly created roles; see the caveat below.
 
 ### Reconciliation caveat
