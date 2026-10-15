@@ -45,11 +45,13 @@ ALLOWED_WILDCARD_RESOURCE_ACTIONS = {"iottwinmaker:ListWorkspaces"}
 
 class RecordingIamClient:
   def __init__(self):
+    self.create_role_calls = []
     self.attach_role_policy_calls = []
     self.put_role_policy_calls = []
     self.update_assume_role_policy_calls = []
 
   def create_role(self, **kwargs):
+    self.create_role_calls.append(kwargs)
     role_name = kwargs["RoleName"]
     return {"Role": {"Arn": f"arn:aws:iam::123456789012:role/{role_name}"}}
 
@@ -224,6 +226,29 @@ class IamRoleLeastPrivilegeTests(unittest.TestCase):
                   f"{deployer_class.__name__} grants undocumented action {action} on "
                   f"Resource:\"*\" (only {ALLOWED_WILDCARD_RESOURCE_ACTIONS} are allowed)"
                 )
+
+  def test_service_trust_policies_are_bound_to_the_account(self) -> None:
+    import json
+
+    account_id = globals.aws_sts_client.get_caller_identity()["Account"]
+
+    for deployer_class in DEPLOYER_CLASSES:
+      with self.subTest(deployer=deployer_class.__name__):
+        globals.aws_iam_client = RecordingIamClient()
+        deployer_class().deploy()
+
+        self.assertEqual(len(globals.aws_iam_client.create_role_calls), 1)
+        trust_policy = json.loads(
+          globals.aws_iam_client.create_role_calls[0]["AssumeRolePolicyDocument"]
+        )
+
+        for statement in trust_policy["Statement"]:
+          self.assertIn("Service", statement["Principal"])
+          self.assertEqual(
+            statement["Condition"],
+            {"StringEquals": {"aws:SourceAccount": account_id}},
+            f"{deployer_class.__name__} trust policy is not bound to the account",
+          )
 
   def test_event_checker_has_no_federation_support(self) -> None:
     EventCheckerIamRoleDeployer().deploy()
