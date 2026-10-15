@@ -2,7 +2,7 @@
 
 Runs a Prowler scan (read-only), keeps only the findings for the twin's resources,
 and checks what Prowler does not cover: AWS IoT Core device policies, certificates
-and topic rules.
+and topic rules, Lambda resource policies, and the TwinMaker workspace.
 
 Credentials come from the standard AWS environment (AWS_PROFILE, AWS_ACCESS_KEY_ID,
 ...), not from config_credentials.json. Use a read-only principal with the
@@ -84,15 +84,19 @@ def as_list(value):
   return value if isinstance(value, list) else [value]
 
 
+def new_finding(service, severity, title, resource):
+  return {
+    "source": service, "service": service, "severity": severity,
+    "status": "FAIL", "title": title, "resource": resource,
+  }
+
+
 def iot_findings(session, twin):
   iot = session.client("iot")
   findings = []
 
   def finding(severity, title, resource):
-    findings.append({
-      "source": "iot", "service": "iot", "severity": severity,
-      "status": "FAIL", "title": title, "resource": resource,
-    })
+    findings.append(new_finding("iot", severity, title, resource))
 
   def paginate(operation, key, **kwargs):
     for page in iot.get_paginator(operation).paginate(**kwargs):
@@ -158,10 +162,133 @@ def iot_findings(session, twin):
   return findings
 
 
+def lambda_policy_findings(session, twin):
+  """Resource policies that let a service (or anyone) invoke a function from any account.
+
+  Prowler only flags `Principal: "*"`; a service principal without a source condition
+  (cross-service confused deputy) goes unnoticed.
+  """
+  client = session.client("lambda")
+  findings = []
+  source_keys = ("sourceaccount", "sourcearn")
+
+  for page in client.get_paginator("list_functions").paginate():
+    for function in page["Functions"]:
+      name = function["FunctionName"]
+      if not name.startswith(f"{twin}-"):
+        continue
+
+      try:
+        policy = json.loads(client.get_policy(FunctionName=name)["Policy"])
+      except ClientError as error:
+        if error.response["Error"]["Code"] != "ResourceNotFoundException":
+          findings.append(new_finding(
+            "lambda", "Informational",
+            f"Lambda resource policy not readable ({error.response['Error']['Code']})", name,
+          ))
+        continue
+
+      for statement in policy_statements(policy):
+        if statement["Effect"] != "Allow":
+          continue
+
+        principal = statement["Principal"]
+        conditions = {
+          key.lower()
+          for operator in statement.get("Condition", {}).values()
+          for key in operator
+        }
+        bound = any(key.endswith(source_keys) for key in conditions)
+
+        if principal == "*" or principal.get("AWS") == "*":
+          if not bound:
+            findings.append(new_finding("lambda", "High", "Lambda resource policy allows any principal", name))
+        elif "Service" in principal and not bound:
+          service = ", ".join(as_list(principal["Service"]))
+          findings.append(new_finding(
+            "lambda", "Medium",
+            f"Lambda resource policy for {service} has no SourceAccount/SourceArn condition", name,
+          ))
+
+  return findings
+
+
+def list_all(operation, key, **kwargs):
+  """Collect every page of a list call that has no botocore paginator."""
+  items = []
+  token = None
+  while True:
+    page = operation(**kwargs, **({"nextToken": token} if token else {}))
+    items += page[key]
+    token = page.get("nextToken")
+    if not token:
+      return items
+
+
+def twinmaker_findings(session, twin, account):
+  client = session.client("iottwinmaker")
+  findings = []
+
+  def unreadable(error, resource):
+    findings.append(new_finding(
+      "twinmaker", "Informational",
+      f"TwinMaker not readable ({error.response['Error']['Code']})", resource,
+    ))
+
+  workspace_ids = [
+    summary["workspaceId"]
+    for summary in list_all(client.list_workspaces, "workspaceSummaries")
+    if summary["workspaceId"].startswith(f"{twin}-")
+  ]
+
+  for workspace_id in workspace_ids:
+    try:
+      workspace = client.get_workspace(workspaceId=workspace_id)
+      component_types = [
+        summary["componentTypeId"]
+        for summary in list_all(client.list_component_types, "componentTypeSummaries", workspaceId=workspace_id)
+        if not summary["componentTypeId"].startswith("com.amazon")
+      ]
+    except ClientError as error:
+      unreadable(error, workspace_id)
+      continue
+
+    if not workspace.get("tags"):
+      findings.append(new_finding("twinmaker", "Low", "TwinMaker workspace has no tags", workspace_id))
+
+    # Data connectors must be this twin's own functions: TwinMaker invokes them
+    # with the workspace role.
+    for component_type_id in component_types:
+      component_type = client.get_component_type(workspaceId=workspace_id, componentTypeId=component_type_id)
+      for function in component_type.get("functions", {}).values():
+        arn = function.get("implementedBy", {}).get("lambda", {}).get("arn")
+        if not arn:
+          continue
+        _, _, _, _, arn_account, _, function_name = arn.split(":")[:7]
+        if arn_account != account or not function_name.startswith(f"{twin}-"):
+          findings.append(new_finding(
+            "twinmaker", "High", f"TwinMaker component type invokes a foreign Lambda: {arn}", component_type_id,
+          ))
+
+    # CORS on the workspace bucket.
+    bucket = workspace["s3Location"].rsplit(":", 1)[-1]
+    try:
+      rules = session.client("s3").get_bucket_cors(Bucket=bucket)["CORSRules"]
+    except ClientError as error:
+      if error.response["Error"]["Code"] != "NoSuchCORSConfiguration":
+        unreadable(error, bucket)
+      continue
+
+    if any("*" in rule.get("AllowedOrigins", []) for rule in rules):
+      findings.append(new_finding("twinmaker", "Low", "Workspace bucket CORS allows any origin", bucket))
+
+  return findings
+
+
 def print_summary(findings, twin):
   failed = [item for item in findings if item["status"] == "FAIL"]
   passed = len(findings) - len(failed)
-  print(f"\n{twin}: {len(findings)} findings, {passed} passed, {len(failed)} failed (IoT checks only report failures)")
+  print(f"\n{twin}: {len(findings)} findings, {passed} passed, {len(failed)} failed (checks outside Prowler only report failures)")
 
   by_severity = collections.Counter(item["severity"] for item in failed)
   for severity in SEVERITY_ORDER:
@@ -203,7 +330,12 @@ def main():
   output_dir = pathlib.Path(args.output_dir)
   report_path = pathlib.Path(args.prowler_report) if args.prowler_report else run_prowler(region, output_dir)
 
-  findings = prowler_findings(report_path, args.twin) + iot_findings(session, args.twin)
+  findings = (
+    prowler_findings(report_path, args.twin)
+    + iot_findings(session, args.twin)
+    + lambda_policy_findings(session, args.twin)
+    + twinmaker_findings(session, args.twin, identity["Account"])
+  )
   print_summary(findings, args.twin)
 
   output_dir.mkdir(parents=True, exist_ok=True)
