@@ -8,6 +8,7 @@ from deployers.aws.lambda_function import (
   LambdaDefinition, aws_snapshot, create_lambda, function_configuration, plan_lambda,
   update_lambda, validate_aws_plan, validate_local_plan,
 )
+from deployers.aws.core.trust_policy import service_trust_policy
 from dependency_graph import plan_graph_ids
 import json
 import os
@@ -25,18 +26,7 @@ class LambdaActionsDeployer(Deployer):
     globals.aws_iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }
+          service_trust_policy("lambda.amazonaws.com")
         )
     )
 

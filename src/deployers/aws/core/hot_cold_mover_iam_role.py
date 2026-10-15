@@ -3,6 +3,7 @@ from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
 from deployers.aws.core import aws_arns
 from deployers.base import Deployer
+from deployers.aws.core.trust_policy import service_trust_policy
 from dependency_graph import plan_graph_ids
 import json
 import time
@@ -51,18 +52,7 @@ class HotColdMoverIamRoleDeployer(Deployer):
     globals.aws_iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }
+          service_trust_policy("lambda.amazonaws.com")
         )
     )
 
