@@ -457,6 +457,14 @@ Two statements are intentionally broader than "this twin's own resources" and ar
 - **Grafana's `iottwinmaker:ListWorkspaces` on `Resource:"*"`** — this is AWS's own documented requirement for the `grafana-iot-twinmaker-app` plugin (a List-level action that can't be scoped to one workspace; see [AWS's dashboard IAM role guide](https://docs.aws.amazon.com/iot-twinmaker/latest/guide/dashboard-IAM-role.html)), not an oversight. The rest of that role's policy matches AWS's documented "no video permissions" template. Grafana deployment is disabled by default via `deploy_managed_grafana`.
 - There is deliberately **no third exception for cross-twin federation.** The repo has a "FunctionRegistry" SSM-registry lookup in Event-Checker (`lookup_registry()` in `lambda_functions/core/event-checker/lambda_function.py`, merged from elsewhere — see git history) that lets one twin invoke another twin's Lambda/Step Function. This scoping fix intentionally removed the `ssm:GetParameter` permission that supported it, since federation is out of scope for the current evaluation. The runtime code still *attempts* the SSM call unconditionally (`SSM_REGISTRY_PREFIX` is always set), but its failure is caught by a broad exception handler and falls back to normal local invocation — so this shows up as a harmless `AccessDenied` line in CloudWatch Logs on every action, not a functional break. If federation is needed again, re-adding a scoped `ssm:GetParameter` statement and a bounded federation-target exception is a follow-up, not part of this fix.
 
+### Shared IoT Policy
+
+`IotPolicyDeployer` in `src/deployers/aws/iot/iot_policy.py` manages one policy named `<digitalTwinName>-iot-policy` for each twin. `IotThingDeployer` attaches this policy to every device certificate. Each device keeps its own Thing, certificate and keys.
+
+Adding devices or changing MQTT feedback topics reuses the existing policy. `plan` and `apply` migrate legacy device policy attachments to the shared policy while preserving certificates and local keys. Removing one device preserves the shared policy; a full twin destroy removes it after the device identities.
+
+The policy document grants `iot:*` on `Resource: "*"`. These permissions apply across the AWS account and allow access to all MQTT client IDs and topics.
+
 ### Trust Policies
 
 Every runtime role's trust policy (Lambda, Step Functions, TwinMaker, Grafana) is built by `service_trust_policy()` in `src/deployers/aws/core/trust_policy.py`. It adds an `aws:SourceAccount` condition set to the deploying account, so the service principal can only assume the role on behalf of resources in this account (cross-service confused deputy protection). No `aws:SourceArn` is set, because the resources that assume these roles do not exist yet when the role is created.
