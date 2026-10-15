@@ -469,7 +469,9 @@ The policy document grants `iot:*` on `Resource: "*"`. These permissions apply a
 
 Every runtime role's trust policy (Lambda, Step Functions, TwinMaker, Grafana) is built by `service_trust_policy()` in `src/deployers/aws/core/trust_policy.py`. It adds an `aws:SourceAccount` condition set to the deploying account, so the service principal can only assume the role on behalf of resources in this account (cross-service confused deputy protection). No `aws:SourceArn` is set, because the resources that assume these roles do not exist yet when the role is created.
 
-Like the inline policies, this only applies to freshly created roles; see the caveat below.
+The Hot Reader Lambda's resource policy (`AllowTwinmakerInvoke`, created in `hot_reader_lambda_function.py`) restricts invocation by `iottwinmaker.amazonaws.com` with `SourceAccount` set to the deploying account. See [Lambda add_permission](https://docs.aws.amazon.com/sdk-for-python/v1/reference/clients/lambda/operations/add_permission/).
+
+This Lambda permission is added when the function is created, including creation through `apply`. Code and configuration updates do not reconcile an existing function's resource policy. The account conditions on role trust policies also apply only to freshly created roles.
 
 ### Reconciliation caveat
 

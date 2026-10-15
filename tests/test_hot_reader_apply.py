@@ -37,6 +37,7 @@ class HotReaderApplyTests(unittest.TestCase):
     self.lambda_client = UpdatingLambdaClient(package_hash(b"old deployed code"))
     for target, name, value in (
       (globals, "config", {"digital_twin_name": "dt"}),
+      (globals, "config_iot_devices", []),
       (globals, "core_lfs_path", str(self.folder / "core")),
       (globals, "aws_lambda_client", self.lambda_client),
       (globals, "aws_iam_client", self.iam),
@@ -50,6 +51,7 @@ class HotReaderApplyTests(unittest.TestCase):
       patcher.start()
       self.addCleanup(patcher.stop)
     for patcher in (
+      patch.object(globals, "config_hierarchy", {}, create=True),
       patch.dict(os.environ, {deployment_state.STATE_DIR_ENV: str(self.folder / "state")}),
       patch("time.sleep"),
     ):
