@@ -437,7 +437,7 @@ Each policy is scoped to only the resources that role's Lambda (or, for TwinMake
 | TwinMaker service role | `s3:GetObject`/`PutObject`/`DeleteObject`/`ListBucket`; `lambda:InvokeFunction` | this twin's TwinMaker S3 bucket; the Hot Reader Lambda |
 | Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity`/`GetComponentType` | this twin's Hot table; this twin's TwinMaker workspace and its entities/component types |
 | Hot-to-Cold Mover | `dynamodb:Query`/`BatchWriteItem`; `s3:PutObject` | this twin's Hot table; this twin's Cold bucket |
-| Cold-to-Archive Mover | `s3:ListBucket`/`GetObject`/`DeleteObject` (source); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
+| Cold-to-Archive Mover | `s3:ListBucket`/`ListBucketVersions`/`GetObject`/`GetObjectVersion`/`DeleteObject`/`DeleteObjectVersion` (source); `s3:GetBucketVersioning` (source and target); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
 | Event-Feedback | `iot:Publish` | MQTT feedback topics configured in `config_events.json`; reconciled by `plan` and `apply` |
 | Grafana execution role | `s3:GetObject`; `iottwinmaker:Get*`/`List*`; `iottwinmaker:ListWorkspaces` | this twin's TwinMaker S3 bucket; this twin's TwinMaker workspace; `Resource:"*"` (see exception below) |
 
@@ -448,7 +448,9 @@ Two statements are intentionally broader than "this twin's own resources" and ar
 
 ### Reconciliation caveat
 
-Hot Reader and Event Feedback compare their desired inline policy content with AWS and plan `UPDATE` when it differs. Run `plan`, then `apply`, to reconcile those policies without replacing the roles. Other runtime IAM role planners still compare only role names. Changes to their inline policy content require redeploying the affected roles.
+Hot Reader, Event Feedback and Cold-to-Archive Mover compare their desired inline policy content with AWS and plan `UPDATE` when it differs. Run `plan`, then `apply`, to reconcile those policies without replacing the roles. Other runtime IAM role planners still compare only role names. Changes to their inline policy content require redeploying the affected roles.
+
+The Cold-to-Archive Mover needs version permissions to copy and permanently delete old source versions, including versions hidden by delete markers. Archive bucket versioning must be `Enabled` when the source key has native S3 versions. The mover checks this before copying and verifies the returned archive version ID before deleting the source. It also supports legacy unversioned buckets. An enabled source bucket protects its legacy `null` versions from replacement by ordinary writes, so these versions are deleted by ID without a condition. Mutable current `null` versions use ETag conditions. For a noncurrent `null` version in a suspended source, the mover stops before copying that key and requires source versioning to be enabled. ETag conditions compare content, not metadata or write identity. See [deleting object versions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DeletingObjectVersions.html), [ListObjectVersions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectVersions.html) and [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
 
 The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
 

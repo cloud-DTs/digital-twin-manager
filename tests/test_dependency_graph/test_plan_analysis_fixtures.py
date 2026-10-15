@@ -26,6 +26,7 @@ import main
 import util
 from deployers.aws.core.hot_reader_iam_role import HotReaderIamRoleDeployer
 from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
+from deployers.aws.core.cold_archive_mover_iam_role import ColdArchiveMoverIamRoleDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
 from deployers.aws.iot.device_reconciliation import desired_iot_devices
 from deployers.aws.iot.processor_lambda_function import ProcessorLambdaFunctionDeployer
@@ -183,6 +184,7 @@ def load_plan_analysis_case(case_name: str) -> None:
     setattr(globals, name, value)
   try:
     globals.aws_iam_client.feedback_policy_document = EventFeedbackIamRoleDeployer()._desired_policy_document()
+    globals.aws_iam_client.cold_archive_policy_document = ColdArchiveMoverIamRoleDeployer()._desired_policy_document()
     for deployer_class in deployers.aws.core.all.AllDeployer.LAMBDA_DEPLOYERS.values():
       globals.aws_lambda_client.add_function(deployer_class()._lambda_definition())
     for iot_device in desired_iot_devices():
@@ -222,6 +224,7 @@ class FixtureIamClient(StubAwsClient):
     super().__init__()
     self.policy_document = HotReaderIamRoleDeployer()._desired_policy_document()
     self.feedback_policy_document = None
+    self.cold_archive_policy_document = None
 
   def get_role(self, **kwargs):
     return {"Role": {"Arn": f"arn:aws:iam::123456789012:role/{kwargs['RoleName']}"}}
@@ -231,6 +234,8 @@ class FixtureIamClient(StubAwsClient):
       document = self.policy_document
     elif kwargs["PolicyName"] == EventFeedbackIamRoleDeployer.POLICY_NAME:
       document = self.feedback_policy_document
+    elif kwargs["PolicyName"] == ColdArchiveMoverIamRoleDeployer.POLICY_NAME:
+      document = self.cold_archive_policy_document
     else:
       document = None
     if document is None:
