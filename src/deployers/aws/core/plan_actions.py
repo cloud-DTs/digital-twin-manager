@@ -74,6 +74,7 @@ class PlannedAction(TypedDict):
     aws_configuration: NotRequired[dict]
     policy_document: NotRequired[dict | None]
     aws_policy_document: NotRequired[dict | None]
+    component_device_bindings: NotRequired[list[dict]]
 
 
 class PlannedActionValues(TypedDict, total=False):
@@ -91,6 +92,7 @@ class PlannedActionValues(TypedDict, total=False):
     aws_configuration: dict
     policy_document: dict | None
     aws_policy_document: dict | None
+    component_device_bindings: list[dict]
 
 
 def plan_action(

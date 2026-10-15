@@ -1,3 +1,6 @@
+import resource_names
+
+
 TREE_NODE_TYPES = ("entity", "component")
 COMPONENT_INSTANCE_KEYS = ("type", "name", "iotDeviceId", "componentTypeId", "children")
 
@@ -102,3 +105,21 @@ def effective_iot_devices(config_iot_devices, config_hierarchy=None):
         iot_device["componentTypeId"] = component_type_id
 
   return iot_devices
+
+
+def iot_device_ids_by_component_type(config, config_iot_devices, config_hierarchy):
+  device_ids = {}
+  for iot_device in effective_iot_devices(config_iot_devices, config_hierarchy):
+    component_type_id = resource_names.twinmaker_component_type_id(config, iot_device)
+    device_ids.setdefault(component_type_id, set()).add(str(iot_device["id"]))
+  return device_ids
+
+
+def infer_iot_device_id(component_type_id, device_ids_by_type):
+  device_ids = device_ids_by_type.get(component_type_id, set())
+  if len(device_ids) > 1:
+    raise ValueError(
+      f"Component Type {component_type_id} is shared by multiple IoT devices. "
+      "Set iotDeviceId on each hierarchy component."
+    )
+  return next(iter(device_ids), None)

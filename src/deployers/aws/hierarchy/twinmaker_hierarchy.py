@@ -1,8 +1,10 @@
 import deployment_state
 import resource_names
-from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
+from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY, ACTION_UPDATE
 from deployers.aws.core.json_helpers import content_changed
-from deployers.aws.iot.device_config import effective_iot_devices
+from deployers.aws.iot.device_config import (
+  effective_iot_devices, infer_iot_device_id, iot_device_ids_by_component_type,
+)
 from deployers.aws.core.plan_actions import plan_action
 from deployers.base import Deployer
 from dependency_graph import plan_graph_ids
@@ -14,6 +16,8 @@ from botocore.exceptions import ClientError
 DELETE_POLL_SECONDS = 2
 DELETE_PROGRESS_LOG_SECONDS = 30
 DELETE_TIMEOUT_SECONDS = 60
+UPDATE_POLL_SECONDS = 2
+UPDATE_TIMEOUT_SECONDS = 60
 
 
 class TwinmakerHierarchyDeployer(Deployer):
@@ -50,6 +54,130 @@ class TwinmakerHierarchyDeployer(Deployer):
       iot_device["id"]
       for iot_device in effective_iot_devices(globals.config_iot_devices)
     }
+
+  def _inferred_device_bindings(self, hierarchy, device_ids_by_type=None):
+    if device_ids_by_type is None:
+      device_ids_by_type = iot_device_ids_by_component_type(globals.config, globals.config_iot_devices, hierarchy)
+    bindings = []
+
+    def collect(entity):
+      for child in entity.get("children", []):
+        if child["type"] == "entity":
+          collect(child)
+        elif "iotDeviceId" not in child:
+          component_type_id = resource_names.hierarchy_component_type_id(globals.config, child)
+          device_id = infer_iot_device_id(component_type_id, device_ids_by_type)
+          if device_id is not None:
+            bindings.append({
+              "entity_id": entity["id"],
+              "component_name": child["name"],
+              "component_type_id": component_type_id,
+              "iot_device_id": device_id,
+            })
+
+    for entity in hierarchy:
+      collect(entity)
+    return bindings
+
+  def _binding_components(self, entity, component_names):
+    components = entity.get("components", {})
+    for name in component_names:
+      if name not in components and entity.get("areAllComponentsReturned") is False:
+        raise ValueError(f"AWS returned incomplete components for TwinMaker entity {entity['entityId']}.")
+      component = components.get(name, {})
+      if (
+        "iotDeviceId" not in component.get("properties", {})
+        and component.get("areAllPropertiesReturned") is False
+      ):
+        raise ValueError(f"AWS returned incomplete properties for TwinMaker component {entity['entityId']}/{name}.")
+    return components
+
+  def _binding_snapshot(self, bindings, workspace_name):
+    native_types = {}
+    entities = {}
+    snapshot = []
+    for binding in bindings:
+      component_type_id = binding["component_type_id"]
+      if component_type_id not in native_types:
+        component_type = globals.aws_twinmaker_client.get_component_type(
+          workspaceId=workspace_name, componentTypeId=component_type_id,
+        )
+        native_types[component_type_id] = "iotDeviceId" in component_type.get("propertyDefinitions", {})
+      if not native_types[component_type_id]:
+        continue
+      entity_id = binding["entity_id"]
+      if entity_id not in entities:
+        entities[entity_id] = globals.aws_twinmaker_client.get_entity(
+          workspaceId=workspace_name, entityId=entity_id,
+        )
+      entity = entities[entity_id]
+      components = self._binding_components(entity, [binding["component_name"]])
+      component = components.get(binding["component_name"], {})
+      if component.get("componentTypeId") != component_type_id:
+        raise ValueError(
+          f"TwinMaker component {entity_id}/{binding['component_name']} changed in AWS. "
+          "Check its Component Type and run 'plan' again."
+        )
+      if (
+        entity.get("status", {}).get("state", "ACTIVE") != "ACTIVE"
+        or component.get("status", {}).get("state", "ACTIVE") != "ACTIVE"
+      ):
+        raise ValueError(f"TwinMaker component {entity_id}/{binding['component_name']} is not active.")
+      device_property = component.get("properties", {}).get("iotDeviceId", {})
+      snapshot.append({**binding, "aws_value": device_property.get("value")})
+    return snapshot
+
+  def validate_plan(self, action):
+    if "component_device_bindings" not in action:
+      raise ValueError("TwinMaker device binding metadata is missing. Run 'plan' again.")
+    entity = self._root_entity(globals.config_hierarchy, action["resource"])
+    device_ids_by_type = iot_device_ids_by_component_type(
+      globals.config, globals.config_iot_devices, globals.config_hierarchy,
+    )
+    bindings = self._inferred_device_bindings([entity], device_ids_by_type)
+    if action["action"] == ACTION_DEPLOY:
+      if bindings != action["component_device_bindings"]:
+        raise ValueError("TwinMaker device bindings changed after planning. Run 'plan' again.")
+      return
+    snapshot = self._binding_snapshot(bindings, globals.twinmaker_workspace_name())
+    if not snapshot or snapshot != action["component_device_bindings"]:
+      raise ValueError("TwinMaker device bindings changed after planning. Run 'plan' again.")
+
+  def _update_device_bindings(self, action):
+    self.validate_plan(action)
+    workspace_name = globals.twinmaker_workspace_name()
+    updates_by_entity = {}
+    for binding in action["component_device_bindings"]:
+      value = {"stringValue": binding["iot_device_id"]}
+      if binding["aws_value"] == value:
+        continue
+      updates_by_entity.setdefault(binding["entity_id"], {})[binding["component_name"]] = {
+        "updateType": "UPDATE",
+        "propertyUpdates": {"iotDeviceId": {"updateType": "UPDATE", "value": value}},
+      }
+    for entity_id, updates in updates_by_entity.items():
+      globals.aws_twinmaker_client.update_entity(
+        workspaceId=workspace_name, entityId=entity_id, componentUpdates=updates,
+      )
+      deadline = time.monotonic() + UPDATE_TIMEOUT_SECONDS
+      while True:
+        entity = globals.aws_twinmaker_client.get_entity(workspaceId=workspace_name, entityId=entity_id)
+        components = self._binding_components(entity, updates)
+        states = [entity.get("status", {}).get("state", "ACTIVE")] + [
+          components.get(name, {}).get("status", {}).get("state", "ACTIVE") for name in updates
+        ]
+        if "ERROR" in states:
+          raise ValueError(f"TwinMaker entity {entity_id} failed to update its device bindings.")
+        if all(state == "ACTIVE" for state in states) and all(
+          components.get(name, {}).get("properties", {}).get("iotDeviceId", {}).get("value")
+          == update["propertyUpdates"]["iotDeviceId"]["value"]
+          for name, update in updates.items()
+        ):
+          break
+        if time.monotonic() >= deadline:
+          raise TimeoutError(f"Timed out waiting for TwinMaker entity {entity_id} device bindings.")
+        time.sleep(UPDATE_POLL_SECONDS)
+      self.log(f"Updated IoT device bindings on TwinMaker Entity: {entity_id}")
 
   def _collect_missing_iot_device_ids_for_components(
     self,
@@ -89,6 +217,8 @@ class TwinmakerHierarchyDeployer(Deployer):
         "TwinMaker component types are deployed from config_iot_devices before "
         "hierarchy is applied."
       )
+
+    self._inferred_device_bindings(hierarchy)
 
   def _wait_until_entity_deleted(self, workspace_name, entity):
     started_at = time.monotonic()
@@ -134,7 +264,9 @@ class TwinmakerHierarchyDeployer(Deployer):
 
     self.log(f"Deleted IoT TwinMaker Entity: {entity["id"]}")
 
-  def _deploy_twinmaker_entity(self, entity_info, workspace_name, parent_info=None):
+  def _deploy_twinmaker_entity(
+    self, entity_info, workspace_name, parent_info=None, device_ids_by_type=None,
+  ):
     create_entity_params = {
       "workspaceId": workspace_name,
       "entityName": entity_info.get("name") or entity_info["id"],
@@ -150,11 +282,13 @@ class TwinmakerHierarchyDeployer(Deployer):
 
     for child in entity_info["children"]:
       if child["type"] == "entity":
-        self._deploy_twinmaker_entity(child, workspace_name, entity_info)
+        self._deploy_twinmaker_entity(child, workspace_name, entity_info, device_ids_by_type)
       elif child["type"] == "component":
-        self._deploy_twinmaker_component(child, entity_info, workspace_name)
+        self._deploy_twinmaker_component(child, entity_info, workspace_name, device_ids_by_type)
 
-  def _deploy_twinmaker_component(self, component_info, parent_info, workspace_name):
+  def _deploy_twinmaker_component(
+    self, component_info, parent_info, workspace_name, device_ids_by_type=None,
+  ):
     component_type_id = resource_names.hierarchy_component_type_id(
       globals.config,
       component_info,
@@ -165,11 +299,25 @@ class TwinmakerHierarchyDeployer(Deployer):
       "componentTypeId": component_type_id,
     }
 
-    if "iotDeviceId" in component_info:
+    device_id = component_info.get("iotDeviceId")
+    if device_id is None:
+      if device_ids_by_type is None:
+        device_ids_by_type = iot_device_ids_by_component_type(
+          globals.config, globals.config_iot_devices, globals.config_hierarchy,
+        )
+      device_id = infer_iot_device_id(component_type_id, device_ids_by_type)
+      if device_id is not None:
+        component_type = globals.aws_twinmaker_client.get_component_type(
+          workspaceId=workspace_name, componentTypeId=component_type_id,
+        )
+        if "iotDeviceId" not in component_type.get("propertyDefinitions", {}):
+          device_id = None
+
+    if device_id is not None:
       component_update["propertyUpdates"] = {
         "iotDeviceId": {
           "updateType": "CREATE",
-          "value": {"stringValue": str(component_info["iotDeviceId"])},
+          "value": {"stringValue": str(device_id)},
         }
       }
 
@@ -186,6 +334,8 @@ class TwinmakerHierarchyDeployer(Deployer):
   def plan(self):
     previous_hierarchy = deployment_state.last_applied_config_hierarchy
     desired_hierarchy = globals.config_hierarchy
+    device_ids_by_type = iot_device_ids_by_component_type(globals.config, globals.config_iot_devices, desired_hierarchy)
+    self._inferred_device_bindings(desired_hierarchy, device_ids_by_type)
 
     previous_workspace_name = deployment_state.last_applied_twinmaker_workspace_name()
     desired_workspace_name = globals.twinmaker_workspace_name()
@@ -197,6 +347,10 @@ class TwinmakerHierarchyDeployer(Deployer):
     for entity_id in self._ordered_root_ids(previous_hierarchy, desired_hierarchy):
       previous_entity = previous_entities.get(entity_id)
       desired_entity = desired_entities.get(entity_id)
+      bindings = (
+        self._inferred_device_bindings([desired_entity], device_ids_by_type)
+        if desired_entity is not None else []
+      )
 
       if previous_entity is None:
         self.log(f"TwinMaker Hierarchy root entity {entity_id} is new.")
@@ -206,6 +360,7 @@ class TwinmakerHierarchyDeployer(Deployer):
             "twinmaker_hierarchy",
             action="DEPLOY",
             graph_id=plan_graph_ids.twinmaker_hierarchy(entity_id),
+            component_device_bindings=bindings,
           )
         )
         continue
@@ -226,6 +381,15 @@ class TwinmakerHierarchyDeployer(Deployer):
         previous_workspace_name == desired_workspace_name
         and not content_changed(previous_entity, desired_entity)
       ):
+        snapshot = self._binding_snapshot(bindings, desired_workspace_name)
+        if any(binding["aws_value"] != {"stringValue": binding["iot_device_id"]} for binding in snapshot):
+          self.log(f"TwinMaker Hierarchy root entity {entity_id} needs IoT device bindings.")
+          actions.append(plan_action(
+            entity_id, "twinmaker_hierarchy", action=ACTION_UPDATE,
+            graph_id=plan_graph_ids.twinmaker_hierarchy(entity_id),
+            component_device_bindings=snapshot,
+          ))
+          continue
         self.log(f"TwinMaker Hierarchy root entity {entity_id} is up to date.")
         actions.append(
           plan_action(
@@ -257,6 +421,7 @@ class TwinmakerHierarchyDeployer(Deployer):
           "twinmaker_hierarchy",
           action="DEPLOY",
           graph_id=plan_graph_ids.twinmaker_hierarchy(entity_id),
+          component_device_bindings=bindings,
         ),
       ])
 
@@ -269,16 +434,18 @@ class TwinmakerHierarchyDeployer(Deployer):
 
     workspace_name = workspace_name or globals.twinmaker_workspace_name()
     self._validate_component_type_sources(hierarchy)
+    device_ids_by_type = iot_device_ids_by_component_type(globals.config, globals.config_iot_devices, hierarchy)
 
     if entity_id is not None:
       self._deploy_twinmaker_entity(
         self._root_entity(hierarchy, entity_id),
         workspace_name,
+        device_ids_by_type=device_ids_by_type,
       )
       return
 
     for entity in hierarchy:
-      self._deploy_twinmaker_entity(entity, workspace_name)
+      self._deploy_twinmaker_entity(entity, workspace_name, device_ids_by_type=device_ids_by_type)
 
   def destroy(self, entity_id=None, hierarchy=None, workspace_name=None):
     if hierarchy is None:
@@ -312,6 +479,8 @@ class TwinmakerHierarchyDeployer(Deployer):
       self._wait_until_entity_deleted(workspace_name, entity)
 
   def apply(self, action, resource):
+    if action["action"] in (ACTION_DEPLOY, ACTION_UPDATE) and resource != action.get("resource"):
+      raise ValueError("TwinMaker entity does not match the planned resource. Run 'plan' again.")
     if action["action"] == ACTION_DESTROY:
       self.destroy(
         entity_id=resource,
@@ -319,11 +488,14 @@ class TwinmakerHierarchyDeployer(Deployer):
         workspace_name=deployment_state.last_applied_twinmaker_workspace_name(),
       )
     elif action["action"] == ACTION_DEPLOY:
+      self.validate_plan(action)
       self.deploy(
         entity_id=resource,
         hierarchy=globals.config_hierarchy,
         workspace_name=globals.twinmaker_workspace_name(),
       )
+    elif action["action"] == ACTION_UPDATE:
+      self._update_device_bindings(action)
     else:
       raise ValueError(f"Unsupported hierarchy action: {action['action']}")
 

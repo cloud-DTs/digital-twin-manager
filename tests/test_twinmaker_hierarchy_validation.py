@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +19,9 @@ from deployers.aws.hierarchy.twinmaker_hierarchy import TwinmakerHierarchyDeploy
 
 class TwinmakerHierarchyComponentTypeSourceValidationTests(unittest.TestCase):
   def setUp(self) -> None:
+    config_patch = patch.object(globals, "config", {"digital_twin_name": "dt"})
+    config_patch.start()
+    self.addCleanup(config_patch.stop)
     self.deployer = TwinmakerHierarchyDeployer()
     globals.config_iot_devices = [
       {"id": "sensor-a", "properties": []},

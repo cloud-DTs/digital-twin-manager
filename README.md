@@ -12,6 +12,8 @@ MQTT Event Feedback planning compares the role's `EventFeedbackScopedAccess` pol
 
 The Hot Reader supports both shared Component Types with an `iotDeviceId` property and legacy per-device types without that property. Legacy reads check the Component Type schema before deriving the device ID from its name. A shared type with a missing device ID produces an error. The role policy update grants `iottwinmaker:GetComponentType` for this check. Deployer credentials need `iam:GetRolePolicy`, `lambda:UpdateFunctionCode` and `lambda:UpdateFunctionConfiguration`; see [AWS permissions](docs/aws-permissions.md). No code hash needs to be added to `init-state`.
 
+A hierarchy component can reference a managed type through its full `componentTypeId` alone. When that type maps to exactly one configured IoT device, the hierarchy deployer fills its native `iotDeviceId` value. A type shared by multiple devices requires an explicit `iotDeviceId`; configuration validation rejects an ambiguous reference. Run `plan`, then `apply`, to repair missing or incorrect inferred values on existing components through `UPDATE`. This preserves the entities and their other properties. Apply validates the planned inferred bindings for `DEPLOY` and `UPDATE` before changing resources. Updates also verify the saved AWS values and wait for the updated values before recording completion. Saved hierarchy deployment plans without binding metadata require a new `plan`. Legacy types without the native property and external types retain their existing behavior.
+
 ## Conventions
 - Every deployer should be implemented in its own file.
 - Keep components separated, self-contained, and independent.
