@@ -623,16 +623,9 @@ def _component_type_logical_name(
   component: Mapping[str, Any],
   config: Mapping[str, Any],
 ) -> str:
-  if "componentTypeId" in component:
-    component_type_id = str(component["componentTypeId"])
-    prefix = f"{resource_names.digital_twin_name(config)}-"
-
-    if prefix and component_type_id.startswith(prefix):
-      return component_type_id[len(prefix):]
-
-    return component_type_id
-
-  return str(component["iotDeviceId"])
+  component_type_id = str(resource_names.hierarchy_component_type_id(config, component))
+  prefix = f"{resource_names.digital_twin_name(config)}-"
+  return component_type_id.removeprefix(prefix)
 
 
 def _event_creates_lambda(event: Mapping[str, Any]) -> bool:
