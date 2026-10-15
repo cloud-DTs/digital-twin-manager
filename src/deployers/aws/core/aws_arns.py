@@ -53,3 +53,15 @@ def lambda_function_name_wildcard_arn(function_name_prefix):
   region = globals.aws_lambda_client.meta.region_name
   account_id = globals.aws_sts_client.get_caller_identity()["Account"]
   return f"arn:aws:lambda:{region}:{account_id}:function:{function_name_prefix}*"
+
+
+def iot_client_arn(client_id):
+  region = globals.aws_iot_client.meta.region_name
+  account_id = globals.aws_sts_client.get_caller_identity()["Account"]
+  return f"arn:aws:iot:{region}:{account_id}:client/{client_id}"
+
+
+def iot_topicfilter_arn(topic_filter):
+  region = globals.aws_iot_client.meta.region_name
+  account_id = globals.aws_sts_client.get_caller_identity()["Account"]
+  return f"arn:aws:iot:{region}:{account_id}:topicfilter/{topic_filter}"

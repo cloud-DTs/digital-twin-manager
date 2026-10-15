@@ -1,6 +1,7 @@
 from deployers.aws.core.plan_actions import plan_action
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.base import Deployer
+from deployers.aws.core import aws_arns
 from dependency_graph import plan_graph_ids
 import json
 import globals
@@ -92,6 +93,47 @@ class IotThingDeployer(Deployer):
       ),
     ]
 
+  def _readable_topics(self, iot_device):
+    digital_twin_name = globals.config["digital_twin_name"]
+    topics = {f"{digital_twin_name}-{iot_device['id']}"}
+
+    for event in globals.config_events:
+      feedback = event.get("action", {}).get("feedback")
+
+      if feedback and feedback.get("type") == "mqtt" and feedback.get("topic"):
+        topics.add(feedback["topic"])
+
+    return sorted(topics)
+
+  def _policy_document(self, iot_device):
+    readable_topics = self._readable_topics(iot_device)
+
+    return {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "iot:Connect",
+          "Resource": aws_arns.iot_client_arn(iot_device["id"])
+        },
+        {
+          "Effect": "Allow",
+          "Action": "iot:Publish",
+          "Resource": aws_arns.iot_topic_arn(globals.dispatcher_iot_rule_topic())
+        },
+        {
+          "Effect": "Allow",
+          "Action": "iot:Subscribe",
+          "Resource": [aws_arns.iot_topicfilter_arn(topic) for topic in readable_topics]
+        },
+        {
+          "Effect": "Allow",
+          "Action": "iot:Receive",
+          "Resource": [aws_arns.iot_topic_arn(topic) for topic in readable_topics]
+        }
+      ]
+    }
+
   def deploy(self, iot_device, thing_name=None, policy_name=None):
     thing_name = thing_name or globals.iot_thing_name(iot_device)
     policy_name = policy_name or globals.iot_thing_policy_name(iot_device)
@@ -115,14 +157,7 @@ class IotThingDeployer(Deployer):
 
     self.log(f"Stored certificate and keys to {dir}")
 
-    policy_document = {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Action": ["iot:*"],
-        "Resource": "*"
-      }]
-    }
+    policy_document = self._policy_document(iot_device)
 
     globals.aws_iot_client.create_policy(policyName=policy_name, policyDocument=json.dumps(policy_document))
     self.log(f"Created IoT Policy: {policy_name}")
