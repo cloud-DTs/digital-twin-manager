@@ -193,7 +193,7 @@ def lambda_handler(event, context):
     print("Hello from Event-Checker!")
     print("Event: " + json.dumps(event))
 
-    trigger_keys = set(event.keys()) - {"iotDeviceId", "time"}
+    trigger_keys = set(event.keys()) - {"iotDeviceId", "time", "_trace"}
     print(f"Trigger keys: {trigger_keys}")
 
     for e in CONFIG_EVENTS:

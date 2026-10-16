@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import boto3
 
 
@@ -19,5 +20,6 @@ def lambda_handler(event, context):
     print("Event: " + json.dumps(event))
 
     payload = process(event)
+    payload.setdefault("_trace", {})["processor"] = int(time.time() * 1000)
 
     lambda_client.invoke(FunctionName=PERSISTER_LAMBDA_NAME, InvocationType="Event", Payload=json.dumps(payload).encode("utf-8"))

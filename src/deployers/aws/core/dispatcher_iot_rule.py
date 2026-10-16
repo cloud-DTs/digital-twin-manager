@@ -34,7 +34,7 @@ class DispatcherIotRuleDeployer(Deployer):
     ]
 
   def _drifted_fields(self, topic_rule, expected_topic, expected_function_name):
-    expected_sql = f"SELECT * FROM '{expected_topic}'"
+    expected_sql = f"SELECT *, timestamp() AS iotRuleTs FROM '{expected_topic}'"
     expected_actions = self._actions(expected_function_name)
     drifted_fields = []
 
@@ -136,7 +136,7 @@ class DispatcherIotRuleDeployer(Deployer):
   def deploy(self, rule_name=None, topic=None, function_name=None):
     rule_name = rule_name or globals.dispatcher_iot_rule_name()
     topic = topic or globals.dispatcher_iot_rule_topic()
-    sql = f"SELECT * FROM '{topic}'"
+    sql = f"SELECT *, timestamp() AS iotRuleTs FROM '{topic}'"
 
     function_name = function_name or globals.dispatcher_lambda_function_name()
 
