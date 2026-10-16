@@ -3,12 +3,13 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from tests.aws_stubs import install_aws_stubs
+from tests.aws_stubs import StubStsClient, install_aws_stubs
 
 install_aws_stubs()
 
@@ -17,6 +18,7 @@ import globals
 from deployers.aws.core.event_checker_lambda_function import (
   EventCheckerLambdaFunctionDeployer,
 )
+from tests.test_managed_lambda_regressions import ManagedLambdaClient, ManagedIamClient
 
 
 class EventCheckerLambdaPlanTests(unittest.TestCase):
@@ -47,28 +49,39 @@ class EventCheckerLambdaPlanTests(unittest.TestCase):
       }
     ]
 
-    globals.config = dict(self.config)
-    globals.config_iot_devices = []
+    for target, name, value in (
+      (globals, "config", dict(self.config)),
+      (globals, "config_iot_devices", []),
+      (globals, "config_events", self.previous_events),
+      (globals, "aws_lambda_client", ManagedLambdaClient()),
+      (globals, "aws_iam_client", ManagedIamClient()),
+      (globals, "aws_sts_client", StubStsClient()),
+      (deployment_state, "last_applied_config", dict(self.config)),
+      (deployment_state, "last_applied_config_iot_devices", []),
+      (deployment_state, "last_applied_config_events", self.previous_events),
+      (deployment_state, "last_applied_state_metadata", {"awsRegion": "eu-west-1"}),
+    ):
+      patcher = patch.object(target, name, value, create=True)
+      patcher.start()
+      self.addCleanup(patcher.stop)
+    EventCheckerLambdaFunctionDeployer().deploy()
     globals.config_events = self.desired_events
 
-    deployment_state.last_applied_config = dict(self.config)
-    deployment_state.last_applied_config_iot_devices = []
-    deployment_state.last_applied_config_events = self.previous_events
-    deployment_state.last_applied_state_metadata = {"awsRegion": "eu-west-1"}
-
-  def test_config_events_change_redeploys_event_checker_lambda(self) -> None:
+  def test_config_events_change_updates_event_checker_lambda(self) -> None:
     actions = EventCheckerLambdaFunctionDeployer().plan()
 
     self.assertEqual(
-      ["DESTROY", "DEPLOY"],
+      ["UPDATE"],
       [action["action"] for action in actions],
     )
     self.assertEqual(
-      ["dtc-y-01-event-checker", "dtc-y-01-event-checker"],
+      ["dtc-y-01-event-checker"],
       [action["resource"] for action in actions],
     )
 
   def test_matching_config_events_are_no_change(self) -> None:
+    globals.aws_lambda_client = ManagedLambdaClient()
+    EventCheckerLambdaFunctionDeployer().deploy()
     deployment_state.last_applied_config_events = self.desired_events
 
     actions = EventCheckerLambdaFunctionDeployer().plan()
@@ -78,6 +91,8 @@ class EventCheckerLambdaPlanTests(unittest.TestCase):
     self.assertEqual("dtc-y-01-event-checker", actions[0]["resource"])
 
   def test_iot_device_change_without_config_events_change_is_no_change(self) -> None:
+    globals.aws_lambda_client = ManagedLambdaClient()
+    EventCheckerLambdaFunctionDeployer().deploy()
     deployment_state.last_applied_config_events = self.desired_events
     deployment_state.last_applied_config_iot_devices = []
     globals.config_iot_devices = [{"id": "new-device", "properties": []}]

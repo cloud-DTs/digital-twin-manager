@@ -1,6 +1,7 @@
 import deployment_state
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
+from deployers.aws.core import aws_arns
 from deployers.base import Deployer
 from dependency_graph import plan_graph_ids
 import json
@@ -68,8 +69,6 @@ class PersisterIamRoleDeployer(Deployer):
 
     policy_arns = [
       "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-      "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
-      "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2"
     ]
 
     for policy_arn in policy_arns:
@@ -79,6 +78,31 @@ class PersisterIamRoleDeployer(Deployer):
       )
 
       self.log(f"Attached IAM policy ARN: {policy_arn}")
+
+    policy_name = "PersisterScopedAccess"
+
+    globals.aws_iam_client.put_role_policy(
+      RoleName=role_name,
+      PolicyName=policy_name,
+      PolicyDocument=json.dumps(
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "dynamodb:PutItem",
+              "Resource": aws_arns.dynamodb_table_arn(globals.hot_dynamodb_table_name())
+            },
+            {
+              "Effect": "Allow",
+              "Action": "lambda:InvokeFunction",
+              "Resource": aws_arns.lambda_function_arn(globals.event_checker_lambda_function_name())
+            }
+          ]
+        }
+      )
+    )
+    self.log(f"Attached inline IAM policy: {policy_name}")
 
     self.log(f"Waiting for propagation...")
 

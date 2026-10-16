@@ -55,7 +55,7 @@ class L2Deployer(Deployer):
           if deployment_state.last_applied_processor_iam_role_name(iot_device) == resource:
             return iot_device
 
-    if action["action"] == "DEPLOY":
+    if action["action"] in ("DEPLOY", "UPDATE", "NO_CHANGE"):
       if resource_type == "lambda_function":
         for iot_device in desired_iot_devices():
           if globals.processor_lambda_function_name(iot_device) == resource:

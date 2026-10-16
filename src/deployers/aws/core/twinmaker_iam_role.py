@@ -1,6 +1,7 @@
 from deployers.base import Deployer
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
+from deployers.aws.core import aws_arns
 from dependency_graph import plan_graph_ids
 import deployment_state
 import json
@@ -67,6 +68,8 @@ class TwinmakerIamRoleDeployer(Deployer):
 
     policy_name = "TwinMakerExecutionPolicy"
 
+    bucket_name = globals.twinmaker_s3_bucket_name()
+
     globals.aws_iam_client.put_role_policy(
       RoleName=role_name,
       PolicyName=policy_name,
@@ -76,11 +79,21 @@ class TwinmakerIamRoleDeployer(Deployer):
           {
             "Effect": "Allow",
             "Action": [
-              "s3:*",
-              "dynamodb:*",
-              "lambda:*",
+              "s3:GetObject",
+              "s3:PutObject",
+              "s3:DeleteObject"
             ],
-            "Resource": "*"
+            "Resource": aws_arns.s3_bucket_objects_arn(bucket_name)
+          },
+          {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": aws_arns.s3_bucket_arn(bucket_name)
+          },
+          {
+            "Effect": "Allow",
+            "Action": "lambda:InvokeFunction",
+            "Resource": aws_arns.lambda_function_arn(globals.hot_reader_lambda_function_name())
           }
         ]
     })
