@@ -17,6 +17,30 @@ from deployers.aws.core.plan_actions import plan_action
 
 
 class RuntimeGraphBuilderTests(unittest.TestCase):
+  def test_iot_policy_and_version_are_shared_across_devices(self) -> None:
+    template = load_template_graph(TEMPLATE_PATH)
+    graph = build_runtime_graph(
+      template, config(), [{"id": "sensor-1"}, {"id": "sensor-2"}], [], [],
+    )
+    nodes = runtime_nodes_by_id(graph)
+    for template_id in ("iot:l1:iot_policy:iot_policy", "iot:l1:iot_policy_version:iot_policy_version"):
+      policies = [node for node in graph.nodes if node.template_id == template_id]
+      self.assertEqual(1, len(policies))
+      self.assertEqual("dt-iot-policy", policies[0].physical_name)
+      self.assertEqual("IotPolicyDeployer", policies[0].owner_deployer)
+
+    policy_id = "iot:l1:iot_policy:iot_policy:iot-policy"
+    for device_id in ("sensor-1", "sensor-2"):
+      self.assertIn(policy_id, dependency_ids(nodes[f"iot:l1:iot_thing:iot_thing:{device_id}"]))
+      attachment = nodes[f"iot:l1:iot_policy_certificate_attachment:iot_policy_attachment:{device_id}"]
+      self.assertIn(policy_id, dependency_ids(attachment))
+
+  def test_twin_with_no_devices_still_has_one_shared_iot_policy(self) -> None:
+    graph = build_runtime_graph(load_template_graph(TEMPLATE_PATH), config(), [], [], [])
+    policies = [node for node in graph.nodes if node.template_id == "iot:l1:iot_policy:iot_policy"]
+    self.assertEqual(1, len(policies))
+    self.assertEqual("dt-iot-policy", policies[0].physical_name)
+
   def test_runtime_graph_builds_shared_core_nodes(self) -> None:
     graph = TemplateGraph(
       version=1,

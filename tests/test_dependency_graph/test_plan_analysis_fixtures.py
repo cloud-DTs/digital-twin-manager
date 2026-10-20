@@ -22,6 +22,7 @@ import deployers.aws.hierarchy.all
 import deployers.aws.init_values.all
 import deployers.aws.iot.all
 import globals
+import resource_names
 import main
 import util
 from deployers.aws.core.hot_reader_iam_role import HotReaderIamRoleDeployer
@@ -29,6 +30,7 @@ from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeplo
 from deployers.aws.core.cold_archive_mover_iam_role import ColdArchiveMoverIamRoleDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
 from deployers.aws.iot.device_reconciliation import desired_iot_devices
+from deployers.aws.iot.device_config import effective_iot_devices
 from deployers.aws.iot.processor_lambda_function import ProcessorLambdaFunctionDeployer
 from deployers.aws.event_actions.lambda_actions import LambdaActionsDeployer
 from botocore.exceptions import ClientError
@@ -174,7 +176,7 @@ def load_plan_analysis_case(case_name: str) -> None:
   globals.aws_twinmaker_client = StubAwsClient()
   globals.aws_grafana_client = StubAwsClient()
   globals.aws_lambda_client = FixtureLambdaClient()
-  globals.aws_iot_client = StubAwsClient()
+  globals.aws_iot_client = FixtureIotClient(previous_configs)
   globals.aws_sts_client = StubStsClient()
   globals.aws_dynamodb_client = StubAwsClient()
   globals.aws_iam_client = FixtureIamClient()
@@ -196,6 +198,37 @@ def load_plan_analysis_case(case_name: str) -> None:
   finally:
     for name, value in desired_configs.items():
       setattr(globals, name, value)
+
+
+class FixtureIotClient(StubAwsClient):
+  def __init__(self, configs):
+    super().__init__()
+    self.policy_name = resource_names.iot_policy_name(configs["config"])
+    self.principals = {
+      resource_names.iot_thing_name(configs["config"], device):
+        f"arn:aws:iot:{AWS_REGION}:123456789012:cert/{device['id']}"
+      for device in effective_iot_devices(configs["config_iot_devices"])
+    }
+
+  def get_policy(self, policyName):
+    if policyName != self.policy_name:
+      raise ClientError({"Error": {"Code": "ResourceNotFoundException"}}, "GetPolicy")
+    return {"policyDocument": json.dumps({
+      "Version": "2012-10-17",
+      "Statement": [{"Effect": "Allow", "Action": ["iot:*"], "Resource": "*"}],
+    })}
+
+  def list_thing_principals(self, thingName):
+    if thingName not in self.principals:
+      raise ClientError({"Error": {"Code": "ResourceNotFoundException"}}, "ListThingPrincipals")
+    return {"principals": [self.principals[thingName]]}
+
+  def list_attached_policies(self, target):
+    return {"policies": [{"policyName": self.policy_name}]}
+
+  def list_targets_for_policy(self, policyName, **kwargs):
+    self.get_policy(policyName=policyName)
+    return {"targets": list(self.principals.values())}
 
 
 class FixtureLambdaClient(StubAwsClient):

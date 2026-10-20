@@ -78,9 +78,11 @@ iot:CreateKeysAndCertificate
 iot:UpdateCertificate
 iot:DeleteCertificate
 iot:CreatePolicy
+iot:GetPolicy
 iot:DeletePolicy
 iot:DeletePolicyVersion
 iot:ListPolicyVersions
+iot:ListTargetsForPolicy
 iot:AttachPolicy
 iot:DetachPolicy
 iot:AttachThingPrincipal
@@ -95,6 +97,13 @@ iot:Publish
 ```
 
 `iot:Publish` is used by the init-values deployer when any configured IoT property has `initValue`. The current `config_iot_devices.json` contains init values, so this permission is part of the active deployment flow.
+
+IoT L1 reads the shared `<digitalTwinName>-iot-policy` with `GetPolicy` before
+creation or reuse. Planning reads device principals and attached policies to
+detect legacy per-device policies. Migration attaches the shared policy before
+detaching the legacy policy. `ListTargetsForPolicy` prevents deletion of a policy
+that still has targets. Removing a device preserves the shared policy; the
+full twin destroy removes it after the device identities.
 
 ### EventBridge
 
@@ -297,9 +306,11 @@ The following policy is intended for the IAM principal whose access keys are sto
         "iot:UpdateCertificate",
         "iot:DeleteCertificate",
         "iot:CreatePolicy",
+        "iot:GetPolicy",
         "iot:DeletePolicy",
         "iot:DeletePolicyVersion",
         "iot:ListPolicyVersions",
+        "iot:ListTargetsForPolicy",
         "iot:AttachPolicy",
         "iot:DetachPolicy",
         "iot:AttachThingPrincipal",

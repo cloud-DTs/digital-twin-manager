@@ -19,6 +19,8 @@ INIT_VALUE_TEMPLATE_ID = "init_values:init_values:init_value:init_value"
 
 
 SHARED_LOGICAL_NAMES = {
+  "iot:l1:iot_policy:iot_policy": "iot-policy",
+  "iot:l1:iot_policy_version:iot_policy_version": "iot-policy",
   "core:l1:dispatcher_iam:iam": "dispatcher",
   "core:l1:dispatcher_iam_managed_policy_attachment:iam_managed_policy_attachment": "dispatcher",
   "core:l1:dispatcher_lambda:lambda_function": "dispatcher",
@@ -146,6 +148,9 @@ def _template_drafts(
   config_hierarchy: Sequence[Mapping[str, Any]],
 ) -> list[_RuntimeNodeDraft]:
   template_id = template.id
+
+  if template_id in SHARED_LOGICAL_NAMES:
+    return [_shared_draft(template, config)]
 
   if template_id.startswith("iot:l1:"):
     return [

@@ -152,10 +152,15 @@ def iot_thing_name(config: Mapping[str, Any], iot_device: Mapping[str, Any]) -> 
   return resource_name(config, str(iot_device["id"]))
 
 
+def iot_policy_name(config: Mapping[str, Any]) -> str:
+  return resource_name(config, "iot-policy")
+
+
 def iot_thing_policy_name(
   config: Mapping[str, Any],
   iot_device: Mapping[str, Any],
 ) -> str:
+  """Name of a legacy per-device policy, retained for migration and cleanup."""
   return resource_name(config, str(iot_device["id"]))
 
 

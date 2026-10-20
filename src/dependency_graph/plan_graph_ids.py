@@ -114,6 +114,8 @@ GRAFANA_WORKSPACE = runtime_node_id(
   "grafana",
 )
 
+IOT_POLICY = runtime_node_id("iot:l1:iot_policy:iot_policy", "iot-policy")
+
 
 def iot_thing(iot_device: Mapping[str, Any]) -> str:
   return runtime_node_id("iot:l1:iot_thing:iot_thing", str(iot_device["id"]))

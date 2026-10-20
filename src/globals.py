@@ -354,6 +354,10 @@ def iot_thing_name(iot_device):
     return resource_names.iot_thing_name(config, iot_device)
 
 
+def iot_policy_name():
+    return resource_names.iot_policy_name(config)
+
+
 def iot_thing_policy_name(iot_device):
     return resource_names.iot_thing_policy_name(config, iot_device)
 
