@@ -139,6 +139,8 @@ Used for TwinMaker, cold storage, and archive buckets. The destroy flow empties 
 
 ```text
 s3:CreateBucket
+s3:GetBucketPolicy
+s3:PutBucketPolicy
 s3:PutBucketCORS
 s3:PutBucketPublicAccessBlock
 s3:PutBucketVersioning
@@ -152,6 +154,8 @@ s3:DeleteBucket
 ```
 
 `s3:PutBucketPublicAccessBlock`, `s3:PutBucketVersioning`, and `s3:PutEncryptionConfiguration` are used immediately after `s3:CreateBucket` for all three buckets (TwinMaker, cold, archive) to block public access, enable versioning, and enable SSE-S3 encryption. This closed a gap where those buckets relied entirely on the AWS account's org-level default for public-access protection and had no versioning to protect against accidental overwrite/delete — see the ICSA evaluation (`EVALUATION.md` in the bundle root) for the audit that found it.
+
+The TwinMaker bucket also denies HTTP requests with `aws:SecureTransport=false`. AWS service principals are excluded because service calls can redact transport context. `BoolIfExists` on `aws:PrincipalIsAWSService` keeps anonymous HTTP requests covered when that key is absent. Planning reads the bucket policy with `GetBucketPolicy`; `apply` adds the denial with `PutBucketPolicy` without replacing the bucket or removing existing policy statements. If the policy changes in AWS after planning, run `plan` again. See [AWS transport policy guidance](https://docs.aws.amazon.com/AmazonS3/latest/userguide/amazon-s3-policy-keys.html#example-bucket-policies-TLS-version) and [IAM condition operators](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_IfExists).
 
 ### AWS IoT TwinMaker
 
@@ -356,6 +360,8 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
         "s3:PutBucketCORS",
         "s3:PutBucketPublicAccessBlock",
         "s3:PutBucketVersioning",
@@ -479,7 +485,7 @@ Hot Reader, Event Feedback and Cold-to-Archive Mover compare their desired inlin
 
 The Cold-to-Archive Mover needs version permissions to copy and permanently delete old source versions, including versions hidden by delete markers. Archive bucket versioning must be `Enabled` when the source key has native S3 versions. The mover checks this before copying and verifies the returned archive version ID before deleting the source. It also supports legacy unversioned buckets. An enabled source bucket protects its legacy `null` versions from replacement by ordinary writes, so these versions are deleted by ID without a condition. Mutable current `null` versions use ETag conditions. For a noncurrent `null` version in a suspended source, the mover stops before copying that key and requires source versioning to be enabled. ETag conditions compare content, not metadata or write identity. See [deleting object versions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DeletingObjectVersions.html), [ListObjectVersions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectVersions.html) and [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
 
-The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
+The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) do not compare these configuration values. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up. The TwinMaker HTTP denial is reconciled separately through `UPDATE`.
 
 ## Notes
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import types
 import unittest
@@ -14,6 +15,7 @@ from tests.aws_stubs import install_aws_stubs
 install_aws_stubs()
 
 import globals
+from botocore.exceptions import ClientError
 from deployers.aws.core.archive_s3_bucket import ArchiveS3BucketDeployer
 from deployers.aws.core.cold_s3_bucket import ColdS3BucketDeployer
 from deployers.aws.core.twinmaker_s3_bucket import TwinmakerS3BucketDeployer
@@ -28,6 +30,8 @@ class RecordingS3Client:
     self.put_bucket_versioning_calls = []
     self.put_bucket_encryption_calls = []
     self.put_bucket_cors_calls = []
+    self.put_bucket_policy_calls = []
+    self.policy_document = None
 
   def create_bucket(self, **kwargs):
     self.create_bucket_calls.append(kwargs)
@@ -43,6 +47,15 @@ class RecordingS3Client:
 
   def put_bucket_cors(self, **kwargs):
     self.put_bucket_cors_calls.append(kwargs)
+
+  def get_bucket_policy(self, **kwargs):
+    if self.policy_document is None:
+      raise ClientError({"Error": {"Code": "NoSuchBucketPolicy"}}, "GetBucketPolicy")
+    return {"Policy": json.dumps(self.policy_document)}
+
+  def put_bucket_policy(self, **kwargs):
+    self.put_bucket_policy_calls.append(kwargs)
+    self.policy_document = json.loads(kwargs["Policy"])
 
 
 class _Waiter:
