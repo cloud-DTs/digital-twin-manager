@@ -34,4 +34,5 @@ class HotReaderLambdaFunctionDeployer(ManagedLambdaFunctionDeployer):
       StatementId="AllowTwinmakerInvoke",
       Action="lambda:InvokeFunction",
       Principal="iottwinmaker.amazonaws.com",
+      SourceAccount=globals.aws_sts_client.get_caller_identity()["Account"],
     )

@@ -28,6 +28,7 @@ import util
 from deployers.aws.core.hot_reader_iam_role import HotReaderIamRoleDeployer
 from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
 from deployers.aws.core.cold_archive_mover_iam_role import ColdArchiveMoverIamRoleDeployer
+from deployers.aws.core.twinmaker_s3_bucket import TwinmakerS3BucketDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
 from deployers.aws.iot.device_reconciliation import desired_iot_devices
 from deployers.aws.iot.device_config import effective_iot_devices
@@ -64,6 +65,11 @@ SYNTHETIC_BLOCKER_CASES = [
   ("missing-prerequisite-deploy", "missing from desired graph"),
   ("reverse-dependent-destroy", "still depends on it"),
 ]
+
+
+class FixtureS3Client(StubAwsClient):
+  def get_bucket_policy(self, **kwargs):
+    return {"Policy": json.dumps(self.policy_document)}
 
 
 class PlanAnalysisConfigFixtureTests(unittest.TestCase):
@@ -172,7 +178,7 @@ def load_plan_analysis_case(case_name: str) -> None:
   )
   deployment_state.last_applied_state_metadata = {"awsRegion": AWS_REGION}
 
-  globals.aws_s3_client = StubAwsClient()
+  globals.aws_s3_client = FixtureS3Client()
   globals.aws_twinmaker_client = StubAwsClient()
   globals.aws_grafana_client = StubAwsClient()
   globals.aws_lambda_client = FixtureLambdaClient()
@@ -185,6 +191,9 @@ def load_plan_analysis_case(case_name: str) -> None:
   for name, value in previous_configs.items():
     setattr(globals, name, value)
   try:
+    globals.aws_s3_client.policy_document = TwinmakerS3BucketDeployer()._desired_policy_document(
+      globals.twinmaker_s3_bucket_name(),
+    )
     globals.aws_iam_client.feedback_policy_document = EventFeedbackIamRoleDeployer()._desired_policy_document()
     globals.aws_iam_client.cold_archive_policy_document = ColdArchiveMoverIamRoleDeployer()._desired_policy_document()
     for deployer_class in deployers.aws.core.all.AllDeployer.LAMBDA_DEPLOYERS.values():

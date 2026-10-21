@@ -14,6 +14,7 @@ from deployers.aws.core.event_checker_lambda_function import EventCheckerLambdaF
 from deployers.aws.core.event_feedback_lambda_function import EventFeedbackLambdaFunctionDeployer
 from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
 from deployers.aws.core.cold_archive_mover_iam_role import ColdArchiveMoverIamRoleDeployer
+from deployers.aws.core.twinmaker_s3_bucket import TwinmakerS3BucketDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
 from deployers.aws.core.hot_cold_mover_lambda_function import HotColdMoverLambdaFunctionDeployer
 from deployers.aws.core.cold_archive_mover_lambda_function import ColdArchiveMoverLambdaFunctionDeployer
@@ -61,6 +62,8 @@ class AllDeployer(Deployer):
           EventFeedbackIamRoleDeployer().validate_plan(action)
         if action.get("graph_id") == plan_graph_ids.COLD_ARCHIVE_MOVER_IAM:
           ColdArchiveMoverIamRoleDeployer().validate_plan(action)
+        if action.get("graph_id") == plan_graph_ids.TWINMAKER_S3_BUCKET:
+          TwinmakerS3BucketDeployer().validate_plan(action)
         if action["resource_type"] != "lambda_function":
           continue
         deployer_class = self.LAMBDA_DEPLOYERS.get(action.get("graph_id"))

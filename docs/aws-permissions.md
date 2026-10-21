@@ -139,6 +139,8 @@ Used for TwinMaker, cold storage, and archive buckets. The destroy flow empties 
 
 ```text
 s3:CreateBucket
+s3:GetBucketPolicy
+s3:PutBucketPolicy
 s3:PutBucketCORS
 s3:PutBucketPublicAccessBlock
 s3:PutBucketVersioning
@@ -152,6 +154,8 @@ s3:DeleteBucket
 ```
 
 `s3:PutBucketPublicAccessBlock`, `s3:PutBucketVersioning`, and `s3:PutEncryptionConfiguration` are used immediately after `s3:CreateBucket` for all three buckets (TwinMaker, cold, archive) to block public access, enable versioning, and enable SSE-S3 encryption. This closed a gap where those buckets relied entirely on the AWS account's org-level default for public-access protection and had no versioning to protect against accidental overwrite/delete — see the ICSA evaluation (`EVALUATION.md` in the bundle root) for the audit that found it.
+
+The TwinMaker bucket also denies HTTP requests with `aws:SecureTransport=false`. AWS service principals are excluded because service calls can redact transport context. `BoolIfExists` on `aws:PrincipalIsAWSService` keeps anonymous HTTP requests covered when that key is absent. Planning reads the bucket policy with `GetBucketPolicy`; `apply` adds the denial with `PutBucketPolicy` without replacing the bucket or removing existing policy statements. If the policy changes in AWS after planning, run `plan` again. See [AWS transport policy guidance](https://docs.aws.amazon.com/AmazonS3/latest/userguide/amazon-s3-policy-keys.html#example-bucket-policies-TLS-version) and [IAM condition operators](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_IfExists).
 
 ### AWS IoT TwinMaker
 
@@ -356,6 +360,8 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
         "s3:PutBucketCORS",
         "s3:PutBucketPublicAccessBlock",
         "s3:PutBucketVersioning",
@@ -457,13 +463,29 @@ Two statements are intentionally broader than "this twin's own resources" and ar
 - **Grafana's `iottwinmaker:ListWorkspaces` on `Resource:"*"`** — this is AWS's own documented requirement for the `grafana-iot-twinmaker-app` plugin (a List-level action that can't be scoped to one workspace; see [AWS's dashboard IAM role guide](https://docs.aws.amazon.com/iot-twinmaker/latest/guide/dashboard-IAM-role.html)), not an oversight. The rest of that role's policy matches AWS's documented "no video permissions" template. Grafana deployment is disabled by default via `deploy_managed_grafana`.
 - There is deliberately **no third exception for cross-twin federation.** The repo has a "FunctionRegistry" SSM-registry lookup in Event-Checker (`lookup_registry()` in `lambda_functions/core/event-checker/lambda_function.py`, merged from elsewhere — see git history) that lets one twin invoke another twin's Lambda/Step Function. This scoping fix intentionally removed the `ssm:GetParameter` permission that supported it, since federation is out of scope for the current evaluation. The runtime code still *attempts* the SSM call unconditionally (`SSM_REGISTRY_PREFIX` is always set), but its failure is caught by a broad exception handler and falls back to normal local invocation — so this shows up as a harmless `AccessDenied` line in CloudWatch Logs on every action, not a functional break. If federation is needed again, re-adding a scoped `ssm:GetParameter` statement and a bounded federation-target exception is a follow-up, not part of this fix.
 
+### Shared IoT Policy
+
+`IotPolicyDeployer` in `src/deployers/aws/iot/iot_policy.py` manages one policy named `<digitalTwinName>-iot-policy` for each twin. `IotThingDeployer` attaches this policy to every device certificate. Each device keeps its own Thing, certificate and keys.
+
+Adding devices or changing MQTT feedback topics reuses the existing policy. `plan` and `apply` migrate legacy device policy attachments to the shared policy while preserving certificates and local keys. Removing one device preserves the shared policy; a full twin destroy removes it after the device identities.
+
+The policy document grants `iot:*` on `Resource: "*"`. These permissions apply across the AWS account and allow access to all MQTT client IDs and topics.
+
+### Trust Policies
+
+Every runtime role's trust policy (Lambda, Step Functions, TwinMaker, Grafana) is built by `service_trust_policy()` in `src/deployers/aws/core/trust_policy.py`. It adds an `aws:SourceAccount` condition set to the deploying account, so the service principal can only assume the role on behalf of resources in this account (cross-service confused deputy protection). No `aws:SourceArn` is set, because the resources that assume these roles do not exist yet when the role is created.
+
+The Hot Reader Lambda's resource policy (`AllowTwinmakerInvoke`, created in `hot_reader_lambda_function.py`) restricts invocation by `iottwinmaker.amazonaws.com` with `SourceAccount` set to the deploying account. See [Lambda add_permission](https://docs.aws.amazon.com/sdk-for-python/v1/reference/clients/lambda/operations/add_permission/).
+
+This Lambda permission is added when the function is created, including creation through `apply`. Code and configuration updates do not reconcile an existing function's resource policy. The account conditions on role trust policies also apply only to freshly created roles.
+
 ### Reconciliation caveat
 
 Hot Reader, Event Feedback and Cold-to-Archive Mover compare their desired inline policy content with AWS and plan `UPDATE` when it differs. Run `plan`, then `apply`, to reconcile those policies without replacing the roles. Other runtime IAM role planners still compare only role names. Changes to their inline policy content require redeploying the affected roles.
 
 The Cold-to-Archive Mover needs version permissions to copy and permanently delete old source versions, including versions hidden by delete markers. Archive bucket versioning must be `Enabled` when the source key has native S3 versions. The mover checks this before copying and verifies the returned archive version ID before deleting the source. It also supports legacy unversioned buckets. An enabled source bucket protects its legacy `null` versions from replacement by ordinary writes, so these versions are deleted by ID without a condition. Mutable current `null` versions use ETag conditions. For a noncurrent `null` version in a suspended source, the mover stops before copying that key and requires source versioning to be enabled. ETag conditions compare content, not metadata or write identity. See [deleting object versions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DeletingObjectVersions.html), [ListObjectVersions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectVersions.html) and [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
 
-The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) compare only bucket/table name (and, for S3, region) — not configuration content. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up.
+The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) do not compare these configuration values. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up. The TwinMaker HTTP denial is reconciled separately through `UPDATE`.
 
 ## Notes
 
