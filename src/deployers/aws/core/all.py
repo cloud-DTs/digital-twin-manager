@@ -9,6 +9,7 @@ from deployers.aws.apply_actions import ACTION_DEPLOY, ACTION_DESTROY
 from deployers.base import Deployer
 from deployers.aws.lambda_function import needs_lambda_validation
 from deployers.aws.core.dispatcher_lambda_function import DispatcherLambdaFunctionDeployer
+from deployers.aws.core.dispatcher_iot_rule import DispatcherIotRuleDeployer
 from deployers.aws.core.persister_lambda_function import PersisterLambdaFunctionDeployer
 from deployers.aws.core.event_checker_lambda_function import EventCheckerLambdaFunctionDeployer
 from deployers.aws.core.event_feedback_lambda_function import EventFeedbackLambdaFunctionDeployer
@@ -64,6 +65,16 @@ class AllDeployer(Deployer):
           ColdArchiveMoverIamRoleDeployer().validate_plan(action)
         if action.get("graph_id") == plan_graph_ids.TWINMAKER_S3_BUCKET:
           TwinmakerS3BucketDeployer().validate_plan(action)
+        if action.get("graph_id") == plan_graph_ids.DISPATCHER_IOT_RULE:
+          destroy_action = next((
+            candidate for candidate in layer["actions"]
+            if candidate["action"] == ACTION_DESTROY
+            and candidate["resource_type"] == action["resource_type"]
+            and candidate.get("graph_id") == action.get("graph_id")
+            and candidate["resource"] == action["resource"]
+            and not candidate.get("processed", False)
+          ), None)
+          DispatcherIotRuleDeployer().validate_plan(action, destroy_action=destroy_action)
         if action["resource_type"] != "lambda_function":
           continue
         deployer_class = self.LAMBDA_DEPLOYERS.get(action.get("graph_id"))

@@ -28,6 +28,52 @@ Devices sharing a Component Type must have identical property names and data typ
 
 The Cold-to-Archive Mover lists all source object versions, including versions hidden by old delete markers. It copies expired versions to `DEEP_ARCHIVE`, then permanently deletes each copied source version by its `VersionId`. It copies older versions first and keeps the original object keys. Archive bucket versioning must be `Enabled` to preserve multiple source versions. Legacy unversioned buckets remain supported; moving a noncurrent `null` version requires source bucket versioning to be `Enabled`. Delete markers remain in cold storage to keep retained versions hidden. Run `plan`, then `apply`, to update the Lambda and its scoped IAM policy without replacing the role. Apply checks this policy against the saved AWS snapshot before changing resources. Saved plans without Cold-to-Archive policy metadata require a new `plan`.
 
+## Debug ingestion timing
+
+Set `DEBUG=True` in `.env` to measure the delay from the IoT rule to DynamoDB.
+The default in `.env.example` is `DEBUG=False`. Values are case-insensitive.
+Start a new manager process after changing `.env`, then run `plan` and `apply`.
+This updates the existing IoT rule and the Persister Lambda configuration.
+Deployer credentials need `iot:ReplaceTopicRule`; see [AWS permissions](docs/aws-permissions.md).
+Saved plans without IoT rule metadata require a new `plan`.
+Rule read failures stop planning and apply. An access error is treated as a
+missing rule only after a complete `ListTopicRules` check confirms its absence.
+
+Rule planning also checks the Dispatcher Lambda's `iot-invoke` permission.
+If that permission is missing, `UPDATE` restores it even when the rule SQL is
+unchanged. If rule creation succeeds but adding the permission fails, retry
+`apply` or run a new `plan` and `apply`. Recovery reuses a rule that matches the
+planned configuration and keeps an existing matching permission. A rule or
+permission with different contents requires review before applying changes.
+
+For a planned `DESTROY` and `DEPLOY` replacement with the same IoT rule name,
+apply checks the old rule against its saved snapshot before deletion. Creation
+then requires an absent rule or a rule matching the planned result after a partial
+attempt. Older same-name replacement plans without the snapshot require a new `plan`.
+
+When enabled, the IoT rule uses
+`SELECT *, timestamp() AS iot_ingested_at_ms FROM '<digitalTwinName>/iot-data'`.
+The Dispatcher and supplied processors preserve this field. Custom processors
+must also preserve it. The Persister stores these numeric fields:
+
+- `iot_ingested_at_ms`: the IoT rules engine time, in UTC Unix milliseconds.
+- `db_write_started_at_ms`: the Lambda time immediately before `PutItem`.
+- `ingestion_to_write_ms`: the difference between these timestamps.
+
+After a successful write, the Persister emits a JSON `telemetry_persisted` log
+with `db_write_ack_at_ms` and `ingestion_to_ack_ms`. The second duration includes
+the database request and response. The stored write timestamp marks request
+start; `PutItem` does not return the exact database commit time. These measurements
+use clocks from two services and can include clock differences. Repeated writes
+to the same device/time key replace the timing values with the latest attempt.
+See [IoT timestamp()](https://docs.aws.amazon.com/iot/latest/developerguide/iot-sql-functions.html#iot-function-timestamp)
+and [PutItem](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_PutItem.html).
+
+If the ingestion timestamp is missing or is not an integer, the write still
+succeeds, but no ingestion duration is calculated. When debug is disabled,
+the rule returns to `SELECT *` and the Persister adds no timing fields or logs.
+Disable the mode through `.env`, then restart the manager and run `plan` and `apply`.
+
 ## Conventions
 - Every deployer should be implemented in its own file.
 - Keep components separated, self-contained, and independent.

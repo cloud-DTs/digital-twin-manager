@@ -18,6 +18,7 @@ class PersisterLambdaFunctionDeployer(ManagedLambdaFunctionDeployer):
       code_path=os.path.join(globals.core_lfs_path, "persister"),
       graph_id=plan_graph_ids.PERSISTER_LAMBDA,
       environment={
+        "DEBUG": str(globals.debug),
         "DYNAMODB_TABLE_NAME": globals.hot_dynamodb_table_name(),
         "EVENT_CHECKER_LAMBDA_NAME": globals.event_checker_lambda_function_name(),
       },

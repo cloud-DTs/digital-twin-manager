@@ -91,12 +91,33 @@ iot:ListThingPrincipals
 iot:ListAttachedPolicies
 iot:CreateTopicRule
 iot:GetTopicRule
+iot:ReplaceTopicRule
 iot:ListTopicRules
 iot:DeleteTopicRule
 iot:Publish
 ```
 
 `iot:Publish` is used by the init-values deployer when any configured IoT property has `initValue`. The current `config_iot_devices.json` contains init values, so this permission is part of the active deployment flow.
+
+Dispatcher rule planning uses `GetTopicRule` to compare its SQL and target with AWS.
+An `UnauthorizedException` is not enough to conclude that a rule is missing.
+The lookup checks all `ListTopicRules` pages to confirm absence. If the rule is
+listed, the original read error is raised. If listing fails, that error is
+raised. This stops `plan`, direct `deploy` and the `apply` preflight before
+resource changes. `info` uses the same lookup. Both `iot:GetTopicRule` and
+`iot:ListTopicRules` are required. See
+[ListTopicRules](https://docs.aws.amazon.com/iot/latest/apireference/API_ListTopicRules.html).
+Changing `DEBUG` uses `ReplaceTopicRule` to update the existing rule. This keeps
+its name, SQL version, description and error action. Apply checks the saved rule
+configuration and AWS snapshot before changing resources. Generate a new plan
+after changing `DEBUG`, or when using a saved plan without rule metadata.
+Planning also uses `lambda:GetPolicy` to check the Dispatcher's `iot-invoke`
+permission. A missing permission produces `UPDATE`; `lambda:AddPermission`
+restores only that grant. Retrying a partial deployment reuses a matching rule
+and permission. A conflicting grant is reported without replacing it.
+The Persister uses its existing `dynamodb:PutItem` and CloudWatch Logs permissions
+for debug timing; its runtime role needs no additional permissions. See
+[ReplaceTopicRule](https://docs.aws.amazon.com/iot/latest/apireference/API_ReplaceTopicRule.html).
 
 IoT L1 reads the shared `<digitalTwinName>-iot-policy` with `GetPolicy` before
 creation or reuse. Planning reads device principals and attached policies to
@@ -323,6 +344,7 @@ The following policy is intended for the IAM principal whose access keys are sto
         "iot:ListAttachedPolicies",
         "iot:CreateTopicRule",
         "iot:GetTopicRule",
+        "iot:ReplaceTopicRule",
         "iot:ListTopicRules",
         "iot:DeleteTopicRule",
         "iot:Publish"

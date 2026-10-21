@@ -204,6 +204,17 @@ def load_plan_analysis_case(case_name: str) -> None:
       definition = LambdaActionsDeployer()._lambda_definition(event)
       if definition is not None:
         globals.aws_lambda_client.add_function(definition)
+    dispatcher = globals.dispatcher_lambda_function_name()
+    globals.aws_lambda_client.policies[dispatcher] = {"Statement": [{
+      "Sid": "iot-invoke",
+      "Effect": "Allow",
+      "Principal": {"Service": "iot.amazonaws.com"},
+      "Action": "lambda:InvokeFunction",
+      "Resource": f"arn:aws:lambda:{AWS_REGION}:123456789012:function:{dispatcher}",
+      "Condition": {"ArnLike": {
+        "AWS:SourceArn": f"arn:aws:iot:{AWS_REGION}:123456789012:rule/{globals.dispatcher_iot_rule_name()}",
+      }},
+    }]}
   finally:
     for name, value in desired_configs.items():
       setattr(globals, name, value)
@@ -212,12 +223,28 @@ def load_plan_analysis_case(case_name: str) -> None:
 class FixtureIotClient(StubAwsClient):
   def __init__(self, configs):
     super().__init__()
+    self.config = configs["config"]
     self.policy_name = resource_names.iot_policy_name(configs["config"])
     self.principals = {
       resource_names.iot_thing_name(configs["config"], device):
         f"arn:aws:iot:{AWS_REGION}:123456789012:cert/{device['id']}"
       for device in effective_iot_devices(configs["config_iot_devices"])
     }
+
+  def get_topic_rule(self, ruleName):
+    if ruleName != resource_names.dispatcher_iot_rule_name(self.config):
+      raise ClientError({"Error": {"Code": "ResourceNotFoundException"}}, "GetTopicRule")
+    topic = resource_names.dispatcher_iot_rule_topic(self.config)
+    function = resource_names.dispatcher_lambda_function_name(self.config)
+    fields = "*, timestamp() AS iot_ingested_at_ms" if globals.debug else "*"
+    return {"rule": {
+      "sql": f"SELECT {fields} FROM '{topic}'",
+      "description": "",
+      "actions": [{"lambda": {
+        "functionArn": f"arn:aws:lambda:{AWS_REGION}:123456789012:function:{function}",
+      }}],
+      "ruleDisabled": False,
+    }}
 
   def get_policy(self, policyName):
     if policyName != self.policy_name:
@@ -244,6 +271,12 @@ class FixtureLambdaClient(StubAwsClient):
   def __init__(self):
     super().__init__()
     self.functions = {}
+    self.policies = {}
+
+  def get_policy(self, FunctionName):
+    if FunctionName not in self.policies:
+      raise ClientError({"Error": {"Code": "ResourceNotFoundException"}}, "GetPolicy")
+    return {"Policy": json.dumps(self.policies[FunctionName])}
 
   def add_function(self, definition):
     self.functions[definition.function_name] = {
