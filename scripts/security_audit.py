@@ -1,16 +1,10 @@
 """Security audit of one deployed digital twin.
 
-Runs a Prowler scan (read-only), keeps only the findings for the twin's resources,
-and checks what Prowler does not cover: AWS IoT Core device policies, certificates
-and topic rules, Lambda resource policies, and the TwinMaker workspace.
+Runs Prowler and additional IoT Core, Lambda resource policy, and TwinMaker checks.
+Reads AWS resources and saves reports locally.
 
-Credentials come from the standard AWS environment (AWS_PROFILE, AWS_ACCESS_KEY_ID,
-...), not from config_credentials.json. Use a read-only principal with the
-SecurityAudit and ViewOnlyAccess managed policies.
-
-Usage:
-  uv run python scripts/security_audit.py --twin dtcBattery
-  uv run python scripts/security_audit.py --twin dtcBattery --prowler-report out/x.ocsf.json
+Bash setup and run instructions:
+[Security audit guide](../docs/security-audit.md), relative to this script.
 """
 import argparse
 import collections
