@@ -45,6 +45,8 @@ def analyze_plan_dependencies(
 
       if action_name == "DEPLOY":
         changed = _analyze_deploy_action(action, indexes) or changed
+      elif action_name == "UPDATE":
+        changed = _analyze_update_action(action, indexes) or changed
       elif action_name == "DESTROY":
         changed = _analyze_destroy_action(action, indexes) or changed
 
@@ -139,11 +141,13 @@ def _analyze_deploy_action(
       ) or changed
       continue
 
-    blocked_prerequisites = _blocked_actions(
-      indexes.actions_by_graph_id,
-      dependency.id,
-      "DEPLOY",
-    )
+    blocked_prerequisites = [
+      prerequisite
+      for action_name in ("DEPLOY", "UPDATE")
+      for prerequisite in _blocked_actions(
+        indexes.actions_by_graph_id, dependency.id, action_name,
+      )
+    ]
     for blocked_action in blocked_prerequisites:
       changed = _add_blocker(
         action,
@@ -154,6 +158,21 @@ def _analyze_deploy_action(
       ) or changed
 
   return changed
+
+
+def _analyze_update_action(action: PlanAction, indexes: _AnalysisIndexes) -> bool:
+  graph_id = action.get("graph_id")
+  previous = indexes.previous_nodes.get(graph_id)
+  desired = indexes.desired_nodes.get(graph_id)
+  if previous is None or desired is None:
+    return _add_blocker(
+      action, f"Cannot update {graph_id} because it must exist in both previous and desired graphs.",
+    )
+  if previous.physical_name != desired.physical_name:
+    return _add_blocker(action, f"Cannot update {graph_id} in place because its physical name changed.")
+  if _actions_with_name(indexes.actions_by_graph_id, graph_id, "DESTROY"):
+    return _add_blocker(action, f"Cannot update {graph_id} because it is also scheduled for destruction.")
+  return _analyze_deploy_action(action, indexes)
 
 
 def _analyze_destroy_action(

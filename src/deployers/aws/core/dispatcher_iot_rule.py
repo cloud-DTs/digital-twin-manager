@@ -1,4 +1,4 @@
-from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
+from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY, ACTION_UPDATE, ACTION_NO_CHANGE
 from deployers.base import Deployer
 from deployers.aws.core.aws_arns import iot_rule_arn, lambda_function_arn
 from deployers.aws.core.lambda_permission import LambdaPermissionPlanner
@@ -20,7 +20,11 @@ class DispatcherIotRuleDeployer(Deployer):
       response = globals.aws_iot_client.get_topic_rule(ruleName=rule_name)
       return response["rule"]
     except ClientError as e:
-      if e.response["Error"]["Code"] in ["ResourceNotFoundException", "UnauthorizedException"]:
+      code = e.response["Error"]["Code"]
+      if code == "ResourceNotFoundException":
+        return None
+      # An unreadable rule is not proof of absence. Confirm it through the full list.
+      if code == "UnauthorizedException" and not util.iot_rule_exists(rule_name):
         return None
       raise
 
@@ -33,8 +37,38 @@ class DispatcherIotRuleDeployer(Deployer):
       }
     ]
 
+  def _sql(self, topic):
+    fields = "*, timestamp() AS iot_ingested_at_ms" if globals.debug else "*"
+    return f"SELECT {fields} FROM '{topic}'"
+
+  def _current_payload(self, topic_rule):
+    if topic_rule is None:
+      return None
+    return {
+      key: topic_rule[key]
+      for key in ("sql", "description", "actions", "ruleDisabled", "awsIotSqlVersion", "errorAction")
+      if key in topic_rule
+    }
+
+  def _rule_payload(self, topic, function_name, current_payload=None):
+    payload = dict(current_payload or {})
+    payload.setdefault("description", "")
+    payload.update({
+      "sql": self._sql(topic),
+      "actions": self._actions(function_name),
+      "ruleDisabled": False,
+    })
+    return payload
+
+  def _payload_matches(self, current_payload, expected_payload):
+    if current_payload is None:
+      return False
+    # GetTopicRule returns the default SQL version even when creation omitted it.
+    defaults = {"description": "", "awsIotSqlVersion": "2015-10-08"}
+    return {**defaults, **current_payload} == {**defaults, **expected_payload}
+
   def _drifted_fields(self, topic_rule, expected_topic, expected_function_name):
-    expected_sql = f"SELECT * FROM '{expected_topic}'"
+    expected_sql = self._sql(expected_topic)
     expected_actions = self._actions(expected_function_name)
     drifted_fields = []
 
@@ -49,17 +83,7 @@ class DispatcherIotRuleDeployer(Deployer):
 
     return drifted_fields
 
-  def _lambda_permission_plan(
-    self,
-    previous_rule_name,
-    desired_rule_name,
-    previous_function_name,
-    desired_function_name
-  ):
-    previous_source_arn = None
-    if previous_rule_name:
-      previous_source_arn = iot_rule_arn(previous_rule_name)
-
+  def _permission_planner(self):
     return LambdaPermissionPlanner(
       resource="dispatcher_iot_rule_lambda_permission",
       parent_resource="dispatcher_iot_rule",
@@ -69,7 +93,47 @@ class DispatcherIotRuleDeployer(Deployer):
       principal_service="iot.amazonaws.com",
       action="lambda:InvokeFunction",
       log=self.log
-    ).plan(
+    )
+
+  def _permission_missing(self, function_name, rule_name):
+    planner = self._permission_planner()
+    statement = planner._statement(function_name)
+    if statement is None:
+      return True
+    if planner._drifted_fields(statement, function_name, iot_rule_arn(rule_name)):
+      raise ValueError(
+        "Dispatcher Lambda permission iot-invoke differs from the expected grant. "
+        "Check the existing permission before running 'plan' again."
+      )
+    return False
+
+  def _ensure_permission(self, function_name, rule_name):
+    if not self._permission_missing(function_name, rule_name):
+      return
+    try:
+      globals.aws_lambda_client.add_permission(
+        FunctionName=function_name,
+        StatementId=self.LAMBDA_PERMISSION_STATEMENT_ID,
+        Action="lambda:InvokeFunction",
+        Principal="iot.amazonaws.com",
+        SourceArn=iot_rule_arn(rule_name),
+      )
+    except ClientError as error:
+      if error.response["Error"]["Code"] != "ResourceConflictException":
+        raise
+      if self._permission_missing(function_name, rule_name):
+        raise
+    self.log("Ensured Dispatcher Lambda permission for the IoT rule.")
+
+  def _lambda_permission_plan(
+    self,
+    previous_rule_name,
+    desired_rule_name,
+    previous_function_name,
+    desired_function_name
+  ):
+    previous_source_arn = iot_rule_arn(previous_rule_name) if previous_rule_name else None
+    return self._permission_planner().plan(
       previous_function_name,
       desired_function_name,
       previous_source_arn,
@@ -109,58 +173,107 @@ class DispatcherIotRuleDeployer(Deployer):
           f"desired_rule_name={desired_rule_name}."
         )
 
+      destroy_action = plan_action(
+        previous_rule_name,
+        "iot_rule",
+        action="DESTROY",
+        graph_id=plan_graph_ids.DISPATCHER_IOT_RULE,
+      )
+      if previous_rule_name == desired_rule_name:
+        destroy_action["aws_topic_rule_payload"] = self._current_payload(self._topic_rule(previous_rule_name))
+
       return [
-        plan_action(
-          previous_rule_name,
-          "iot_rule",
-          action="DESTROY",
-          graph_id=plan_graph_ids.DISPATCHER_IOT_RULE,
-        ),
+        destroy_action,
         plan_action(
           desired_rule_name,
           "iot_rule",
           action="DEPLOY",
           graph_id=plan_graph_ids.DISPATCHER_IOT_RULE,
+          topic_rule_payload=self._rule_payload(desired_topic, desired_function_name),
+          aws_topic_rule_payload=None,
         ),
       ]
 
-    self.log(f"Dispatcher IoT Rule is up to date.")
+    current_rule = self._topic_rule(desired_rule_name)
+    current_payload = self._current_payload(current_rule)
+    permission_missing = self._permission_missing(desired_function_name, desired_rule_name)
+    if current_rule is None:
+      action_name = ACTION_DEPLOY
+    elif self._drifted_fields(current_rule, desired_topic, desired_function_name) or permission_missing:
+      action_name = ACTION_UPDATE
+    else:
+      action_name = ACTION_NO_CHANGE
+    self.log(f"Dispatcher IoT Rule {desired_rule_name}: {action_name}.")
     return [
       plan_action(
         desired_rule_name,
         "iot_rule",
+        action=action_name,
         graph_id=plan_graph_ids.DISPATCHER_IOT_RULE,
+        topic_rule_payload=self._rule_payload(desired_topic, desired_function_name, current_payload),
+        aws_topic_rule_payload=current_payload,
       )
     ]
 
-  def deploy(self, rule_name=None, topic=None, function_name=None):
+  def _validate_destroy_plan(self, action):
+    if "aws_topic_rule_payload" not in action:
+      raise ValueError("IoT rule replacement metadata is missing. Run 'plan' again.")
+    if action["resource"] != deployment_state.last_applied_dispatcher_iot_rule_name():
+      raise ValueError("IoT rule replacement target changed after planning. Run 'plan' again.")
+    current_payload = self._current_payload(self._topic_rule(action["resource"]))
+    # Absence is also valid when a previous attempt deleted the rule before saving progress.
+    if current_payload is not None and current_payload != action["aws_topic_rule_payload"]:
+      raise ValueError("IoT rule changed in AWS after planning. Run 'plan' again.")
+    return current_payload
+
+  def validate_plan(self, action, *, destroy_action=None):
+    if "topic_rule_payload" not in action or "aws_topic_rule_payload" not in action:
+      raise ValueError("IoT rule plan metadata is missing. Run 'plan' again.")
+    expected_payload = self._rule_payload(
+      globals.dispatcher_iot_rule_topic(),
+      globals.dispatcher_lambda_function_name(),
+      action["aws_topic_rule_payload"],
+    )
+    if action["resource"] != globals.dispatcher_iot_rule_name() or action["topic_rule_payload"] != expected_payload:
+      raise ValueError("IoT rule configuration changed after planning. Run 'plan' again.")
+    # Preflight precedes deletion. A same-name replacement must still match the old rule.
+    if destroy_action is not None:
+      if (
+        action["action"] != ACTION_DEPLOY
+        or destroy_action["resource"] != action["resource"]
+        or destroy_action["action"] != ACTION_DESTROY
+        or destroy_action.get("blocked", False)
+        or destroy_action.get("processed", False)
+      ):
+        raise ValueError("IoT rule replacement requires a pending, unblocked DESTROY. Run 'plan' again.")
+      current_payload = self._validate_destroy_plan(destroy_action)
+    else:
+      current_payload = self._current_payload(self._topic_rule(action["resource"]))
+      completed_rule_change = (
+        action["action"] in (ACTION_DEPLOY, ACTION_UPDATE)
+        and self._payload_matches(current_payload, action["topic_rule_payload"])
+      )
+      if current_payload != action["aws_topic_rule_payload"] and not completed_rule_change:
+        raise ValueError("IoT rule changed in AWS after planning. Run 'plan' again.")
+    permission_missing = self._permission_missing(globals.dispatcher_lambda_function_name(), action["resource"])
+    if action["action"] == ACTION_NO_CHANGE and permission_missing:
+      raise ValueError("Dispatcher Lambda permission is missing. Run 'plan' again.")
+    return current_payload
+
+  def deploy(self, rule_name=None, topic=None, function_name=None, topic_rule_payload=None):
     rule_name = rule_name or globals.dispatcher_iot_rule_name()
     topic = topic or globals.dispatcher_iot_rule_topic()
-    sql = f"SELECT * FROM '{topic}'"
 
     function_name = function_name or globals.dispatcher_lambda_function_name()
+    payload = topic_rule_payload or self._rule_payload(topic, function_name)
+    current_payload = self._current_payload(self._topic_rule(rule_name))
 
-    globals.aws_iot_client.create_topic_rule(
-      ruleName=rule_name,
-      topicRulePayload={
-        "sql": sql,
-        "description": "",
-        "actions": self._actions(function_name),
-        "ruleDisabled": False
-      }
-    )
-
-    self.log(f"Created IoT rule: {rule_name}")
-
-    globals.aws_lambda_client.add_permission(
-      FunctionName=function_name,
-      StatementId=self.LAMBDA_PERMISSION_STATEMENT_ID,
-      Action="lambda:InvokeFunction",
-      Principal="iot.amazonaws.com",
-      SourceArn=iot_rule_arn(rule_name)
-    )
-
-    self.log(f"Added permission to Lambda function so the rule can invoke the function.")
+    if current_payload is None:
+      globals.aws_iot_client.create_topic_rule(ruleName=rule_name, topicRulePayload=payload)
+      self.log(f"Created IoT rule: {rule_name}")
+    elif not self._payload_matches(current_payload, payload):
+      raise ValueError("IoT rule already exists with a different configuration. Run 'plan' again.")
+    self._ensure_permission(function_name, rule_name)
 
   def destroy(self, rule_name=None, function_name=None):
     function_name = function_name or globals.dispatcher_lambda_function_name()
@@ -185,22 +298,30 @@ class DispatcherIotRuleDeployer(Deployer):
   def info(self):
     rule_name = globals.dispatcher_iot_rule_name()
 
-    try:
-      globals.aws_iot_client.get_topic_rule(ruleName=rule_name)
+    if self._topic_rule(rule_name) is not None:
       self.log(f"✅ Dispatcher Iot Rule exists: {util.link_to_iot_rule(rule_name)}")
-    except ClientError as e:
-      if e.response["Error"]["Code"] == "UnauthorizedException":
-        self.log(f"❌ Dispatcher IoT Rule missing: {rule_name}")
-      else:
-        raise
+    else:
+      self.log(f"❌ Dispatcher IoT Rule missing: {rule_name}")
 
   def apply(self, action, resource):
     if action["action"] == ACTION_DESTROY:
+      if "aws_topic_rule_payload" in action:
+        self._validate_destroy_plan(action)
       self.destroy(
         rule_name=resource,
         function_name=deployment_state.last_applied_dispatcher_lambda_function_name(),
       )
     elif action["action"] == ACTION_DEPLOY:
-      self.deploy(resource)
+      self.validate_plan(action)
+      self.deploy(resource, topic_rule_payload=action["topic_rule_payload"])
+    elif action["action"] == ACTION_UPDATE:
+      current_payload = self.validate_plan(action)
+      self._ensure_permission(globals.dispatcher_lambda_function_name(), resource)
+      if not self._payload_matches(current_payload, action["topic_rule_payload"]):
+        globals.aws_iot_client.replace_topic_rule(
+          ruleName=resource,
+          topicRulePayload=action["topic_rule_payload"],
+        )
+      self.log(f"Updated IoT rule: {resource}")
     else:
       raise ValueError(f"Unsupported core_l1 action: {action['action']}")

@@ -1,6 +1,8 @@
 from deployers.base import Deployer
+from deployers.aws.core.trust_policy import service_trust_policy
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.aws.core.plan_actions import plan_action
+from deployers.aws.core import aws_arns
 from dependency_graph import plan_graph_ids
 import json
 import time
@@ -49,18 +51,7 @@ class EventCheckerIamRoleDeployer(Deployer):
     globals.aws_iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "lambda.amazonaws.com"
-                },
-                "Action": "sts:AssumeRole"
-              }
-            ]
-          }
+          service_trust_policy("lambda.amazonaws.com")
         )
     )
 
@@ -68,10 +59,6 @@ class EventCheckerIamRoleDeployer(Deployer):
 
     policy_arns = [
       "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-      "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
-      "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2",
-      "arn:aws:iam::aws:policy/AWSLambda_ReadOnlyAccess",
-      "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess"
     ]
 
     for policy_arn in policy_arns:
@@ -82,7 +69,10 @@ class EventCheckerIamRoleDeployer(Deployer):
 
       self.log(f"Attached IAM policy ARN: {policy_arn}")
 
-    policy_name = "TwinmakerAccess"
+    policy_name = "EventCheckerScopedAccess"
+
+    workspace_name = globals.twinmaker_workspace_name()
+    digital_twin_name = globals.config["digital_twin_name"]
 
     globals.aws_iam_client.put_role_policy(
       RoleName=role_name,
@@ -93,34 +83,27 @@ class EventCheckerIamRoleDeployer(Deployer):
           "Statement": [
             {
               "Effect": "Allow",
-              "Action": "iottwinmaker:ListWorkspaces",
-              "Resource": "*"
-            },
-            {
-    "Effect": "Allow",
-    "Action": ["ssm:GetParameter"],
-    "Resource": f"arn:aws:ssm:*:*:parameter{globals.ssm_registry_prefix()}/*"
-}
-,            {
-              "Effect": "Allow",
               "Action": [
-                "iottwinmaker:*",
+                "iottwinmaker:GetPropertyValueHistory",
+                "iottwinmaker:GetPropertyValue"
               ],
-              "Resource": "*"
+              "Resource": [
+                aws_arns.twinmaker_workspace_arn(workspace_name),
+                aws_arns.twinmaker_workspace_children_arn(workspace_name)
+              ]
             },
             {
               "Effect": "Allow",
               "Action": [
-                "dynamodb:*",
+                "lambda:GetFunction",
+                "lambda:InvokeFunction"
               ],
-              "Resource": "*"
+              "Resource": aws_arns.lambda_function_name_wildcard_arn(f"{digital_twin_name}-")
             },
             {
               "Effect": "Allow",
-              "Action": [
-                "s3:*"
-              ],
-              "Resource": "*"
+              "Action": "states:StartExecution",
+              "Resource": aws_arns.state_machine_arn(globals.lambda_chain_step_function_name())
             }
           ]
         }

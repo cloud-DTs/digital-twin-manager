@@ -1,5 +1,6 @@
 from deployers.aws.apply_actions import ACTION_DESTROY, ACTION_DEPLOY
 from deployers.base import Deployer
+from deployers.aws.core.trust_policy import service_trust_policy
 from deployers.aws.core.json_helpers import normalized_json
 from deployers.aws.core.plan_actions import plan_action
 from dependency_graph import plan_graph_ids
@@ -27,18 +28,7 @@ class DispatcherIamRoleDeployer(Deployer):
     return self._role(role_name) is not None
 
   def _role_policy_document(self):
-    return {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "lambda.amazonaws.com"
-          },
-          "Action": "sts:AssumeRole"
-        }
-      ]
-    }
+    return service_trust_policy("lambda.amazonaws.com")
 
   def _policy_arns(self):
     return {

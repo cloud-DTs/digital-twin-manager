@@ -5,7 +5,7 @@ This document describes the IAM permissions required by `digital-twin-manager` w
 The permission set is derived from:
 
 - Direct Boto3 calls in `src/`.
-- The command flow in `src/main.py` for `deploy`, `info`, and `destroy`.
+- The command flow in `src/main.py` for `deploy`, `plan`, `apply`, `info`, and `destroy`.
 - AWS dependent permissions required by services such as Lambda, Step Functions, AWS IoT TwinMaker, and Amazon Managed Grafana.
 
 The policy examples use `Resource: "*"` because the application creates resources with names derived from `digital_twin_name`, IoT device IDs, event action configuration, and generated AWS resource ARNs. A production policy should narrow resources where possible.
@@ -26,9 +26,12 @@ sts:GetCallerIdentity
 
 Used to create and remove runtime IAM roles for Lambda, Step Functions, TwinMaker, and Grafana. The application also attaches AWS managed policies and writes inline policies to those roles.
 
+Hot Reader and Event Feedback planning read the current inline policies with `GetRolePolicy`. Event Feedback uses `PutRolePolicy` to add or update permissions when MQTT topics change. When the last MQTT feedback is removed, it uses `DeleteRolePolicy` to remove only `EventFeedbackScopedAccess`. The role and its attached AWS managed policies remain in place. Event Feedback policy updates run before EventChecker code updates in `core_l2`.
+
 ```text
 iam:CreateRole
 iam:GetRole
+iam:GetRolePolicy
 iam:UpdateAssumeRolePolicy
 iam:PutRolePolicy
 iam:DeleteRolePolicy
@@ -42,7 +45,7 @@ iam:DeleteRole
 iam:PassRole
 ```
 
-`iam:PassRole` is not called as a Boto3 IAM operation, but it is required when the application passes role ARNs to Lambda, Step Functions, TwinMaker, and Grafana create operations.
+`iam:PassRole` is not called as a Boto3 IAM operation, but it is required when the application passes role ARNs to Lambda, Step Functions, TwinMaker, and Grafana create operations, and to Lambda configuration updates.
 
 ### Lambda
 
@@ -51,6 +54,8 @@ Used for core Lambdas, per-device processor Lambdas, optional internal event act
 ```text
 lambda:CreateFunction
 lambda:GetFunction
+lambda:UpdateFunctionCode
+lambda:UpdateFunctionConfiguration
 lambda:GetPolicy
 lambda:DeleteFunction
 lambda:AddPermission
@@ -58,6 +63,8 @@ lambda:RemovePermission
 ```
 
 Internal event action Lambdas are only created when `config_events.json` contains an action with `"external": false`. The current checked-in configuration uses `"external": true`, but the application code supports internal actions.
+
+Planning reads `CodeSha256`, `RevisionId` and function settings from AWS for all manager-owned core, processor and internal Event Action Lambdas. Hot Reader planning also reads its role policy. Code changes use `UpdateFunctionCode`; settings changes use `UpdateFunctionConfiguration`. Both calls use `RevisionId` to reject concurrent changes. After a configuration update, the code update uses the revision returned by that operation. The `function_updated_v2` waiter uses `GetFunction`; it does not require another read permission.
 
 ### AWS IoT
 
@@ -71,9 +78,11 @@ iot:CreateKeysAndCertificate
 iot:UpdateCertificate
 iot:DeleteCertificate
 iot:CreatePolicy
+iot:GetPolicy
 iot:DeletePolicy
 iot:DeletePolicyVersion
 iot:ListPolicyVersions
+iot:ListTargetsForPolicy
 iot:AttachPolicy
 iot:DetachPolicy
 iot:AttachThingPrincipal
@@ -82,12 +91,40 @@ iot:ListThingPrincipals
 iot:ListAttachedPolicies
 iot:CreateTopicRule
 iot:GetTopicRule
+iot:ReplaceTopicRule
 iot:ListTopicRules
 iot:DeleteTopicRule
 iot:Publish
 ```
 
 `iot:Publish` is used by the init-values deployer when any configured IoT property has `initValue`. The current `config_iot_devices.json` contains init values, so this permission is part of the active deployment flow.
+
+Dispatcher rule planning uses `GetTopicRule` to compare its SQL and target with AWS.
+An `UnauthorizedException` is not enough to conclude that a rule is missing.
+The lookup checks all `ListTopicRules` pages to confirm absence. If the rule is
+listed, the original read error is raised. If listing fails, that error is
+raised. This stops `plan`, direct `deploy` and the `apply` preflight before
+resource changes. `info` uses the same lookup. Both `iot:GetTopicRule` and
+`iot:ListTopicRules` are required. See
+[ListTopicRules](https://docs.aws.amazon.com/iot/latest/apireference/API_ListTopicRules.html).
+Changing `DEBUG` uses `ReplaceTopicRule` to update the existing rule. This keeps
+its name, SQL version, description and error action. Apply checks the saved rule
+configuration and AWS snapshot before changing resources. Generate a new plan
+after changing `DEBUG`, or when using a saved plan without rule metadata.
+Planning also uses `lambda:GetPolicy` to check the Dispatcher's `iot-invoke`
+permission. A missing permission produces `UPDATE`; `lambda:AddPermission`
+restores only that grant. Retrying a partial deployment reuses a matching rule
+and permission. A conflicting grant is reported without replacing it.
+The Persister uses its existing `dynamodb:PutItem` and CloudWatch Logs permissions
+for debug timing; its runtime role needs no additional permissions. See
+[ReplaceTopicRule](https://docs.aws.amazon.com/iot/latest/apireference/API_ReplaceTopicRule.html).
+
+IoT L1 reads the shared `<digitalTwinName>-iot-policy` with `GetPolicy` before
+creation or reuse. Planning reads device principals and attached policies to
+detect legacy per-device policies. Migration attaches the shared policy before
+detaching the legacy policy. `ListTargetsForPolicy` prevents deletion of a policy
+that still has targets. Removing a device preserves the shared policy; the
+full twin destroy removes it after the device identities.
 
 ### EventBridge
 
@@ -112,7 +149,10 @@ dynamodb:DescribeTable
 dynamodb:DeleteTable
 dynamodb:CreateBackup
 dynamodb:DescribeBackup
+dynamodb:UpdateContinuousBackups
 ```
+
+`dynamodb:UpdateContinuousBackups` enables Point-in-Time Recovery on the Hot table immediately after it becomes active.
 
 ### S3
 
@@ -120,7 +160,12 @@ Used for TwinMaker, cold storage, and archive buckets. The destroy flow empties 
 
 ```text
 s3:CreateBucket
+s3:GetBucketPolicy
+s3:PutBucketPolicy
 s3:PutBucketCORS
+s3:PutBucketPublicAccessBlock
+s3:PutBucketVersioning
+s3:PutEncryptionConfiguration
 s3:GetBucketLocation
 s3:ListBucket
 s3:ListBucketVersions
@@ -128,6 +173,10 @@ s3:DeleteObject
 s3:DeleteObjectVersion
 s3:DeleteBucket
 ```
+
+`s3:PutBucketPublicAccessBlock`, `s3:PutBucketVersioning`, and `s3:PutEncryptionConfiguration` are used immediately after `s3:CreateBucket` for all three buckets (TwinMaker, cold, archive) to block public access, enable versioning, and enable SSE-S3 encryption. This closed a gap where those buckets relied entirely on the AWS account's org-level default for public-access protection and had no versioning to protect against accidental overwrite/delete — see the ICSA evaluation (`EVALUATION.md` in the bundle root) for the audit that found it.
+
+The TwinMaker bucket also denies HTTP requests with `aws:SecureTransport=false`. AWS service principals are excluded because service calls can redact transport context. `BoolIfExists` on `aws:PrincipalIsAWSService` keeps anonymous HTTP requests covered when that key is absent. Planning reads the bucket policy with `GetBucketPolicy`; `apply` adds the denial with `PutBucketPolicy` without replacing the bucket or removing existing policy statements. If the policy changes in AWS after planning, run `plan` again. See [AWS transport policy guidance](https://docs.aws.amazon.com/AmazonS3/latest/userguide/amazon-s3-policy-keys.html#example-bucket-policies-TLS-version) and [IAM condition operators](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_IfExists).
 
 ### AWS IoT TwinMaker
 
@@ -225,6 +274,7 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "iam:CreateRole",
         "iam:GetRole",
+        "iam:GetRolePolicy",
         "iam:UpdateAssumeRolePolicy",
         "iam:PutRolePolicy",
         "iam:DeleteRolePolicy",
@@ -261,6 +311,8 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Action": [
         "lambda:CreateFunction",
         "lambda:GetFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
         "lambda:GetPolicy",
         "lambda:DeleteFunction",
         "lambda:AddPermission",
@@ -279,9 +331,11 @@ The following policy is intended for the IAM principal whose access keys are sto
         "iot:UpdateCertificate",
         "iot:DeleteCertificate",
         "iot:CreatePolicy",
+        "iot:GetPolicy",
         "iot:DeletePolicy",
         "iot:DeletePolicyVersion",
         "iot:ListPolicyVersions",
+        "iot:ListTargetsForPolicy",
         "iot:AttachPolicy",
         "iot:DetachPolicy",
         "iot:AttachThingPrincipal",
@@ -290,6 +344,7 @@ The following policy is intended for the IAM principal whose access keys are sto
         "iot:ListAttachedPolicies",
         "iot:CreateTopicRule",
         "iot:GetTopicRule",
+        "iot:ReplaceTopicRule",
         "iot:ListTopicRules",
         "iot:DeleteTopicRule",
         "iot:Publish"
@@ -317,7 +372,8 @@ The following policy is intended for the IAM principal whose access keys are sto
         "dynamodb:DescribeTable",
         "dynamodb:DeleteTable",
         "dynamodb:CreateBackup",
-        "dynamodb:DescribeBackup"
+        "dynamodb:DescribeBackup",
+        "dynamodb:UpdateContinuousBackups"
       ],
       "Resource": "*"
     },
@@ -326,7 +382,12 @@ The following policy is intended for the IAM principal whose access keys are sto
       "Effect": "Allow",
       "Action": [
         "s3:CreateBucket",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
         "s3:PutBucketCORS",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
         "s3:GetBucketLocation",
         "s3:ListBucket",
         "s3:ListBucketVersions",
@@ -395,19 +456,60 @@ The following policy is intended for the IAM principal whose access keys are sto
 
 The permissions above are for the deployment principal. During deployment, the application creates runtime roles and attaches AWS managed or inline policies to those roles. Those runtime policies are not required directly on the deployment principal, except that the principal needs IAM permissions to create and attach them.
 
-Examples of runtime policies attached by the application include:
+Managed policies attached by the application:
 
 ```text
 arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 arn:aws:iam::aws:policy/service-role/AWSLambdaRole
-arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess_v2
-arn:aws:iam::aws:policy/AWSLambda_ReadOnlyAccess
-arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess
-arn:aws:iam::aws:policy/AWSIoTDataAccess
-arn:aws:iam::aws:policy/AmazonS3FullAccess
 ```
 
-The Event-checker Lambda receives an inline `ssm:GetParameter` policy for the `/<digitalTwinName>/event-registry/*` parameter path. The deployment principal does not call SSM directly; it creates that inline runtime policy with `iam:PutRolePolicy`. The external federation component that populates the registry needs its own SSM write permissions.
+`AWSLambdaBasicExecutionRole` (CloudWatch Logs) is attached to every runtime role. `AWSLambdaRole` (`lambda:InvokeFunction` on all functions) is attached only to the Dispatcher, LambdaChain, and per-device Processor roles, which invoke a downstream Lambda whose exact name isn't fixed at role-creation time. No runtime role uses an AWS-managed `*FullAccess`/`*ReadOnlyAccess`/`*DataAccess` policy — each role that needs DynamoDB, S3, IoT TwinMaker, Lambda, or Step Functions access gets a scoped inline policy instead (see below). This replaced an earlier version of this document/implementation where several roles held `AmazonDynamoDBFullAccess_v2`, `AWSLambda_ReadOnlyAccess`, `AWSStepFunctionsFullAccess`, `AWSIoTDataAccess`, and `AmazonS3FullAccess` — a source-level audit (see the ICSA evaluation, `EVALUATION.md` in the bundle root) found these granted far more than the corresponding Lambda's own source code ever calls.
+
+### Inline Runtime Policies (Scoped)
+
+Each policy is scoped to only the resources that role's Lambda (or, for TwinMaker/Grafana, AWS service) actually calls, using ARN builders in `src/deployers/aws/core/aws_arns.py`.
+
+| Role | Grants | Scoped to |
+|---|---|---|
+| Persister | `dynamodb:PutItem`; `lambda:InvokeFunction` | this twin's Hot table; the Event-Checker Lambda |
+| Event-Checker | `iottwinmaker:GetPropertyValueHistory`/`GetPropertyValue`; `lambda:GetFunction`/`InvokeFunction`; `states:StartExecution` | this twin's TwinMaker workspace; this twin's own `{digitalTwinName}-*` Lambda functions; this twin's LambdaChain state machine |
+| TwinMaker service role | `s3:GetObject`/`PutObject`/`DeleteObject`/`ListBucket`/`GetBucketLocation`; `lambda:InvokeFunction` | this twin's TwinMaker S3 bucket; the Hot Reader Lambda |
+| Hot Reader | `dynamodb:Query`; `iottwinmaker:GetEntity`/`GetComponentType` | this twin's Hot table; this twin's TwinMaker workspace and its entities/component types |
+| Hot-to-Cold Mover | `dynamodb:Query`/`BatchWriteItem`; `s3:PutObject` | this twin's Hot table; this twin's Cold bucket |
+| Cold-to-Archive Mover | `s3:ListBucket`/`ListBucketVersions`/`GetObject`/`GetObjectVersion`/`DeleteObject`/`DeleteObjectVersion` (source); `s3:GetBucketVersioning` (source and target); `s3:PutObject` (target) | this twin's Cold bucket; this twin's Archive bucket |
+| Event-Feedback | `iot:Publish` | MQTT feedback topics configured in `config_events.json`; reconciled by `plan` and `apply` |
+| Grafana execution role | `s3:GetObject`; `iottwinmaker:Get*`/`List*`; `iottwinmaker:ListWorkspaces` | this twin's TwinMaker S3 bucket; this twin's TwinMaker workspace; `Resource:"*"` (see exception below) |
+
+Two statements are intentionally broader than "this twin's own resources" and are documented exceptions, not leftover over-broad grants:
+
+- **Grafana's `iottwinmaker:ListWorkspaces` on `Resource:"*"`** — this is AWS's own documented requirement for the `grafana-iot-twinmaker-app` plugin (a List-level action that can't be scoped to one workspace; see [AWS's dashboard IAM role guide](https://docs.aws.amazon.com/iot-twinmaker/latest/guide/dashboard-IAM-role.html)), not an oversight. The rest of that role's policy matches AWS's documented "no video permissions" template. Grafana deployment is disabled by default via `deploy_managed_grafana`.
+- There is deliberately **no third exception for cross-twin federation.** The repo has a "FunctionRegistry" SSM-registry lookup in Event-Checker (`lookup_registry()` in `lambda_functions/core/event-checker/lambda_function.py`, merged from elsewhere — see git history) that lets one twin invoke another twin's Lambda/Step Function. This scoping fix intentionally removed the `ssm:GetParameter` permission that supported it, since federation is out of scope for the current evaluation. The runtime code still *attempts* the SSM call unconditionally (`SSM_REGISTRY_PREFIX` is always set), but its failure is caught by a broad exception handler and falls back to normal local invocation — so this shows up as a harmless `AccessDenied` line in CloudWatch Logs on every action, not a functional break. If federation is needed again, re-adding a scoped `ssm:GetParameter` statement and a bounded federation-target exception is a follow-up, not part of this fix.
+
+### Shared IoT Policy
+
+`IotPolicyDeployer` in `src/deployers/aws/iot/iot_policy.py` manages one policy named `<digitalTwinName>-iot-policy` for each twin. `IotThingDeployer` attaches this policy to every device certificate. Each device keeps its own Thing, certificate and keys.
+
+Adding devices or changing MQTT feedback topics reuses the existing policy. `plan` and `apply` migrate legacy device policy attachments to the shared policy while preserving certificates and local keys. Removing one device preserves the shared policy; a full twin destroy removes it after the device identities.
+
+The policy document grants `iot:*` on `Resource: "*"`. These permissions apply across the AWS account and allow access to all MQTT client IDs and topics.
+
+### Trust Policies
+
+Every runtime role's trust policy (Lambda, Step Functions, TwinMaker, Grafana) is built by `service_trust_policy()` in `src/deployers/aws/core/trust_policy.py`. It adds an `aws:SourceAccount` condition set to the deploying account, so the service principal can only assume the role on behalf of resources in this account (cross-service confused deputy protection). No `aws:SourceArn` is set, because the resources that assume these roles do not exist yet when the role is created.
+
+The Hot Reader Lambda's resource policy (`AllowTwinmakerInvoke`, created in `hot_reader_lambda_function.py`) restricts invocation by `iottwinmaker.amazonaws.com` with `SourceAccount` set to the deploying account. See [Lambda add_permission](https://docs.aws.amazon.com/sdk-for-python/v1/reference/clients/lambda/operations/add_permission/).
+
+This Lambda permission is added when the function is created, including creation through `apply`. Code and configuration updates do not reconcile an existing function's resource policy. The account conditions on role trust policies also apply only to freshly created roles.
+
+### Reconciliation caveat
+
+Hot Reader, Event Feedback and Cold-to-Archive Mover compare their desired inline policy content with AWS and plan `UPDATE` when it differs. Run `plan`, then `apply`, to reconcile those policies without replacing the roles. Other runtime IAM role planners still compare only role names. Changes to their inline policy content require redeploying the affected roles.
+
+The TwinMaker service role grants `s3:GetBucketLocation` on its workspace bucket ARN. For an existing role, update `TwinMakerExecutionPolicy` in IAM before retrying workspace creation; `plan` and `apply` do not reconcile this role's inline policy.
+
+The Cold-to-Archive Mover needs version permissions to copy and permanently delete old source versions, including versions hidden by delete markers. Archive bucket versioning must be `Enabled` when the source key has native S3 versions. The mover checks this before copying and verifies the returned archive version ID before deleting the source. It also supports legacy unversioned buckets. An enabled source bucket protects its legacy `null` versions from replacement by ordinary writes, so these versions are deleted by ID without a condition. Mutable current `null` versions use ETag conditions. For a noncurrent `null` version in a suspended source, the mover stops before copying that key and requires source versioning to be enabled. ETag conditions compare content, not metadata or write identity. See [deleting object versions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DeletingObjectVersions.html), [ListObjectVersions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectVersions.html) and [conditional deletes](https://docs.aws.amazon.com/AmazonS3/latest/userguide/conditional-deletes.html).
+
+The same limitation applies to the S3 bucket hardening (public-access-block, versioning, SSE-S3 encryption) and DynamoDB Point-in-Time Recovery described above: the corresponding `plan()` methods (`archive_s3_bucket.py`, `cold_s3_bucket.py`, `twinmaker_s3_bucket.py`, `hot_dynamodb_table.py`) do not compare these configuration values. These settings only apply to a freshly created bucket/table; an already-existing one with the same name needs `destroy`+`deploy` to pick them up. The TwinMaker HTTP denial is reconciled separately through `UPDATE`.
 
 ## Notes
 

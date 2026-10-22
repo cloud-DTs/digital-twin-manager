@@ -3,6 +3,10 @@ from deployers.aws.iot.l2 import L2Deployer
 from deployers.aws.iot.l4 import L4Deployer
 from deployers.aws.apply_actions import ACTION_DEPLOY, ACTION_DESTROY
 from deployers.base import Deployer
+from deployers.aws.lambda_function import needs_lambda_validation
+from deployers.aws.iot.processor_lambda_function import ProcessorLambdaFunctionDeployer
+import globals
+from validation import component_types
 
 class AllDeployer(Deployer):
   LAYERS = [
@@ -15,6 +19,7 @@ class AllDeployer(Deployer):
     print(f"IoT: {message}")
   
   def plan(self):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     return {
       "group": "iot",
       "layers": [
@@ -23,7 +28,19 @@ class AllDeployer(Deployer):
       ],
     }
 
+  def validate_plan(self, group_plan):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
+    for layer in group_plan["layers"]:
+      for action in layer["actions"]:
+        if action["resource_type"] != "lambda_function" or not needs_lambda_validation(action):
+          continue
+        iot_device = L2Deployer()._iot_device_for_action(action, "lambda_function")
+        if iot_device is None:
+          raise ValueError("Processor Lambda configuration changed after planning. Run 'plan' again.")
+        ProcessorLambdaFunctionDeployer().validate_plan(action, iot_device)
+
   def apply(self, group_plan, action_name):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     layers_by_name = {
       layer["layer"]: layer
       for layer in group_plan["layers"]
@@ -44,6 +61,7 @@ class AllDeployer(Deployer):
 
 
   def deploy(self):
+    component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     L1Deployer().deploy()
     L2Deployer().deploy()
     L4Deployer().deploy()

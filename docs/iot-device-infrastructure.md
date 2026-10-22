@@ -1,6 +1,6 @@
 # IoT Device Infrastructure
 
-Unlike the Core infrastructure, which creates shared resources for the entire digital twin, the IoT infrastructure creates specific AWS resources for every individual device defined in `config_iot_devices.json`.
+The IoT infrastructure creates device resources from `config_iot_devices.json`. All devices in a twin use one shared IoT policy named `<digitalTwinName>-iot-policy`. Each device has its own Thing, certificate, and authentication files.
 
 The deployment is organized into three specific layers, executed in the order of **L1 → L2 → L4** (and destroyed in the strict reverse order of **L4 → L2 → L1**). Notably, there is no IoT L3 layer because storage is handled by the shared Core L3 infrastructure.
 
@@ -13,7 +13,43 @@ The deployment is organized into three specific layers, executed in the order of
 - Creates the AWS IoT Thing, which represents the device in AWS IoT Core.
 - Generates a certificate, public key, and private key to allow the device to authenticate and publish MQTT messages.
 - Stores authentication files locally in an `iot_devices_auth/` directory.
-- Creates and attaches an IoT policy to enable device connectivity.
+- Creates or reuses the shared IoT policy before creating device identities.
+- Attaches the shared policy to each device certificate.
+
+`IotPolicyDeployer` manages the shared policy. `IotThingDeployer` manages Things,
+certificates, and their attachments. Removing one device preserves the shared
+policy. The policy remains when the device list is empty. Destroying the twin
+removes it after all device identities. A policy with remaining targets is not
+deleted.
+
+When `deploy` or a saved `apply` is repeated, IoT L1 reads the current Thing
+principals before creating a certificate. If one principal is attached, it
+reuses that certificate and completes the shared-policy attachment. It keeps
+the local certificate and key files. If multiple principals are attached,
+deployment stops before creating another certificate.
+
+For an existing deployment, run `plan`, then `apply`. IoT L1 uses `UPDATE` to
+attach the shared policy before detaching each legacy `<digitalTwinName>-<iotDeviceId>`
+policy. This preserves Things, certificates, and local authentication files.
+Unused legacy policies and their non-default versions are then removed.
+Policies still attached to other targets are retained. Unrelated policies are
+not removed during migration. The shared policy retains the existing permission
+document (`iot:*` on `*`).
+
+After migration, a device has `NO_CHANGE` when all its principals use the shared
+policy and none uses its legacy policy. A legacy policy retained for another
+target does not trigger another device update. If that policy later has no
+targets, `plan` schedules an `UPDATE` to remove it. Planning reads all target
+pages needed for this check. AWS errors other than a missing policy stop planning.
+
+Migration needs one free policy slot and permission to call `iot:GetPolicy` and
+`iot:ListTargetsForPolicy`, in addition to the existing IoT permissions.
+AWS can delay policy deletion for up to five minutes after detachment; see
+[DeletePolicy](https://docs.aws.amazon.com/iot/latest/apireference/API_DeletePolicy.html).
+If cleanup reports a conflict, run a new `plan` and `apply` after that delay.
+Device removal keeps its action pending if policy deletion reports a conflict;
+repeat `apply` after the delay.
+If a full destroy reports a conflict, repeat `destroy` after the delay.
 
 ### IoT L2: Device-Specific Processing
 

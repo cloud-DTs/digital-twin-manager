@@ -1,3 +1,6 @@
+from deployers.aws.iot.device_config import infer_iot_device_id, iot_device_ids_by_component_type
+
+
 CONFIG_NAME = "cross-config"
 
 AWS_PROVIDER = "aws"
@@ -8,6 +11,7 @@ def validate(
   config_iot_devices,
   config_hierarchy,
   config_events,
+  config=None,
 ):
   _validate_provider_compatibility(
     config_providers,
@@ -22,6 +26,7 @@ def validate(
   _validate_hierarchy_iot_device_references(
     config_hierarchy,
     iot_devices_by_id,
+    iot_device_ids_by_component_type(config, config_iot_devices, config_hierarchy) if config is not None else {},
   )
   _validate_event_condition_references(
     config_events,
@@ -92,12 +97,14 @@ def _validate_provider_compatibility(
 def _validate_hierarchy_iot_device_references(
   config_hierarchy,
   iot_devices_by_id,
+  device_ids_by_type,
 ):
   for index, entity in enumerate(config_hierarchy):
     _validate_entity_iot_device_references(
       entity,
       f"config_hierarchy.json[{index}]",
       iot_devices_by_id,
+      device_ids_by_type,
     )
 
 
@@ -105,6 +112,7 @@ def _validate_entity_iot_device_references(
   entity,
   field,
   iot_devices_by_id,
+  device_ids_by_type,
 ):
   for index, child in enumerate(entity["children"]):
     child_field = f"{field}.children[{index}]"
@@ -114,6 +122,7 @@ def _validate_entity_iot_device_references(
         child,
         child_field,
         iot_devices_by_id,
+        device_ids_by_type,
       )
     elif child["type"] == "component" and "iotDeviceId" in child:
       iot_device_id = child["iotDeviceId"]
@@ -123,6 +132,8 @@ def _validate_entity_iot_device_references(
           f"{child_field}.iotDeviceId references unknown "
           f"config_iot_devices.json id: {iot_device_id}"
         )
+    elif child["type"] == "component":
+      infer_iot_device_id(child["componentTypeId"], device_ids_by_type)
 
 
 def _validate_event_condition_references(

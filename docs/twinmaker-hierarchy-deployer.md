@@ -39,12 +39,27 @@ Child entities are deployed recursively.
 
 For each component entry, the deployer attaches the component to its parent entity using TwinMaker `update_entity` with `componentUpdates`.
 
-The Component Type is resolved in one of two ways:
+The Component Type is resolved from the component entry:
 
-- If the component entry defines `componentTypeId`, that value is used directly.
-- Otherwise, the deployer derives the Component Type ID as `<digitalTwinName>-<iotDeviceId>`.
+- With both `iotDeviceId` and `componentTypeId`, the type ID is `<digitalTwinName>-<componentTypeId>`. Here `componentTypeId` is the logical name of a managed type.
+- With only `iotDeviceId`, the type ID is `<digitalTwinName>-<iotDeviceId>`.
+- With only `componentTypeId`, the value is the full ID of an existing type.
 
-Because of this dependency, every derived `iotDeviceId` must match a device in `config_iot_devices.json` so that IoT L4 can create the corresponding Component Type first.
+Every explicit `iotDeviceId` must match a device in `config_iot_devices.json`. IoT L4 creates the managed Component Types before the hierarchy phase.
+
+For a component with only `componentTypeId`, the deployer matches the full type ID against the effective IoT device configuration. If exactly one device uses that type, the deployer fills its native `iotDeviceId` property. The device ID comes from the configuration. It can differ from the type name. If multiple devices use the type, the component must specify `iotDeviceId`. Configuration validation rejects an ambiguous reference before AWS resources are changed.
+
+Types absent from the managed device configuration remain external references. Legacy managed types without a native `iotDeviceId` property continue to use the Hot Reader's legacy resolution.
+
+## Device Binding Updates
+
+For an otherwise unchanged hierarchy, `plan` checks the inferred device IDs against the native values in AWS. Missing, empty or incorrect values produce an `UPDATE` action. `apply` uses [TwinMaker UpdateEntity](https://docs.aws.amazon.com/iot-twinmaker/latest/apireference/API_UpdateEntity.html) to change only those `iotDeviceId` values. Entity identities, child entities and other component properties are preserved.
+
+For new or replacement entities, `DEPLOY` actions store the inferred device bindings from the configuration. Before any resource changes, `apply` compares these bindings with the current configuration. This check does not require the entity or its Component Types to exist in AWS. The deploy handler checks the bindings again before creating the entity. Saved `DEPLOY` plans without binding metadata must be regenerated with `plan`.
+
+For `UPDATE`, `apply` verifies both the configured bindings and their saved AWS values before changing resources. Changed bindings or AWS values require a new plan. Each entity update must reach `ACTIVE` with the expected property values before the action is recorded as processed. An AWS error or timeout stops the apply operation.
+
+An incomplete AWS response that omits a required component or `iotDeviceId` property produces an error. The deployer does not treat omitted data as an unset value.
 
 ## What This Deployer Does Not Create
 
