@@ -227,6 +227,22 @@ class IamRoleLeastPrivilegeTests(unittest.TestCase):
                   f"Resource:\"*\" (only {ALLOWED_WILDCARD_RESOURCE_ACTIONS} are allowed)"
                 )
 
+  def test_twinmaker_bucket_location_permission_is_scoped_to_its_workspace_bucket(self) -> None:
+    TwinmakerIamRoleDeployer().deploy()
+
+    location_permissions = [
+      (call["RoleName"], resource)
+      for call in globals.aws_iam_client.put_role_policy_calls
+      for statement in _all_statements(call["PolicyDocument"])
+      if statement["Effect"] == "Allow" and "s3:GetBucketLocation" in _actions(statement)
+      for resource in _resources(statement)
+    ]
+
+    self.assertEqual(
+      [("dtc-y-01-twinmaker", "arn:aws:s3:::dtc-y-01-twinmaker")],
+      location_permissions,
+    )
+
   def test_service_trust_policies_are_bound_to_the_account(self) -> None:
     import json
 

@@ -77,7 +77,10 @@ class TwinmakerIamRoleDeployer(Deployer):
           },
           {
             "Effect": "Allow",
-            "Action": "s3:ListBucket",
+            "Action": [
+              "s3:ListBucket",
+              "s3:GetBucketLocation"
+            ],
             "Resource": aws_arns.s3_bucket_arn(bucket_name)
           },
           {
