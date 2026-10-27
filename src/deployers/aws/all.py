@@ -24,6 +24,10 @@ class AllDeployer(Deployer):
   def deploy(self):
     component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     for deployer_class in self.GROUP_DEPLOYERS.values():
+      validate = getattr(deployer_class(), "validate_config", None)
+      if validate is not None:
+        validate()
+    for deployer_class in self.GROUP_DEPLOYERS.values():
       deployer_class().deploy()
 
   # TODO: move destroy and info calls from main.

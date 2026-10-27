@@ -10,13 +10,15 @@ payload_index = 0
 
 def send_mqtt(payload):
   iot_device_id = payload["iotDeviceId"]
+  topic = globals.config["topic"]
+  twin_name, separator, channel = topic.partition("/")
+  if not separator or not twin_name or channel != "iot-data":
+    raise ValueError("Simulator topic must be '<Twin>/iot-data' to select its registered Thing client ID.")
   auth_path = os.path.join(globals.project_path(), globals.config["auth_files_path"], iot_device_id)
 
-  client = AWSIoTMQTTClient(iot_device_id)
+  client = AWSIoTMQTTClient(f"{twin_name}-{iot_device_id}")
   client.configureEndpoint(globals.config["endpoint"], 8883)
   client.configureCredentials(os.path.join(globals.project_path(), globals.config["root_ca_cert_path"]), os.path.join(auth_path, "private.pem.key"), os.path.join(auth_path, "certificate.pem.crt"))
-
-  topic = globals.config["topic"]
 
   client.connect()
   client.publish(topic, json.dumps(payload), 1)

@@ -4,11 +4,13 @@ import copy
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.test_shared_iot_policy import StatefulIotClient
 
 import globals
+import deployment_state
 from deployers.aws.iot.iot_thing import IotThingDeployer
 
 
@@ -22,7 +24,10 @@ class IotDevicePolicyTests(unittest.TestCase):
       patch.object(globals, "config", {"digital_twin_name": "dtc-y-01"}),
       patch.object(globals, "config_events", [], create=True),
       patch.object(globals, "aws_iot_client", self.iot),
+      patch.object(globals, "aws_sts_client", SimpleNamespace(get_caller_identity=lambda: {"Account": "123456789012"})),
       patch.object(globals, "iot_data_path", str(self.auth_path)),
+      patch.object(deployment_state, "last_applied_config", {"digital_twin_name": "dtc-y-01"}),
+      patch.object(deployment_state, "last_applied_config_events", []),
     ):
       patcher.start()
       self.addCleanup(patcher.stop)
@@ -59,7 +64,9 @@ class IotDevicePolicyTests(unittest.TestCase):
     self.deployer.deploy({"id": "device-1"})
     self.deployer.deploy({"id": "device-2"})
 
-    self.assertEqual(policy_before, self.iot.policies)
+    self.assertEqual(set(policy_before), set(self.iot.policies))
+    self.assertNotEqual(policy_before, self.iot.policies)
+    self.assertIn("custom-feedback", str(self.iot.policies))
     self.assertEqual(principal_before, self.iot.things["dtc-y-01-device-1"])
     self.assertEqual(2, len(self.iot.certificates))
     for principal in self.iot.certificates:

@@ -76,6 +76,8 @@ class PlannedAction(TypedDict):
     aws_configuration: NotRequired[dict]
     policy_document: NotRequired[dict | None]
     aws_policy_document: NotRequired[dict | None]
+    aws_policy_snapshot: NotRequired[dict | None]
+    delete_policy_version_id: NotRequired[str | None]
     component_device_bindings: NotRequired[list[dict]]
     topic_rule_payload: NotRequired[dict]
     aws_topic_rule_payload: NotRequired[dict | None]
@@ -96,6 +98,8 @@ class PlannedActionValues(TypedDict, total=False):
     aws_configuration: dict
     policy_document: dict | None
     aws_policy_document: dict | None
+    aws_policy_snapshot: dict | None
+    delete_policy_version_id: str | None
     component_device_bindings: list[dict]
     topic_rule_payload: dict
     aws_topic_rule_payload: dict | None

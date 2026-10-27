@@ -33,6 +33,7 @@ from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctio
 from deployers.aws.iot.device_reconciliation import desired_iot_devices
 from deployers.aws.iot.device_config import effective_iot_devices
 from deployers.aws.iot.processor_lambda_function import ProcessorLambdaFunctionDeployer
+from deployers.aws.iot.policy_document import policy_document
 from deployers.aws.event_actions.lambda_actions import LambdaActionsDeployer
 from botocore.exceptions import ClientError
 from dependency_graph.dependency_analyzer import analyze_plan_dependencies
@@ -225,6 +226,7 @@ class FixtureIotClient(StubAwsClient):
     super().__init__()
     self.config = configs["config"]
     self.policy_name = resource_names.iot_policy_name(configs["config"])
+    self.policy_document = policy_document(configs["config"], configs["config_events"], f"arn:aws:iot:{AWS_REGION}:123456789012")
     self.principals = {
       resource_names.iot_thing_name(configs["config"], device):
         f"arn:aws:iot:{AWS_REGION}:123456789012:cert/{device['id']}"
@@ -249,10 +251,16 @@ class FixtureIotClient(StubAwsClient):
   def get_policy(self, policyName):
     if policyName != self.policy_name:
       raise ClientError({"Error": {"Code": "ResourceNotFoundException"}}, "GetPolicy")
-    return {"policyDocument": json.dumps({
-      "Version": "2012-10-17",
-      "Statement": [{"Effect": "Allow", "Action": ["iot:*"], "Resource": "*"}],
-    })}
+    return {
+      "policyName": policyName,
+      "policyArn": f"arn:aws:iot:{AWS_REGION}:123456789012:policy/{policyName}",
+      "defaultVersionId": "1",
+      "policyDocument": json.dumps(self.policy_document),
+    }
+
+  def list_policy_versions(self, policyName):
+    self.get_policy(policyName=policyName)
+    return {"policyVersions": [{"versionId": "1", "isDefaultVersion": True}]}
 
   def list_thing_principals(self, thingName):
     if thingName not in self.principals:

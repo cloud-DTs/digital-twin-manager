@@ -33,8 +33,51 @@ attach the shared policy before detaching each legacy `<digitalTwinName>-<iotDev
 policy. This preserves Things, certificates, and local authentication files.
 Unused legacy policies and their non-default versions are then removed.
 Policies still attached to other targets are retained. Unrelated policies are
-not removed during migration. The shared policy retains the existing permission
-document (`iot:*` on `*`).
+not removed during migration. The shared policy uses explicit MQTT actions and
+scoped resource ARNs. It no longer grants `iot:*` on `*`.
+
+Certificate-based MQTT clients must connect with the registered Thing name
+`<digitalTwinName>-<iotDeviceId>`. The policy checks
+`iot:Connection.Thing.IsAttached` and the twin name. Payloads and certificate file
+paths use the device ID without the twin prefix. Certificate clients must adopt
+the registered Thing name as their MQTT client ID before the policy update.
+
+The built-in simulator reads the twin name from its configured `<Twin>/iot-data`
+topic. It connects with `<Twin>-<iotDeviceId>` as its MQTT client ID.
+
+Devices can publish only to `<Twin>/iot-data`. When MQTT feedback is configured,
+they can subscribe and receive on their own default feedback topic (the Thing
+name), on explicitly configured custom feedback topics, or both. Custom feedback
+topics are shared only because the operator explicitly lists them. They must be
+literal topics without `*`, `?`, `#`, `+`, policy substitutions or whitespace.
+The existing telemetry topic remains shared; this policy does not validate the
+`iotDeviceId` field inside a message.
+
+`plan` emits `UPDATE` for the known old permissive document or a change to the
+previously applied feedback permissions. It records the desired document, current
+AWS document/default version/ARN, and any nondefault version selected for cleanup.
+Other conflicting policy documents are rejected. `apply` checks these snapshots
+before any group mutation, including `NO_CHANGE` policies. Dependent Thing work
+also validates its planned policy and cannot silently recreate or upgrade it.
+Missing metadata or changed settings require a new plan. Processed policy actions
+are checked against the desired document when a failed dependent action is retried.
+If an AWS write completed but its response or local state save failed, retrying
+the saved plan accepts the exact desired document without writing another version.
+
+If an apply stops before saving last-applied configs, a new plan also checks the
+saved policy action. It can recognize the recorded AWS document or the intended
+document. Policy identity and AWS scope must match. Each new plan records the
+current AWS snapshot, so repeated planning preserves this ownership evidence.
+
+The update creates a new default policy version without replacing the policy or
+its certificate attachments. At the five-version limit it removes only the
+nondefault version named in the plan. The active default remains available if
+version creation fails. The shared document has constant size as device counts
+increase. Too many custom feedback topics can exceed the 2048-character limit;
+configuration preflight then stops before deployment. See
+[AWS IoT quotas](https://docs.aws.amazon.com/general/latest/gr/iot-core.html),
+[policy version updates](https://docs.aws.amazon.com/iot/latest/apireference/API_CreatePolicyVersion.html),
+and [Thing policy variables](https://docs.aws.amazon.com/iot/latest/developerguide/thing-policy-variables.html).
 
 After migration, a device has `NO_CHANGE` when all its principals use the shared
 policy and none uses its legacy policy. A legacy policy retained for another

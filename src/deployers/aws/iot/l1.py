@@ -42,7 +42,20 @@ class L1Deployer(Deployer):
 
     return None
 
+  def validate_plan(self, layer_plan):
+    policy_actions = [
+      action for action in layer_plan["actions"]
+      if action["resource_type"] == "iot_policy" and action["action"] != "DESTROY"
+    ]
+    if pending_actions(layer_plan["actions"], "DEPLOY") and not policy_actions:
+      raise ValueError("Shared IoT policy plan metadata is missing. Run 'plan' again.")
+    if len(policy_actions) > 1:
+      raise ValueError("The saved plan contains duplicate shared IoT policy actions. Run 'plan' again.")
+    for action in policy_actions:
+      IotPolicyDeployer().validate_plan(action)
+
   def apply(self, layer_plan, action_name):
+    self.validate_plan(layer_plan)
     layer_name = layer_plan["layer"]
     actions = pending_actions(layer_plan["actions"], action_name)
 
@@ -57,6 +70,7 @@ class L1Deployer(Deployer):
       if resource_type == "iot_policy":
         IotPolicyDeployer().apply(action, resource)
         deployment_state.mark_plan_action_processed("iot", layer_name, action)
+        action["processed"] = True
         continue
 
       if resource_type != "iot_thing":
@@ -69,7 +83,11 @@ class L1Deployer(Deployer):
       if iot_device is None:
         raise ValueError(f"No IoT device config found for planned IoT thing: {resource}")
 
-      IotThingDeployer().apply(action, iot_device, resource)
+      policy_action = next((
+        candidate for candidate in layer_plan["actions"]
+        if candidate["resource_type"] == "iot_policy" and candidate["action"] != "DESTROY"
+      ), None)
+      IotThingDeployer().apply(action, iot_device, resource, policy_action=policy_action)
       deployment_state.mark_plan_action_processed("iot", layer_name, action)
 
   def deploy(self):

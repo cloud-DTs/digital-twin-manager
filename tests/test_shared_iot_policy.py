@@ -17,6 +17,7 @@ from botocore.exceptions import ClientError
 import deployment_state
 import globals
 from deployers.aws.iot.iot_thing import IotThingDeployer
+from deployers.aws.iot.iot_policy import IotPolicyDeployer
 from deployers.aws.iot.l1 import L1Deployer
 from dependency_graph.dependency_analyzer import analyze_plan_dependencies
 from dependency_graph.loader import load_template_graph
@@ -39,6 +40,8 @@ class StatefulIotClient:
     self.policies = {}
     self.attachments = {}
     self.policy_versions = {}
+    self.version_documents = {}
+    self.version_counters = {}
     self.mutations = []
     self.errors = {}
     self.page_size = None
@@ -72,6 +75,8 @@ class StatefulIotClient:
       self._error("CreatePolicy", "ResourceAlreadyExistsException")
     self.policies[policyName] = json.loads(policyDocument)
     self.policy_versions[policyName] = [{"versionId": "1", "isDefaultVersion": True}]
+    self.version_documents[policyName] = {"1": json.loads(policyDocument)}
+    self.version_counters[policyName] = 1
     self.mutations.append(("create_policy", policyName))
     if self.create_policy_race:
       self.create_policy_race = False
@@ -84,8 +89,24 @@ class StatefulIotClient:
       "policyName": policyName,
       "policyArn": f"arn:aws:iot:eu-west-1:123456789012:policy/{policyName}",
       "policyDocument": json.dumps(document),
-      "defaultVersionId": "1",
+      "defaultVersionId": next(v["versionId"] for v in self.policy_versions[policyName] if v["isDefaultVersion"]),
     }
+
+  def create_policy_version(self, policyName, policyDocument, setAsDefault=False):
+    self._policy(policyName, "create_policy_version")
+    versions = self.policy_versions[policyName]
+    if len(versions) >= 5:
+      self._error("CreatePolicyVersion", "VersionsLimitExceededException")
+    self.version_counters[policyName] = max(self.version_counters[policyName], *(int(v["versionId"]) for v in versions)) + 1
+    version_id = str(self.version_counters[policyName])
+    if setAsDefault:
+      for version in versions:
+        version["isDefaultVersion"] = False
+      self.policies[policyName] = json.loads(policyDocument)
+    versions.append({"versionId": version_id, "isDefaultVersion": setAsDefault})
+    self.version_documents[policyName][version_id] = json.loads(policyDocument)
+    self.mutations.append(("create_policy_version", policyName, version_id, setAsDefault))
+    return {"policyVersionId": version_id, "isDefaultVersion": setAsDefault}
 
   def list_policy_versions(self, policyName):
     self._policy(policyName, "list_policy_versions")
@@ -238,13 +259,16 @@ class SharedIotPolicyTests(unittest.TestCase):
     self.devices = [{"id": "sensor-a", "properties": []}, {"id": "sensor-b", "properties": []}]
     patches = [
       patch.object(globals, "aws_iot_client", self.iot),
+      patch.object(globals, "aws_sts_client", types.SimpleNamespace(get_caller_identity=lambda: {"Account": "123456789012"})),
       patch.object(globals, "config", {"digital_twin_name": "dt"}),
+      patch.object(globals, "config_events", [], create=True),
       patch.object(globals, "config_iot_devices", copy.deepcopy(self.devices)),
       patch.object(globals, "config_hierarchy", {}, create=True),
       patch.object(globals, "iot_data_path", str(self.auth_path)),
       patch.object(deployment_state, "last_applied_config", {"digital_twin_name": "dt"}),
       patch.object(deployment_state, "last_applied_config_iot_devices", copy.deepcopy(self.devices)),
       patch.object(deployment_state, "last_applied_config_hierarchy", {}),
+      patch.object(deployment_state, "last_applied_config_events", []),
       patch.object(deployment_state, "mark_plan_action_processed"),
     ]
     for patcher in patches:
@@ -254,7 +278,8 @@ class SharedIotPolicyTests(unittest.TestCase):
     self.layer = L1Deployer()
 
   def add_policy(self, name):
-    self.iot.create_policy(policyName=name, policyDocument=json.dumps(POLICY_DOCUMENT))
+    document = IotPolicyDeployer()._desired_policy_document() if name == globals.iot_policy_name() else POLICY_DOCUMENT
+    self.iot.create_policy(policyName=name, policyDocument=json.dumps(document))
 
   def add_existing_device(self, device, *policy_names):
     thing_name = f"dt-{device['id']}"

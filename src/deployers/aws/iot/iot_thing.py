@@ -130,13 +130,13 @@ class IotThingDeployer(Deployer):
     if policy_name not in shared_names:
       IotPolicyDeployer().destroy(policy_name, only_if_unused=True, detached_targets=detached_targets)
 
-  def update(self, iot_device, thing_name=None):
+  def update(self, iot_device, thing_name=None, *, policy_action=None):
     thing_name = thing_name or globals.iot_thing_name(iot_device)
     principals = self._principals(thing_name)
     if not principals:
       raise ValueError(f"IoT Thing {thing_name} has no certificate to migrate. Run 'plan' again.")
     policy_name = globals.iot_policy_name()
-    IotPolicyDeployer().deploy(policy_name)
+    IotPolicyDeployer().deploy(policy_name, planned_action=policy_action)
     for principal in principals:
       attached = self._attached_policy_names(principal)
       if policy_name not in attached:
@@ -151,7 +151,7 @@ class IotThingDeployer(Deployer):
       self.log(f"IoT Policy {thing_name} cleanup is pending. Run a new 'plan', then 'apply'.")
     self.log(f"Updated IoT Thing to shared policy: {thing_name}")
 
-  def deploy(self, iot_device, thing_name=None, policy_name=None):
+  def deploy(self, iot_device, thing_name=None, policy_name=None, *, policy_action=None):
     thing_name = thing_name or globals.iot_thing_name(iot_device)
     policy_name = policy_name or globals.iot_policy_name()
 
@@ -159,7 +159,7 @@ class IotThingDeployer(Deployer):
     if len(principals) > 1:
       raise ValueError(f"IoT Thing {thing_name} has multiple principals; cannot choose a certificate to reuse.")
 
-    IotPolicyDeployer().deploy(policy_name)
+    IotPolicyDeployer().deploy(policy_name, planned_action=policy_action)
 
     if principals:
       certificate_arn = principals[0]
@@ -247,7 +247,7 @@ class IotThingDeployer(Deployer):
       else:
         raise
 
-  def apply(self, action, iot_device, resource):
+  def apply(self, action, iot_device, resource, *, policy_action=None):
     if action["action"] == ACTION_DESTROY:
       self.destroy(
         iot_device,
@@ -259,8 +259,9 @@ class IotThingDeployer(Deployer):
         iot_device,
         thing_name=resource,
         policy_name=globals.iot_policy_name(),
+        policy_action=policy_action,
       )
     elif action["action"] == ACTION_UPDATE:
-      self.update(iot_device, thing_name=resource)
+      self.update(iot_device, thing_name=resource, policy_action=policy_action)
     else:
       raise ValueError(f"Unsupported iot_l1 action: {action['action']}")

@@ -78,6 +78,7 @@ iot:CreateKeysAndCertificate
 iot:UpdateCertificate
 iot:DeleteCertificate
 iot:CreatePolicy
+iot:CreatePolicyVersion
 iot:GetPolicy
 iot:DeletePolicy
 iot:DeletePolicyVersion
@@ -331,6 +332,7 @@ The following policy is intended for the IAM principal whose access keys are sto
         "iot:UpdateCertificate",
         "iot:DeleteCertificate",
         "iot:CreatePolicy",
+        "iot:CreatePolicyVersion",
         "iot:GetPolicy",
         "iot:DeletePolicy",
         "iot:DeletePolicyVersion",

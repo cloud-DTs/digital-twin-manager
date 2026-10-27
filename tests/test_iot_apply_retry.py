@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from tests.test_shared_iot_policy import StatefulIotClient
@@ -30,13 +31,16 @@ class IotApplyRetryTests(unittest.TestCase):
         deployment_state.STATE_DIR_ENV: str(Path(self.temporary_directory.name) / "state"),
       }),
       patch.object(globals, "aws_iot_client", self.iot),
+      patch.object(globals, "aws_sts_client", SimpleNamespace(get_caller_identity=lambda: {"Account": "123456789012"})),
       patch.object(globals, "config", {"digital_twin_name": "dt"}),
+      patch.object(globals, "config_events", [], create=True),
       patch.object(globals, "config_iot_devices", [copy.deepcopy(self.device)]),
       patch.object(globals, "config_hierarchy", {}, create=True),
       patch.object(globals, "iot_data_path", str(self.auth_path)),
       patch.object(deployment_state, "last_applied_config", {"digital_twin_name": "dt"}),
       patch.object(deployment_state, "last_applied_config_iot_devices", []),
       patch.object(deployment_state, "last_applied_config_hierarchy", {}),
+      patch.object(deployment_state, "last_applied_config_events", []),
     ]
     for patcher in patches:
       patcher.start()

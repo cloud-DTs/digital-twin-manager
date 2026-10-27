@@ -12,6 +12,16 @@ also need `iot:GetPolicy` and `iot:ListTargetsForPolicy`. See
 [IoT device infrastructure](docs/iot-device-infrastructure.md) for migration and
 cleanup behavior.
 
+The shared device policy permits MQTT connections as the registered Thing name
+(`<digitalTwinName>-<iotDeviceId>`) and telemetry publishing to
+`<digitalTwinName>/iot-data`. Feedback subscriptions and receives use only configured
+topics. Certificate-based MQTT clients must use the Thing name as their client ID
+before applying this policy.
+Run a new `plan`, then `apply`, to replace the known old wildcard document through
+an IoT policy version. Certificates and key files are preserved. Policy updates
+require `iot:CreatePolicyVersion`; see [AWS permissions](docs/aws-permissions.md).
+Saved plans without scoped-policy metadata must be regenerated.
+
 Run `plan`, then `apply`, to update an existing deployment. For every manager-owned Lambda (core, device processors and internal Event Actions), `plan` compares a reproducible ZIP hash with AWS `CodeSha256` and checks the function settings. Code or settings changes use `UPDATE` actions that keep the function ARN. The ZIP hash includes generated configuration files. Hot Reader planning also checks its IAM policy and can update that policy without replacing the role.
 
 Before changing any resource, `apply` checks the planned Lambda packages, settings and AWS revisions, including `NO_CHANGE` actions. If they changed after planning, run `plan` again. Updates use `RevisionId`, wait for AWS completion and verify the deployed hash and settings before processing dependent resources. External Event Action Lambdas are not managed. Functions deployed with the previous ZIP packaging can require one initial code update. Saved plans without the new Lambda metadata must be regenerated.

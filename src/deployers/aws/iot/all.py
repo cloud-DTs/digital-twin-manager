@@ -5,6 +5,7 @@ from deployers.aws.apply_actions import ACTION_DEPLOY, ACTION_DESTROY
 from deployers.base import Deployer
 from deployers.aws.lambda_function import needs_lambda_validation
 from deployers.aws.iot.processor_lambda_function import ProcessorLambdaFunctionDeployer
+from deployers.aws.iot.iot_policy import IotPolicyDeployer
 import globals
 from validation import component_types
 
@@ -28,9 +29,14 @@ class AllDeployer(Deployer):
       ],
     }
 
+  def validate_config(self):
+    IotPolicyDeployer()._desired_policy_document()
+
   def validate_plan(self, group_plan):
     component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
     for layer in group_plan["layers"]:
+      if layer["layer"] == "iot_l1":
+        L1Deployer().validate_plan(layer)
       for action in layer["actions"]:
         if action["resource_type"] != "lambda_function" or not needs_lambda_validation(action):
           continue
@@ -62,6 +68,7 @@ class AllDeployer(Deployer):
 
   def deploy(self):
     component_types.validate(globals.config, globals.config_iot_devices, globals.config_hierarchy)
+    self.validate_config()
     L1Deployer().deploy()
     L2Deployer().deploy()
     L4Deployer().deploy()
