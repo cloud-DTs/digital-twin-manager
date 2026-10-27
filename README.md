@@ -74,6 +74,17 @@ succeeds, but no ingestion duration is calculated. When debug is disabled,
 the rule returns to `SELECT *` and the Persister adds no timing fields or logs.
 Disable the mode through `.env`, then restart the manager and run `plan` and `apply`.
 
+## Processor deployment timing
+
+Processor IAM roles have no fixed propagation sleep. Lambda creation starts
+immediately. If IAM cannot yet find the role, or Lambda reports that it cannot
+assume the role, the manager retries up to 10 attempts with delays of 1, 2, 4,
+then 8 seconds. Total retry sleep is at most 55 seconds per function, plus API
+request time. A successful attempt proceeds immediately. Other errors are raised
+without this retry, including access errors, quota errors, invalid packages, and
+transport failures. The planned package is built once and reused for all attempts.
+See [IAM eventual consistency](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot.html#troubleshoot_general_eventual-consistency).
+
 ## Conventions
 - Every deployer should be implemented in its own file.
 - Keep components separated, self-contained, and independent.

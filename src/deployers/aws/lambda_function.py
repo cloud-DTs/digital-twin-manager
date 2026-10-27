@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from dataclasses import dataclass, field
+import time
 import zipfile
 
 from botocore.exceptions import ClientError
@@ -14,6 +15,8 @@ from deployers.aws.core.plan_actions import plan_action
 
 
 CONFIGURATION_FIELDS = ("Runtime", "Handler", "Role", "Timeout", "MemorySize", "Environment")
+ROLE_PROPAGATION_MAX_ATTEMPTS = 10
+ROLE_PROPAGATION_MAX_DELAY_SECONDS = 8
 
 
 @dataclass
@@ -152,16 +155,39 @@ def validate_aws_plan(action, definition, *, allow_replacement=False):
   return configuration
 
 
+def _is_role_propagation_error(error):
+  details = error.response.get("Error", {})
+  return (
+    error.operation_name == "GetRole" and details.get("Code") == "NoSuchEntity"
+  ) or (
+    error.operation_name == "CreateFunction"
+    and details.get("Code") == "InvalidParameterValueException"
+    and "the role defined for the function cannot be assumed by lambda" in details.get("Message", "").lower()
+  )
+
+
 def create_lambda(definition, *, zip_code=None, function_name=None, role_name=None):
   configuration = definition.configuration()
-  configuration["Role"] = globals.aws_iam_client.get_role(
-    RoleName=role_name or definition.role_name,
-  )["Role"]["Arn"]
-  return globals.aws_lambda_client.create_function(
-    FunctionName=function_name or definition.function_name,
-    Code={"ZipFile": definition.package() if zip_code is None else zip_code},
-    Description="", Publish=True, **configuration,
-  )
+  role_name = role_name or definition.role_name
+  function_name = function_name or definition.function_name
+  code = definition.package() if zip_code is None else zip_code
+  # IAM GetRole visibility does not guarantee that Lambda can assume the role yet.
+  for attempt in range(ROLE_PROPAGATION_MAX_ATTEMPTS):
+    try:
+      configuration["Role"] = globals.aws_iam_client.get_role(RoleName=role_name)["Role"]["Arn"]
+      return globals.aws_lambda_client.create_function(
+        FunctionName=function_name, Code={"ZipFile": code},
+        Description="", Publish=True, **configuration,
+      )
+    except ClientError as error:
+      if not _is_role_propagation_error(error) or attempt == ROLE_PROPAGATION_MAX_ATTEMPTS - 1:
+        raise
+      delay = min(2 ** attempt, ROLE_PROPAGATION_MAX_DELAY_SECONDS)
+      print(
+        f"Lambda: IAM role {role_name} is not ready for {function_name}; "
+        f"retrying in {delay}s ({attempt + 2}/{ROLE_PROPAGATION_MAX_ATTEMPTS})."
+      )
+      time.sleep(delay)
 
 
 def wait_for_update(function_name):

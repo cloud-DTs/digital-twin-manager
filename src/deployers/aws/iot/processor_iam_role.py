@@ -7,7 +7,6 @@ from dependency_graph import plan_graph_ids
 import json
 import globals
 from botocore.exceptions import ClientError
-import time
 import util
 
 class ProcessorIamRoleDeployer(Deployer):
@@ -105,10 +104,6 @@ class ProcessorIamRoleDeployer(Deployer):
       )
 
       self.log(f"Attached IAM policy ARN: {policy_arn}")
-
-    self.log(f"Waiting for propagation...")
-
-    time.sleep(10)
 
   def destroy(self, iot_device, role_name=None):
     role_name = role_name or globals.processor_iam_role_name(iot_device)
