@@ -47,9 +47,16 @@ UNIT_PREFIXES = {
   "grafana": "grafana",
 }
 
+# Names that would otherwise fall into a longer-lived prefix group.
+EXACT_UNITS = {
+  "iot_policy": "iot_policy",
+  "iot_policy_version": "iot_policy",
+}
+
 # unit -> (title, column, multiplicity note)
 UNITS = OrderedDict([
   ("dispatcher", ("Dispatcher", 0, "")),
+  ("iot_policy", ("Shared IoT policy", 0, "once per twin")),
   ("iot_device", ("IoT device identity", 0, "per device (D)")),
   ("init_values", ("Initial values", 0, "per device (V)")),
   ("hot_storage", ("Hot storage", 1, "")),
@@ -124,6 +131,8 @@ TOP = 70
 
 def unit_of(template_id: str) -> str:
   name = template_id.split(":")[2]
+  if name in EXACT_UNITS:
+    return EXACT_UNITS[name]
   best = ""
   for prefix in UNIT_PREFIXES:
     if name.startswith(prefix) and len(prefix) > len(best):

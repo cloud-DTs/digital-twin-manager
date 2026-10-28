@@ -27,49 +27,53 @@
 <path d="M572,355.0 C614,355.0 614,429.0 572,429.0" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M572,595.0 C608,595.0 608,436.0 572,436.0" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M1240,255.0 C1300.0,255.0 1300.0,388.5 1360,388.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M238,356.5 C274,356.5 274,454.5 238,454.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M906,207.5 C942,207.5 942,92.5 906,92.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M1240,262.0 C1288,262.0 1288,448.0 1240,448.0" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M572,676.0 C799.0,676.0 799.0,455.0 1026,455.0" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M1240,448.0 C1276,448.0 1276,546.0 1240,546.0" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M906,329.5 C948,329.5 948,684.5 906,684.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M238,239.5 C274,239.5 274,571.5 238,571.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M692,92.5 C465.0,92.5 465.0,578.5 238,578.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
-<rect x="24" y="225.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
-<text x="34" y="241.5" font-size="12.5" font-weight="700" fill="#222">Dispatcher</text>
-<rect x="34" y="263.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
-<text x="51" y="272.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="34" y="280.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
-<text x="51" y="289.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="34" y="297.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
-<text x="51" y="306.5" font-size="10.5" fill="#333">Lambda function</text>
-<rect x="34" y="314.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
-<text x="51" y="323.5" font-size="10.5" fill="#333">IoT topic rule</text>
-<rect x="34" y="331.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
-<text x="51" y="340.5" font-size="10.5" fill="#333">Lambda invoke permission</text>
-<rect x="24" y="374.5" width="214" height="161" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
-<text x="34" y="390.5" font-size="12.5" font-weight="700" fill="#222">IoT device identity</text>
-<text x="34" y="403.5" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
-<rect x="34" y="412.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
-<text x="51" y="421.5" font-size="10.5" fill="#333">IoT Thing</text>
-<rect x="34" y="429.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
-<text x="51" y="438.5" font-size="10.5" fill="#333">IoT certificate</text>
-<rect x="34" y="446.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
-<text x="51" y="455.5" font-size="10.5" fill="#333">IoT policy</text>
-<rect x="34" y="463.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
-<text x="51" y="472.5" font-size="10.5" fill="#333">IoT policy version</text>
-<rect x="34" y="480.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
-<text x="51" y="489.5" font-size="10.5" fill="#333">Certificate attachment</text>
-<rect x="34" y="497.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
-<text x="51" y="506.5" font-size="10.5" fill="#333">Policy attachment</text>
-<rect x="34" y="514.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
-<text x="51" y="523.5" font-size="10.5" fill="#333">Local auth files</text>
-<rect x="24" y="557.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
-<text x="34" y="573.5" font-size="12.5" font-weight="700" fill="#222">Initial values</text>
-<text x="34" y="586.5" font-size="9.5" font-style="italic" fill="#666">per device (V)</text>
-<rect x="34" y="595.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
-<text x="51" y="604.5" font-size="10.5" fill="#333">Init value</text>
-<rect x="34" y="612.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#2e8b57" stroke-width="1.5"/>
-<text x="51" y="621.5" font-size="10.5" fill="#333">MQTT publish</text>
+<path d="M238,207.5 C274,207.5 274,603.5 238,603.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M692,92.5 C465.0,92.5 465.0,610.5 238,610.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="24" y="193.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
+<text x="34" y="209.5" font-size="12.5" font-weight="700" fill="#222">Dispatcher</text>
+<rect x="34" y="231.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<text x="51" y="240.5" font-size="10.5" fill="#333">IAM role</text>
+<rect x="34" y="248.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<text x="51" y="257.5" font-size="10.5" fill="#333">Managed policy attachment</text>
+<rect x="34" y="265.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<text x="51" y="274.5" font-size="10.5" fill="#333">Lambda function</text>
+<rect x="34" y="282.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
+<text x="51" y="291.5" font-size="10.5" fill="#333">IoT topic rule</text>
+<rect x="34" y="299.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
+<text x="51" y="308.5" font-size="10.5" fill="#333">Lambda invoke permission</text>
+<rect x="24" y="342.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
+<text x="34" y="358.5" font-size="12.5" font-weight="700" fill="#222">Shared IoT policy</text>
+<text x="34" y="371.5" font-size="9.5" font-style="italic" fill="#666">once per twin</text>
+<rect x="34" y="380.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<text x="51" y="389.5" font-size="10.5" fill="#333">IoT policy</text>
+<rect x="34" y="397.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<text x="51" y="406.5" font-size="10.5" fill="#333">IoT policy version</text>
+<rect x="24" y="440.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
+<text x="34" y="456.5" font-size="12.5" font-weight="700" fill="#222">IoT device identity</text>
+<text x="34" y="469.5" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
+<rect x="34" y="478.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
+<text x="51" y="487.5" font-size="10.5" fill="#333">IoT Thing</text>
+<rect x="34" y="495.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<text x="51" y="504.5" font-size="10.5" fill="#333">IoT certificate</text>
+<rect x="34" y="512.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<text x="51" y="521.5" font-size="10.5" fill="#333">Certificate attachment</text>
+<rect x="34" y="529.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<text x="51" y="538.5" font-size="10.5" fill="#333">Policy attachment</text>
+<rect x="34" y="546.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
+<text x="51" y="555.5" font-size="10.5" fill="#333">Local auth files</text>
+<rect x="24" y="589.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
+<text x="34" y="605.5" font-size="12.5" font-weight="700" fill="#222">Initial values</text>
+<text x="34" y="618.5" font-size="9.5" font-style="italic" fill="#666">per device (V)</text>
+<rect x="34" y="627.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
+<text x="51" y="636.5" font-size="10.5" fill="#333">Init value</text>
+<rect x="34" y="644.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#2e8b57" stroke-width="1.5"/>
+<text x="51" y="653.5" font-size="10.5" fill="#333">MQTT publish</text>
 <rect x="358" y="70.0" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="86.0" font-size="12.5" font-weight="700" fill="#222">Hot storage</text>
 <rect x="368" y="108.0" width="10" height="10" rx="2" fill="#3b6fb6" stroke="#3b6fb6" stroke-width="1.5"/>
