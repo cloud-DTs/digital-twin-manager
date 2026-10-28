@@ -3,17 +3,44 @@ import unittest
 from dependency_graph_helpers import TEMPLATE_PATH, template_node
 
 import resource_names
+from dependency_graph.dependency_analyzer import analyze_plan_dependencies
 from dependency_graph.loader import load_template_graph
 from dependency_graph.models import (
   DependencyType,
+  RuntimeGraph,
   TemplateDependency,
   TemplateGraph,
   TemplateNode,
 )
 from dependency_graph.runtime_graph_builder import build_runtime_graph
+from deployers.aws.core.plan_actions import plan_action
 
 
 class RuntimeGraphBuilderTests(unittest.TestCase):
+  def test_iot_policy_and_version_are_shared_across_devices(self) -> None:
+    template = load_template_graph(TEMPLATE_PATH)
+    graph = build_runtime_graph(
+      template, config(), [{"id": "sensor-1"}, {"id": "sensor-2"}], [], [],
+    )
+    nodes = runtime_nodes_by_id(graph)
+    for template_id in ("iot:l1:iot_policy:iot_policy", "iot:l1:iot_policy_version:iot_policy_version"):
+      policies = [node for node in graph.nodes if node.template_id == template_id]
+      self.assertEqual(1, len(policies))
+      self.assertEqual("dt-iot-policy", policies[0].physical_name)
+      self.assertEqual("IotPolicyDeployer", policies[0].owner_deployer)
+
+    policy_id = "iot:l1:iot_policy:iot_policy:iot-policy"
+    for device_id in ("sensor-1", "sensor-2"):
+      self.assertIn(policy_id, dependency_ids(nodes[f"iot:l1:iot_thing:iot_thing:{device_id}"]))
+      attachment = nodes[f"iot:l1:iot_policy_certificate_attachment:iot_policy_attachment:{device_id}"]
+      self.assertIn(policy_id, dependency_ids(attachment))
+
+  def test_twin_with_no_devices_still_has_one_shared_iot_policy(self) -> None:
+    graph = build_runtime_graph(load_template_graph(TEMPLATE_PATH), config(), [], [], [])
+    policies = [node for node in graph.nodes if node.template_id == "iot:l1:iot_policy:iot_policy"]
+    self.assertEqual(1, len(policies))
+    self.assertEqual("dt-iot-policy", policies[0].physical_name)
+
   def test_runtime_graph_builds_shared_core_nodes(self) -> None:
     graph = TemplateGraph(
       version=1,
@@ -244,6 +271,72 @@ class RuntimeGraphBuilderTests(unittest.TestCase):
       },
       {dependency.id for dependency in publish_node.depends_on},
     )
+
+  def test_logical_component_type_names_preserve_twin_prefix(self) -> None:
+    for logical_name in ("pac-sensor", "dt-pac-sensor", "dt-dt-pac-sensor"):
+      with self.subTest(logical_name=logical_name):
+        self._assert_hierarchy_component_type_dependency(
+          [{"id": "sensor-1", "componentTypeId": logical_name, "properties": []}],
+          {"iotDeviceId": "sensor-1", "componentTypeId": logical_name},
+          logical_name,
+        )
+
+  def test_full_component_type_references_remove_only_workspace_prefix(self) -> None:
+    for logical_name in ("pac-sensor", "dt-pac-sensor", "dt-dt-pac-sensor"):
+      with self.subTest(logical_name=logical_name):
+        self._assert_hierarchy_component_type_dependency(
+          [{"id": "sensor-1", "componentTypeId": logical_name, "properties": []}],
+          {"componentTypeId": f"dt-{logical_name}"},
+          logical_name,
+        )
+
+  def test_device_id_only_reference_preserves_twin_prefix(self) -> None:
+    self._assert_hierarchy_component_type_dependency(
+      [{"id": "dt-pac-sensor", "properties": []}],
+      {"iotDeviceId": "dt-pac-sensor"},
+      "dt-pac-sensor",
+    )
+
+  def test_prefixed_logical_type_does_not_depend_on_other_unprefixed_type(self) -> None:
+    self._assert_hierarchy_component_type_dependency(
+      [
+        {"id": "sensor-1", "componentTypeId": "dt-pac-sensor", "properties": []},
+        {"id": "sensor-2", "componentTypeId": "pac-sensor", "properties": []},
+      ],
+      {"iotDeviceId": "sensor-1", "componentTypeId": "dt-pac-sensor"},
+      "dt-pac-sensor",
+    )
+
+  def _assert_hierarchy_component_type_dependency(self, devices, component, logical_name):
+    graph = build_runtime_graph(
+      load_template_graph(TEMPLATE_PATH), config(), devices, [],
+      [{
+        "id": "root-1", "type": "entity", "children": [{
+          "id": "room-1", "type": "entity", "children": [{
+            "type": "component", "name": "temperature", **component,
+          }],
+        }],
+      }],
+    )
+    nodes = runtime_nodes_by_id(graph)
+    type_template_id = "iot:l4:device_component_type:twinmaker_component_type"
+    expected_type_id = f"{type_template_id}:{logical_name}"
+    root_id = "hierarchy:hierarchy:twinmaker_hierarchy:twinmaker_hierarchy:root-1"
+    component_id = "hierarchy:hierarchy:twinmaker_component:twinmaker_component:room-1.temperature"
+
+    self.assertEqual(f"dt-{logical_name}", nodes[expected_type_id].physical_name)
+    for node_id in (root_id, component_id):
+      self.assertEqual(
+        {expected_type_id},
+        {dependency.id for dependency in nodes[node_id].depends_on if dependency.template_id == type_template_id},
+      )
+
+    action = plan_action("root-1", "twinmaker_hierarchy", action="DEPLOY", graph_id=root_id)
+    analyze_plan_dependencies(
+      RuntimeGraph(version=graph.version, nodes=()), graph,
+      [{"group": "hierarchy", "layers": [{"layer": "hierarchy", "actions": [action]}]}],
+    )
+    self.assertFalse(action["blocked"], action["blockers"])
 
   def test_runtime_graph_builds_only_local_event_action_resources(self) -> None:
     graph = TemplateGraph(

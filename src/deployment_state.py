@@ -191,6 +191,10 @@ def last_applied_grafana_iam_role_name():
 def last_applied_iot_thing_name(iot_device):
   return resource_names.iot_thing_name(_last_applied_config_snapshot(), iot_device)
 
+def last_applied_iot_policy_name():
+  return resource_names.iot_policy_name(_last_applied_config_snapshot())
+
+
 def last_applied_iot_thing_policy_name(iot_device):
   return resource_names.iot_thing_policy_name(
     _last_applied_config_snapshot(),

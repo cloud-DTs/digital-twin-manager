@@ -1,4 +1,4 @@
-from typing import Any, Literal, TypedDict, Unpack
+from typing import Any, Literal, NotRequired, TypedDict, Unpack
 
 
 PlanActionName = Literal[
@@ -9,6 +9,9 @@ PlanActionName = Literal[
     # Resource id exists in desired config, but does not exist in last-applied state.
     # Apply should create/deploy resources for this id.
     "DEPLOY",
+
+    # Update an existing resource without changing its physical identity.
+    "UPDATE",
 
     # Resource id exists in last-applied state, but does not exist in desired config.
     # Apply should destroy resources for this id using last-applied state.
@@ -22,6 +25,7 @@ PlanResourceType = Literal[
     "grafana_workspace",
     "iam",
     "iot_rule",
+    "iot_policy",
     "iot_thing",
     "init_value",
     "lambda_function",
@@ -41,6 +45,7 @@ PLAN_RESOURCE_TYPES: tuple[PlanResourceType, ...] = (
     "grafana_workspace",
     "iam",
     "iot_rule",
+    "iot_policy",
     "iot_thing",
     "init_value",
     "lambda_function",
@@ -64,6 +69,18 @@ class PlannedAction(TypedDict):
     blockers: list[str]
     state_sync_required: bool
     processed: bool
+    code_sha256: NotRequired[str]
+    revision_id: NotRequired[str | None]
+    lambda_function_name: NotRequired[str]
+    lambda_configuration: NotRequired[dict]
+    aws_configuration: NotRequired[dict]
+    policy_document: NotRequired[dict | None]
+    aws_policy_document: NotRequired[dict | None]
+    aws_policy_snapshot: NotRequired[dict | None]
+    delete_policy_version_id: NotRequired[str | None]
+    component_device_bindings: NotRequired[list[dict]]
+    topic_rule_payload: NotRequired[dict]
+    aws_topic_rule_payload: NotRequired[dict | None]
 
 
 class PlannedActionValues(TypedDict, total=False):
@@ -74,6 +91,18 @@ class PlannedActionValues(TypedDict, total=False):
     blockers: list[str]
     state_sync_required: bool
     region: str
+    code_sha256: str
+    revision_id: str | None
+    lambda_function_name: str
+    lambda_configuration: dict
+    aws_configuration: dict
+    policy_document: dict | None
+    aws_policy_document: dict | None
+    aws_policy_snapshot: dict | None
+    delete_policy_version_id: str | None
+    component_device_bindings: list[dict]
+    topic_rule_payload: dict
+    aws_topic_rule_payload: dict | None
 
 
 def plan_action(
@@ -107,7 +136,7 @@ def sort_actions_for_apply(
     ]
     deploy_actions = [
         action for action in actions
-        if action["action"] == "DEPLOY"
+        if action["action"] in ("DEPLOY", "UPDATE")
     ]
 
     destroy_actions.sort(

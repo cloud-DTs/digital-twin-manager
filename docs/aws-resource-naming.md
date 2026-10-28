@@ -19,6 +19,10 @@ The `digital_twin_name` prefix is validated before deployment:
 
 ## Runtime Dependencies (Names as Code Contracts)
 
+The shared IoT device policy is named `<digitalTwinName>-iot-policy`. All device
+certificates in the twin use this policy. Legacy `<digitalTwinName>-<iotDeviceId>`
+policy names are retained only for migration and cleanup.
+
 Resource names are not just cosmetic labels; the system's runtime logic strictly depends on them:
 
 - **Routing:** The Dispatcher Lambda dynamically constructs the target processor's name and invokes it using the pattern `<digitalTwinName>-<iotDeviceId>-processor`.
