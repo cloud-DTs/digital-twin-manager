@@ -28,6 +28,15 @@ Before changing any resource, `apply` checks the planned Lambda packages, settin
 
 MQTT Event Feedback planning compares the role's `EventFeedbackScopedAccess` policy in AWS with the configured topics. Topic changes update that policy without replacing the role. Adding the first MQTT feedback creates the policy; removing the last one deletes it. Before `apply` changes any resource, it checks the planned topic policy against the current configuration and the saved AWS policy snapshot. Create a new plan if either changed, or if the saved plan lacks Event Feedback policy metadata.
 
+Event Checker planning also compares its `EventCheckerScopedAccess` inline policy
+with AWS. It grants `iottwinmaker:GetWorkspace` for the twin's workspace so that
+condition reads can use TwinMaker. Missing or stale permissions produce an
+`UPDATE`; `apply` updates the policy while keeping the role and its attachments.
+A missing role produces `DEPLOY`. Apply checks the desired policy and the saved
+AWS policy snapshot before any resource changes, including `NO_CHANGE` actions.
+Run a new `plan` if either changed or if an older plan lacks Event Checker policy
+metadata. After a successful policy update, the next plan reports `NO_CHANGE`.
+
 The Hot Reader supports both shared Component Types with an `iotDeviceId` property and legacy per-device types without that property. Legacy reads check the Component Type schema before deriving the device ID from its name. A shared type with a missing device ID produces an error. The role policy update grants `iottwinmaker:GetComponentType` for this check. Deployer credentials need `iam:GetRolePolicy`, `lambda:UpdateFunctionCode` and `lambda:UpdateFunctionConfiguration`; see [AWS permissions](docs/aws-permissions.md). No code hash needs to be added to `init-state`.
 
 A hierarchy component can reference a managed type through its full `componentTypeId` alone. When that type maps to exactly one configured IoT device, the hierarchy deployer fills its native `iotDeviceId` value. A type shared by multiple devices requires an explicit `iotDeviceId`; configuration validation rejects an ambiguous reference. Run `plan`, then `apply`, to repair missing or incorrect inferred values on existing components through `UPDATE`. This preserves the entities and their other properties. Apply validates the planned inferred bindings for `DEPLOY` and `UPDATE` before changing resources. Updates also verify the saved AWS values and wait for the updated values before recording completion. Saved hierarchy deployment plans without binding metadata require a new `plan`. Legacy types without the native property and external types retain their existing behavior.

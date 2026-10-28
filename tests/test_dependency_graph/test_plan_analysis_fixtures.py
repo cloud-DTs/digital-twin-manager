@@ -27,6 +27,7 @@ import main
 import util
 from deployers.aws.core.hot_reader_iam_role import HotReaderIamRoleDeployer
 from deployers.aws.core.event_feedback_iam_role import EventFeedbackIamRoleDeployer
+from deployers.aws.core.event_checker_iam_role import EventCheckerIamRoleDeployer
 from deployers.aws.core.cold_archive_mover_iam_role import ColdArchiveMoverIamRoleDeployer
 from deployers.aws.core.twinmaker_s3_bucket import TwinmakerS3BucketDeployer
 from deployers.aws.core.hot_reader_lambda_function import HotReaderLambdaFunctionDeployer
@@ -114,6 +115,24 @@ class PlanAnalysisConfigFixtureTests(unittest.TestCase):
       f"TwinMaker Component Type, got: {component_type_deploys}",
     )
 
+  def test_event_checker_missing_workspace_permission_is_an_unblocked_policy_update(self) -> None:
+    load_plan_analysis_case("no-change")
+    document = globals.aws_iam_client.checker_policy_document
+    document["Statement"] = [
+      statement for statement in document["Statement"]
+      if statement["Action"] != "iottwinmaker:GetWorkspace"
+    ]
+    with redirect_stdout(StringIO()):
+      plan_groups = build_plan_groups()
+    main._analyze_plan_dependencies(plan_groups)
+    self.assertEqual([], blocked_action_summaries(plan_groups))
+    checker_actions = [
+      action for _, _, action in iter_plan_actions(plan_groups)
+      if action.get("graph_id") == plan_graph_ids.EVENT_CHECKER_IAM
+    ]
+    self.assertEqual(["UPDATE"], [action["action"] for action in checker_actions])
+    self.assertEqual(globals.event_checker_iam_role_name(), checker_actions[0]["resource"])
+
   def test_synthetic_blocker_cases_have_expected_blockers(self) -> None:
     for case_name, blocker_text in SYNTHETIC_BLOCKER_CASES:
       with self.subTest(case_name=case_name):
@@ -181,6 +200,7 @@ def load_plan_analysis_case(case_name: str) -> None:
 
   globals.aws_s3_client = FixtureS3Client()
   globals.aws_twinmaker_client = StubAwsClient()
+  globals.aws_sf_client = StubAwsClient()
   globals.aws_grafana_client = StubAwsClient()
   globals.aws_lambda_client = FixtureLambdaClient()
   globals.aws_iot_client = FixtureIotClient(previous_configs)
@@ -196,6 +216,7 @@ def load_plan_analysis_case(case_name: str) -> None:
       globals.twinmaker_s3_bucket_name(),
     )
     globals.aws_iam_client.feedback_policy_document = EventFeedbackIamRoleDeployer()._desired_policy_document()
+    globals.aws_iam_client.checker_policy_document = EventCheckerIamRoleDeployer()._desired_policy_document()
     globals.aws_iam_client.cold_archive_policy_document = ColdArchiveMoverIamRoleDeployer()._desired_policy_document()
     for deployer_class in deployers.aws.core.all.AllDeployer.LAMBDA_DEPLOYERS.values():
       globals.aws_lambda_client.add_function(deployer_class()._lambda_definition())
@@ -307,6 +328,7 @@ class FixtureIamClient(StubAwsClient):
     super().__init__()
     self.policy_document = HotReaderIamRoleDeployer()._desired_policy_document()
     self.feedback_policy_document = None
+    self.checker_policy_document = None
     self.cold_archive_policy_document = None
 
   def get_role(self, **kwargs):
@@ -317,6 +339,8 @@ class FixtureIamClient(StubAwsClient):
       document = self.policy_document
     elif kwargs["PolicyName"] == EventFeedbackIamRoleDeployer.POLICY_NAME:
       document = self.feedback_policy_document
+    elif kwargs["PolicyName"] == EventCheckerIamRoleDeployer.POLICY_NAME:
+      document = self.checker_policy_document
     elif kwargs["PolicyName"] == ColdArchiveMoverIamRoleDeployer.POLICY_NAME:
       document = self.cold_archive_policy_document
     else:
