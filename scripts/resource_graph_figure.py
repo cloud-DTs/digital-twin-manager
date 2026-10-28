@@ -401,6 +401,138 @@ def render(templates, members, edges) -> str:
   return "\n".join(out) + "\n</svg>\n"
 
 
+# --- compact variant for a single-column figure -------------------------------------------
+
+COMPACT_TITLES = {
+  "dispatcher": "Dispatcher", "iot_policy": "IoT policy", "iot_device": "IoT devices \u00d7D",
+  "init_values": "Init values", "hot_storage": "Hot storage", "hot_cold_mover": "Hot\u2192Cold mover",
+  "cold_storage": "Cold storage", "cold_archive_mover": "Cold\u2192Arch. mover",
+  "archive_storage": "Archive storage", "hot_reader": "Hot reader", "processor": "Processors \u00d7D",
+  "persister": "Persister", "event_checker": "Event checker", "event_feedback": "Event feedback",
+  "lambda_chain": "Lambda chain", "event_action": "Actions \u00d7A",
+  "twinmaker_workspace": "TwinMaker workspace", "component_type": "Comp. types \u00d7T",
+  "hierarchy": "Hierarchy \u00d7H/C", "grafana": "Grafana (opt.)",
+}
+COMPACT_COLUMNS = ["L1\nAcquisition", "L2\nStorage", "L3\nProcessing", "L4\nTwin mgmt.", "L5\nVisual."]
+COMPACT_LEGEND = {"access": "Access", "compute": "Compute", "iot": "IoT Core", "data": "Data stores",
+                  "schedule": "Scheduling", "twin": "Twin / viz"}
+C_W, C_GAP, C_MARGIN, C_TOP = 88, 14, 10, 44
+
+
+def wrap_title(title: str, limit: int = 11) -> list[str]:
+  lines: list[str] = []
+  for word in title.split():
+    if lines and len(lines[-1]) + 1 + len(word) <= limit:
+      lines[-1] += " " + word
+    else:
+      lines.append(word)
+  return lines
+
+
+def compact_markers(unit, members):
+  """One marker per counted resource; doubled attachments get two markers."""
+  result = []
+  for template in members[unit]:
+    key = type_of(template["id"])
+    name = template["id"].split(":")[2]
+    if key in NOT_COUNTED or "cleanup" in name:
+      continue
+    copies = 2 if name in DOUBLE_ATTACHMENTS else 1
+    for _ in range(copies):
+      result.append((key, bool(template.get("lifecycle_artifact"))))
+  return result
+
+
+def render_compact(members, edges) -> str:
+  cards = {}
+  per_col: dict[int, list[str]] = {i: [] for i in range(len(COMPACT_COLUMNS))}
+  for unit, (_t, col, _n) in UNITS.items():
+    per_col[col].append(unit)
+
+  heights = []
+  for col, units in per_col.items():
+    y = C_TOP
+    for unit in units:
+      lines = wrap_title(COMPACT_TITLES[unit])
+      markers = compact_markers(unit, members)
+      rows = (len(markers) + 4) // 5
+      h = 8 + 14 * len(lines) + 4 + 17 * rows + 6
+      x = C_MARGIN + col * (C_W + C_GAP)
+      cards[unit] = (x, y, C_W, h, lines, markers)
+      y += h + 9
+    heights.append(y)
+  total = max(heights)
+  for col, units in per_col.items():
+    shift = (total - heights[col]) / 2
+    for unit in units:
+      x, y, w, h, lines, markers = cards[unit]
+      cards[unit] = (x, y + shift, w, h, lines, markers)
+
+  width = C_MARGIN * 2 + 5 * C_W + 4 * C_GAP
+  legend_h = 62
+  height = total + legend_h
+  out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height:.0f}" '
+         f'viewBox="0 0 {width} {height:.0f}" font-family="Helvetica, Arial, sans-serif">',
+         '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" '
+         'orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>',
+         f'<rect width="{width}" height="{height:.0f}" fill="#ffffff"/>']
+
+  for i, label in enumerate(COMPACT_COLUMNS):
+    x = C_MARGIN + i * (C_W + C_GAP)
+    first, second = label.split("\n")
+    out.append(f'<rect x="{x - 4}" y="4" width="{C_W + 8}" height="{total - 6:.0f}" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>')
+    out.append(f'<text x="{x + C_W / 2}" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">{first}</text>')
+    out.append(f'<text x="{x + C_W / 2}" y="35" text-anchor="middle" font-size="11.5" fill="#555">{second}</text>')
+
+  slots: dict[tuple[str, str], int] = {}
+  for (source, target), _n in edges.items():
+    sx, sy, sw, sh, *_ = cards[source]
+    tx, ty, tw, th, *_ = cards[target]
+    scol, tcol = UNITS[source][1], UNITS[target][1]
+    n_out = slots.get((source, "o"), 0)
+    n_in = slots.get((target, "i"), 0)
+    slots[(source, "o")] = n_out + 1
+    slots[(target, "i")] = n_in + 1
+    if scol < tcol:
+      x1, x2 = sx + sw, tx
+    elif scol > tcol:
+      x1, x2 = sx, tx + tw
+    else:
+      x1, x2 = sx + sw, tx + tw
+    y1, y2 = sy + 8 + (n_out % 4) * 5, ty + 8 + (n_in % 4) * 5
+    if scol == tcol:
+      b = 12 + 3 * (n_out % 3)
+      d = f"M{x1},{y1} C{x1 + b},{y1} {x2 + b},{y2} {x2},{y2}"
+    else:
+      dx = (x2 - x1) / 2
+      d = f"M{x1},{y1} C{x1 + dx},{y1} {x2 - dx},{y2} {x2},{y2}"
+    dash = ' stroke-dasharray="4,2.5"' if target in RUNTIME_PATH_TARGETS else ""
+    out.append(f'<path d="{d}" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1"{dash} marker-end="url(#arrow)"/>')
+
+  for unit, (x, y, w, h, lines, markers) in cards.items():
+    dashed = ' stroke-dasharray="4,2.5"' if unit in OPTIONAL_UNITS else ""
+    out.append(f'<rect x="{x}" y="{y:.1f}" width="{w}" height="{h}" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"{dashed}/>')
+    for i, line in enumerate(lines):
+      out.append(f'<text x="{x + 6}" y="{y + 14 + 14 * i:.1f}" font-size="12.5" font-weight="700" fill="#222">{escape(line)}</text>')
+    top = y + 8 + 14 * len(lines) + 4
+    for i, (key, hollow) in enumerate(markers):
+      _label, shape_name, color = FAMILIES[FAMILY_OF[key]]
+      out.append(marker(shape_name, x + 11 + (i % 5) * 16, top + 9 + (i // 5) * 17, color, hollow, 5.5))
+
+  ly = total + 14
+  for i, (family, label) in enumerate(COMPACT_LEGEND.items()):
+    _l, shape_name, color = FAMILIES[family]
+    lx = C_MARGIN + (i % 4) * 118
+    row = ly + (i // 4) * 17
+    out.append(marker(shape_name, lx + 6, row, color, False, 5))
+    out.append(f'<text x="{lx + 16}" y="{row + 4}" font-size="11.5" fill="#333">{label}</text>')
+  out.append(marker("circle", C_MARGIN + 6 + 3 * 118, ly + 17, "#444444", True, 5))
+  out.append(f'<text x="{C_MARGIN + 3 * 118 + 16}" y="{ly + 21}" font-size="11.5" fill="#333">Lifecycle</text>')
+  out.append(f'<text x="{C_MARGIN}" y="{ly + 44}" font-size="11" fill="#333">One marker per resource. A \u2192 B: B refers to A '
+             f'(dashed: runtime path).</text>')
+  return "\n".join(out) + "\n</svg>\n"
+
+
 def main() -> int:
   parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
   parser.add_argument("--input", default=str(DEFAULT_INPUT))
@@ -412,6 +544,9 @@ def main() -> int:
   output = Path(args.output)
   output.parent.mkdir(parents=True, exist_ok=True)
   output.write_text(svg, encoding="utf-8")
+  compact_output = output.with_name(output.stem + "_compact.svg")
+  compact_output.write_text(render_compact(members, edges), encoding="utf-8")
+  print(f"compact single-column variant -> {compact_output}")
   print(f"{len(templates)} resource templates, {len(edges)} unit dependencies -> {output}")
   return 0
 

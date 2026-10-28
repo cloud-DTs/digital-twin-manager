@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="516" height="544" viewBox="0 0 516 544" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>
+<rect width="516" height="544" fill="#ffffff"/>
+<rect x="6" y="4" width="96" height="476" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>
+<text x="54.0" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">L1</text>
+<text x="54.0" y="35" text-anchor="middle" font-size="11.5" fill="#555">Acquisition</text>
+<rect x="108" y="4" width="96" height="476" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>
+<text x="156.0" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">L2</text>
+<text x="156.0" y="35" text-anchor="middle" font-size="11.5" fill="#555">Storage</text>
+<rect x="210" y="4" width="96" height="476" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>
+<text x="258.0" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">L3</text>
+<text x="258.0" y="35" text-anchor="middle" font-size="11.5" fill="#555">Processing</text>
+<rect x="312" y="4" width="96" height="476" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>
+<text x="360.0" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">L4</text>
+<text x="360.0" y="35" text-anchor="middle" font-size="11.5" fill="#555">Twin mgmt.</text>
+<rect x="414" y="4" width="96" height="476" rx="6" fill="#f5f6f8" stroke="#dde0e5"/>
+<text x="462.0" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#333">L5</text>
+<text x="462.0" y="35" text-anchor="middle" font-size="11.5" fill="#555">Visual.</text>
+<path d="M200,52.0 C207.0,52.0 207.0,141.0 214,141.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M302,199.0 C314,199.0 314,146.0 302,146.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M302,271.0 C314,271.0 314,199.0 302,199.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M302,343.0 C314,343.0 314,204.0 302,204.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M316,154.5 C309.0,154.5 309.0,209.0 302,209.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,57.0 C215,57.0 215,110.0 200,110.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,199.0 C212,199.0 212,115.0 200,115.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,62.0 C218,62.0 218,432.0 200,432.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,204.0 C215,204.0 215,271.0 200,271.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,360.0 C212,360.0 212,276.0 200,276.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M404,159.5 C411.0,159.5 411.0,235.0 418,235.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M98,223.0 C110,223.0 110,281.0 98,281.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M302,141.0 C314,141.0 314,69.0 302,69.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M404,164.5 C422,164.5 422,243.5 404,243.5" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M200,432.0 C258.0,432.0 258.0,248.5 316,248.5" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M404,243.5 C416,243.5 416,315.5 404,315.5" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M302,204.0 C317,204.0 317,415.0 302,415.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" marker-end="url(#arrow)"/>
+<path d="M98,148.0 C110,148.0 110,353.0 98,353.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" stroke-dasharray="4,2.5" marker-end="url(#arrow)"/>
+<path d="M214,69.0 C156.0,69.0 156.0,358.0 98,358.0" fill="none" stroke="#555" stroke-opacity="0.6" stroke-width="1.1" stroke-dasharray="4,2.5" marker-end="url(#arrow)"/>
+<rect x="10" y="140.0" width="88" height="66" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="16" y="154.0" font-size="12.5" font-weight="700" fill="#222">Dispatcher</text>
+<rect x="16.0" y="170.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="32.0" y="170.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="48.0" y="170.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="69.0,169.0 75.0,179.5 63.0,179.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="85.0,168.5 91.5,175.0 85.0,181.5 78.5,175.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="21.0,186.0 27.0,196.5 15.0,196.5" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="10" y="215.0" width="88" height="49" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="16" y="229.0" font-size="12.5" font-weight="700" fill="#222">IoT policy</text>
+<polygon points="21.0,243.5 27.5,250.0 21.0,256.5 14.5,250.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="10" y="273.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="16" y="287.0" font-size="12.5" font-weight="700" fill="#222">IoT devices</text>
+<text x="16" y="301.0" font-size="12.5" font-weight="700" fill="#222">×D</text>
+<polygon points="21.0,315.5 27.5,322.0 21.0,328.5 14.5,322.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="37.0,315.5 43.5,322.0 37.0,328.5 30.5,322.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="53.0,315.5 59.5,322.0 53.0,328.5 46.5,322.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="69.0,315.5 75.5,322.0 69.0,328.5 62.5,322.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="10" y="345.0" width="88" height="32" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="16" y="359.0" font-size="12.5" font-weight="700" fill="#222">Init values</text>
+<rect x="112" y="44.0" width="88" height="49" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="58.0" font-size="12.5" font-weight="700" fill="#222">Hot storage</text>
+<circle cx="123" cy="79.0" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="112" y="102.0" width="88" height="80" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="116.0" font-size="12.5" font-weight="700" fill="#222">Hot→Cold</text>
+<text x="118" y="130.0" font-size="12.5" font-weight="700" fill="#222">mover</text>
+<rect x="118.0" y="146.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="134.0" y="146.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="150.0" y="146.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="171.0,145.0 177.0,155.5 165.0,155.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="184.9,145.5 189.1,145.5 189.1,148.9 192.5,148.9 192.5,153.1 189.1,153.1 189.1,156.5 184.9,156.5 184.9,153.1 181.5,153.1 181.5,148.9 184.9,148.9" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="120.9,162.5 125.1,162.5 125.1,165.9 128.5,165.9 128.5,170.1 125.1,170.1 125.1,173.5 120.9,173.5 120.9,170.1 117.5,170.1 117.5,165.9 120.9,165.9" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="139.0,162.0 145.0,172.5 133.0,172.5" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="112" y="191.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="205.0" font-size="12.5" font-weight="700" fill="#222">Cold</text>
+<text x="118" y="219.0" font-size="12.5" font-weight="700" fill="#222">storage</text>
+<circle cx="123" cy="240.0" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="112" y="263.0" width="88" height="80" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="277.0" font-size="12.5" font-weight="700" fill="#222">Cold→Arch.</text>
+<text x="118" y="291.0" font-size="12.5" font-weight="700" fill="#222">mover</text>
+<rect x="118.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="134.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="150.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="171.0,306.0 177.0,316.5 165.0,316.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="184.9,306.5 189.1,306.5 189.1,309.9 192.5,309.9 192.5,314.1 189.1,314.1 189.1,317.5 184.9,317.5 184.9,314.1 181.5,314.1 181.5,309.9 184.9,309.9" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="120.9,323.5 125.1,323.5 125.1,326.9 128.5,326.9 128.5,331.1 125.1,331.1 125.1,334.5 120.9,334.5 120.9,331.1 117.5,331.1 117.5,326.9 120.9,326.9" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="139.0,323.0 145.0,333.5 133.0,333.5" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="112" y="352.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="366.0" font-size="12.5" font-weight="700" fill="#222">Archive</text>
+<text x="118" y="380.0" font-size="12.5" font-weight="700" fill="#222">storage</text>
+<circle cx="123" cy="401.0" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="112" y="424.0" width="88" height="49" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="118" y="438.0" font-size="12.5" font-weight="700" fill="#222">Hot reader</text>
+<rect x="118.0" y="454.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="134.0" y="454.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="150.0" y="454.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="171.0,453.0 177.0,463.5 165.0,463.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="187.0,453.0 193.0,463.5 181.0,463.5" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="61.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="75.0" font-size="12.5" font-weight="700" fill="#222">Processors</text>
+<text x="220" y="89.0" font-size="12.5" font-weight="700" fill="#222">×D</text>
+<rect x="220.0" y="105.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="105.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="252.0" y="105.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="273.0,104.0 279.0,114.5 267.0,114.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="133.0" width="88" height="49" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="147.0" font-size="12.5" font-weight="700" fill="#222">Persister</text>
+<rect x="220.0" y="163.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="163.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="252.0" y="163.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="273.0,162.0 279.0,172.5 267.0,172.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="191.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="205.0" font-size="12.5" font-weight="700" fill="#222">Event</text>
+<text x="220" y="219.0" font-size="12.5" font-weight="700" fill="#222">checker</text>
+<rect x="220.0" y="235.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="235.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="252.0" y="235.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="273.0,234.0 279.0,244.5 267.0,244.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="263.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="277.0" font-size="12.5" font-weight="700" fill="#222">Event</text>
+<text x="220" y="291.0" font-size="12.5" font-weight="700" fill="#222">feedback</text>
+<rect x="220.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="252.0" y="307.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="273.0,306.0 279.0,316.5 267.0,316.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="335.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="349.0" font-size="12.5" font-weight="700" fill="#222">Lambda</text>
+<text x="220" y="363.0" font-size="12.5" font-weight="700" fill="#222">chain</text>
+<rect x="220.0" y="379.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="379.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="252.0" y="379.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="273.0,378.0 279.0,388.5 267.0,388.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="214" y="407.0" width="88" height="49" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="220" y="421.0" font-size="12.5" font-weight="700" fill="#222">Actions ×A</text>
+<rect x="220.0" y="437.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="236.0" y="437.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="257.0,436.0 263.0,446.5 251.0,446.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="316" y="146.5" width="88" height="80" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="322" y="160.5" font-size="12.5" font-weight="700" fill="#222">TwinMaker</text>
+<text x="322" y="174.5" font-size="12.5" font-weight="700" fill="#222">workspace</text>
+<circle cx="327" cy="195.5" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="343" cy="195.5" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="359" cy="195.5" r="5.5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="370.0" y="190.5" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="386.0" y="190.5" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="321.5,212.5 324.2,207.0 329.8,207.0 332.5,212.5 329.8,218.0 324.2,218.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="316" y="235.5" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="322" y="249.5" font-size="12.5" font-weight="700" fill="#222">Comp. types</text>
+<text x="322" y="263.5" font-size="12.5" font-weight="700" fill="#222">×T</text>
+<polygon points="321.5,284.5 324.2,279.0 329.8,279.0 332.5,284.5 329.8,290.0 324.2,290.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="316" y="307.5" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1"/>
+<text x="322" y="321.5" font-size="12.5" font-weight="700" fill="#222">Hierarchy</text>
+<text x="322" y="335.5" font-size="12.5" font-weight="700" fill="#222">×H/C</text>
+<polygon points="321.5,356.5 324.2,351.0 329.8,351.0 332.5,356.5 329.8,362.0 324.2,362.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="337.5,356.5 340.2,351.0 345.8,351.0 348.5,356.5 345.8,362.0 340.2,362.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="353.5,356.5 356.2,351.0 361.8,351.0 364.5,356.5 361.8,362.0 356.2,362.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="418" y="227.0" width="88" height="63" rx="5" fill="#ffffff" stroke="#7a8190" stroke-width="1.1" stroke-dasharray="4,2.5"/>
+<text x="424" y="241.0" font-size="12.5" font-weight="700" fill="#222">Grafana</text>
+<text x="424" y="255.0" font-size="12.5" font-weight="700" fill="#222">(opt.)</text>
+<rect x="424.0" y="271.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="440.0" y="271.0" width="10.0" height="10.0" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="455.5,276.0 458.2,270.5 463.8,270.5 466.5,276.0 463.8,281.5 458.2,281.5" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<rect x="11.5" y="491.5" width="9" height="9" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="26" y="500" font-size="11.5" fill="#333">Access</text>
+<polygon points="134.0,490.5 139.5,500.0 128.5,500.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="144" y="500" font-size="11.5" fill="#333">Compute</text>
+<polygon points="252.0,490.0 258.0,496.0 252.0,502.0 246.0,496.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="262" y="500" font-size="11.5" fill="#333">IoT Core</text>
+<circle cx="370" cy="496" r="5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="380" y="500" font-size="11.5" fill="#333">Data stores</text>
+<polygon points="14.1,508.0 17.9,508.0 17.9,511.1 21.0,511.1 21.0,514.9 17.9,514.9 17.9,518.0 14.1,518.0 14.1,514.9 11.0,514.9 11.0,511.1 14.1,511.1" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="26" y="517" font-size="11.5" fill="#333">Scheduling</text>
+<polygon points="129.0,513.0 131.5,508.0 136.5,508.0 139.0,513.0 136.5,518.0 131.5,518.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="144" y="517" font-size="11.5" fill="#333">Twin / viz</text>
+<circle cx="370" cy="513" r="5" fill="#ffffff" stroke="#444444" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="380" y="517" font-size="11.5" fill="#333">Lifecycle</text>
+<text x="10" y="540" font-size="11" fill="#333">One marker per resource. A → B: B refers to A (dashed: runtime path).</text>
+</svg>
