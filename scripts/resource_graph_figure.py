@@ -72,9 +72,9 @@ UNITS = OrderedDict([
   ("lambda_chain", ("Lambda Chain", 2, "")),
   ("event_action", ("Event action", 2, "per internal action (A)")),
   ("twinmaker_workspace", ("TwinMaker workspace", 3, "")),
-  ("component_type", ("Device component type", 3, "per device (D)")),
+  ("component_type", ("Device component type", 3, "per distinct type (T \u2264 D)")),
   ("hierarchy", ("Entity hierarchy", 3, "per entity / component (H, C)")),
-  ("grafana", ("Grafana workspace", 4, "currently disabled")),
+  ("grafana", ("Grafana workspace", 4, "optional (G): DEPLOY_MANAGED_GRAFANA")),
 ])
 
 COLUMNS = [
@@ -107,6 +107,7 @@ TYPES = {
   "dynamodb_backup": ("DynamoDB backup", "#7ba3d9"),
   "s3_bucket": ("S3 bucket", "#3f9d9d"),
   "s3_bucket_cors": ("S3 CORS config", "#7cc4c4"),
+  "s3_bucket_policy": ("S3 bucket policy", "#7cc4c4"),
   "eventbridge_rule": ("EventBridge rule", "#b04a8f"),
   "eventbridge_target": ("EventBridge target", "#d68fbe"),
   "step_function": ("Step Functions state machine", "#8e5bb5"),
@@ -140,6 +141,7 @@ FAMILY_OF = {
   "iot_certificate_attachment": "iot", "iot_policy": "iot", "iot_policy_version": "iot",
   "iot_policy_attachment": "iot", "iot_message": "iot",
   "dynamodb_table": "data", "dynamodb_backup": "data", "s3_bucket": "data", "s3_bucket_cors": "data",
+  "s3_bucket_policy": "data",
   "eventbridge_rule": "schedule", "eventbridge_target": "schedule",
   "twinmaker_workspace": "twin", "twinmaker_scene": "twin", "twinmaker_entity": "twin",
   "twinmaker_component_type": "twin", "twinmaker_component": "twin", "twinmaker_hierarchy": "twin",
@@ -176,6 +178,12 @@ def marker(shape: str, cx: float, cy: float, color: str, hollow: bool, r: float 
   joined = " ".join(f"{px:.1f},{py:.1f}" for px, py in points)
   return f'<polygon points="{joined}" {style}/>'
 
+
+# Units that exist only when enabled, and single resources that exist only under a condition.
+OPTIONAL_UNITS = {"grafana"}
+CONDITIONAL_RESOURCES = {
+  "core:l2:event_feedback_iam_inline_policy:iam_inline_policy": "if feedback (F)",
+}
 
 CARD_W = 214
 ROW_H = 17
@@ -323,7 +331,7 @@ def render(templates, members, edges) -> str:
   used_types: OrderedDict[str, None] = OrderedDict()
   for unit, (title, _col, note) in UNITS.items():
     x, y, w, h = boxes[unit]
-    dashed = ' stroke-dasharray="5,3"' if unit == "grafana" else ""
+    dashed = ' stroke-dasharray="5,3"' if unit in OPTIONAL_UNITS else ""
     add(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"{dashed}/>')
     add(f'<text x="{x + 10}" y="{y + 16}" font-size="12.5" font-weight="700" fill="#222">{escape(title)}</text>')
     if note:
@@ -337,6 +345,8 @@ def render(templates, members, edges) -> str:
       lifecycle = template.get("lifecycle_artifact")
       add(marker(shape_name, x + 15, cy, color, bool(lifecycle)))
       text = label + (" (cleanup)" if lifecycle and "cleanup" in template["id"] else "")
+      if template["id"] in CONDITIONAL_RESOURCES:
+        text += f" \u2013 {CONDITIONAL_RESOURCES[template['id']]}"
       add(f'<text x="{x + 27}" y="{cy + 4}" font-size="10.5" fill="#333">{escape(text)}</text>')
 
   # legend: one entry per family (shape + color), then the arrow / hollow notes
@@ -350,8 +360,9 @@ def render(templates, members, edges) -> str:
     cursor += 17 + len(label) * 5.4 + 22
   add(marker("circle", lx + 6, ly + 20, "#444444", True, 5))
   add(f'<text x="{lx + 17}" y="{ly + 23}" font-size="10" fill="#333">Hollow marker: lifecycle artifact '
-      f'(invoke permission, backup, cleanup, publish)</text>')
-  add(f'<text x="{lx + 420}" y="{ly + 23}" font-size="10" fill="#333">Arrow A \u2192 B: a resource of B is created after one of A.</text>')
+      f'(invoke permission, backup, cleanup, publish).  '
+      f'Dashed card: optional.</text>')
+  add(f'<text x="{lx + 520}" y="{ly + 23}" font-size="10" fill="#333">Arrow A \u2192 B: a resource of B is created after one of A.</text>')
   return "\n".join(out) + "\n</svg>\n"
 
 

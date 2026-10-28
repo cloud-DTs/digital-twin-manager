@@ -71,6 +71,16 @@
       ]
     },
     {
+      "id": "core:l2:persister_iam_inline_policy:iam_inline_policy",
+      "owner_deployer": "PersisterIamRoleDeployer",
+      "depends_on": [
+        {
+          "id": "core:l2:persister_iam:iam",
+          "type": "create_after"
+        }
+      ]
+    },
+    {
       "id": "core:l2:persister_lambda:lambda_function",
       "owner_deployer": "PersisterLambdaFunctionDeployer",
       "depends_on": [
@@ -89,6 +99,10 @@
         {
           "id": "core:l2:event_checker_lambda:lambda_function",
           "type": "runtime_uses"
+        },
+        {
+          "id": "core:l2:persister_iam_inline_policy:iam_inline_policy",
+          "type": "create_after"
         }
       ]
     },
@@ -108,6 +122,16 @@
       ]
     },
     {
+      "id": "core:l2:event_feedback_iam_inline_policy:iam_inline_policy",
+      "owner_deployer": "EventFeedbackIamRoleDeployer",
+      "depends_on": [
+        {
+          "id": "core:l2:event_feedback_iam:iam",
+          "type": "create_after"
+        }
+      ]
+    },
+    {
       "id": "core:l2:event_feedback_lambda:lambda_function",
       "owner_deployer": "EventFeedbackLambdaFunctionDeployer",
       "depends_on": [
@@ -117,6 +141,10 @@
         },
         {
           "id": "core:l2:event_feedback_iam_managed_policy_attachment:iam_managed_policy_attachment",
+          "type": "create_after"
+        },
+        {
+          "id": "core:l2:event_feedback_iam_inline_policy:iam_inline_policy",
           "type": "create_after"
         }
       ]
@@ -237,6 +265,16 @@
       ]
     },
     {
+      "id": "core:l3_hot:hot_cold_mover_iam_inline_policy:iam_inline_policy",
+      "owner_deployer": "HotColdMoverIamRoleDeployer",
+      "depends_on": [
+        {
+          "id": "core:l3_hot:hot_cold_mover_iam:iam",
+          "type": "create_after"
+        }
+      ]
+    },
+    {
       "id": "core:l3_hot:hot_cold_mover_lambda:lambda_function",
       "owner_deployer": "HotColdMoverLambdaFunctionDeployer",
       "depends_on": [
@@ -255,6 +293,10 @@
         {
           "id": "core:l3_cold:cold_s3_bucket:s3_bucket",
           "type": "runtime_uses"
+        },
+        {
+          "id": "core:l3_hot:hot_cold_mover_iam_inline_policy:iam_inline_policy",
+          "type": "create_after"
         }
       ]
     },
@@ -376,6 +418,16 @@
       ]
     },
     {
+      "id": "core:l3_cold:cold_archive_mover_iam_inline_policy:iam_inline_policy",
+      "owner_deployer": "ColdArchiveMoverIamRoleDeployer",
+      "depends_on": [
+        {
+          "id": "core:l3_cold:cold_archive_mover_iam:iam",
+          "type": "create_after"
+        }
+      ]
+    },
+    {
       "id": "core:l3_cold:cold_archive_mover_lambda:lambda_function",
       "owner_deployer": "ColdArchiveMoverLambdaFunctionDeployer",
       "depends_on": [
@@ -394,6 +446,10 @@
         {
           "id": "core:l3_archive:archive_s3_bucket:s3_bucket",
           "type": "runtime_uses"
+        },
+        {
+          "id": "core:l3_cold:cold_archive_mover_iam_inline_policy:iam_inline_policy",
+          "type": "create_after"
         }
       ]
     },
@@ -457,6 +513,16 @@
       ]
     },
     {
+      "id": "core:l4:twinmaker_s3_bucket_policy:s3_bucket_policy",
+      "owner_deployer": "TwinmakerS3BucketDeployer",
+      "depends_on": [
+        {
+          "id": "core:l4:twinmaker_s3_bucket:s3_bucket",
+          "type": "create_after"
+        }
+      ]
+    },
+    {
       "id": "core:l4:twinmaker_iam:iam",
       "owner_deployer": "TwinmakerIamRoleDeployer",
       "depends_on": []
@@ -489,6 +555,10 @@
         },
         {
           "id": "core:l4:twinmaker_iam_inline_policy:iam_inline_policy",
+          "type": "create_after"
+        },
+        {
+          "id": "core:l4:twinmaker_s3_bucket_policy:s3_bucket_policy",
           "type": "create_after"
         }
       ]
