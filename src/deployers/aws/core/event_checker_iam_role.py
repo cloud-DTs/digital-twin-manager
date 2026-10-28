@@ -21,6 +21,7 @@ class EventCheckerIamRoleDeployer(Deployer):
 
   def _desired_policy_document(self):
     workspace_name = globals.twinmaker_workspace_name()
+    workspace_arn = aws_arns.twinmaker_workspace_arn(workspace_name)
     digital_twin_name = globals.config["digital_twin_name"]
     return {
       "Version": "2012-10-17",
@@ -28,7 +29,19 @@ class EventCheckerIamRoleDeployer(Deployer):
         {
           "Effect": "Allow",
           "Action": "iottwinmaker:GetWorkspace",
-          "Resource": aws_arns.twinmaker_workspace_arn(workspace_name),
+          "Resource": workspace_arn,
+        },
+        # Property reads also require access to entity and component metadata.
+        # https://docs.aws.amazon.com/service-authorization/latest/reference/list_iottwinmaker.html
+        {
+          "Effect": "Allow",
+          "Action": "iottwinmaker:GetComponentType",
+          "Resource": [workspace_arn, f"{workspace_arn}/component-type/*"],
+        },
+        {
+          "Effect": "Allow",
+          "Action": "iottwinmaker:GetEntity",
+          "Resource": [workspace_arn, f"{workspace_arn}/entity/*"],
         },
         {
           "Effect": "Allow",

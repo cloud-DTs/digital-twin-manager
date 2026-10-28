@@ -74,6 +74,53 @@ class EventCheckerPolicyUpdateTests(ManagedLambdaFixture):
     self.assertTrue({"iottwinmaker:GetPropertyValue", "iottwinmaker:GetPropertyValueHistory",
                      "lambda:GetFunction", "lambda:InvokeFunction", "states:StartExecution"} <= permitted)
 
+  def test_new_role_grants_entity_and_component_reads_only_in_its_workspace(self):
+    self.deploy_current()
+    document = self.iam.policies[(self.role_name, POLICY_NAME)]
+    for action, child_type in (
+      ("iottwinmaker:GetComponentType", "component-type"),
+      ("iottwinmaker:GetEntity", "entity"),
+    ):
+      with self.subTest(action=action):
+        resources = {
+          resource
+          for statement in document["Statement"]
+          if statement["Effect"] == "Allow" and action in actions(statement)
+          for resource in ([statement["Resource"]] if isinstance(statement["Resource"], str) else statement["Resource"])
+        }
+        self.assertEqual({WORKSPACE, f"{WORKSPACE}/{child_type}/*"}, resources)
+
+  def test_policy_with_workspace_access_adds_missing_metadata_reads_in_place(self):
+    original = self.deploy_current()
+    attachments = copy.deepcopy(self.iam.attachments)
+    for missing_permissions in (
+      {"iottwinmaker:GetComponentType", "iottwinmaker:GetEntity"},
+      {"iottwinmaker:GetComponentType"},
+      {"iottwinmaker:GetEntity"},
+    ):
+      with self.subTest(missing_permissions=sorted(missing_permissions)):
+        document = self.iam.policies[(self.role_name, POLICY_NAME)]
+        document["Statement"] = [
+          statement for statement in document["Statement"]
+          if not missing_permissions.intersection(actions(statement))
+        ]
+        self.iam.mutations.clear()
+        planned = self.single_action(self.deployer.plan(), "UPDATE")
+        self.assertEqual([], self.iam.mutations)
+
+        saved = json.loads(json.dumps(planned))
+        self.deployer.apply(saved, saved["resource"])
+
+        updated = self.iam.policies[(self.role_name, POLICY_NAME)]
+        permitted = {action for statement in updated["Statement"] for action in actions(statement)}
+        self.assertTrue({"iottwinmaker:GetWorkspace", "iottwinmaker:GetComponentType",
+                         "iottwinmaker:GetEntity"} <= permitted)
+        self.assertEqual(original, self.iam.roles[self.role_name])
+        self.assertEqual(attachments, self.iam.attachments)
+        self.assertEqual([("put_role_policy", self.role_name, POLICY_NAME)], self.iam.mutations)
+        self.assertEqual([], self.iam.deleted_roles)
+        self.single_action(self.deployer.plan(), "NO_CHANGE")
+
   def test_legacy_policy_updates_in_place_and_next_plan_has_no_change(self):
     original = self.deploy_legacy()
     attachments = copy.deepcopy(self.iam.attachments)

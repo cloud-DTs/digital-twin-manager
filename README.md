@@ -29,8 +29,12 @@ Before changing any resource, `apply` checks the planned Lambda packages, settin
 MQTT Event Feedback planning compares the role's `EventFeedbackScopedAccess` policy in AWS with the configured topics. Topic changes update that policy without replacing the role. Adding the first MQTT feedback creates the policy; removing the last one deletes it. Before `apply` changes any resource, it checks the planned topic policy against the current configuration and the saved AWS policy snapshot. Create a new plan if either changed, or if the saved plan lacks Event Feedback policy metadata.
 
 Event Checker planning also compares its `EventCheckerScopedAccess` inline policy
-with AWS. It grants `iottwinmaker:GetWorkspace` for the twin's workspace so that
-condition reads can use TwinMaker. Missing or stale permissions produce an
+with AWS. It grants `iottwinmaker:GetWorkspace`, `iottwinmaker:GetComponentType`
+and `iottwinmaker:GetEntity` alongside `GetPropertyValueHistory` and
+`GetPropertyValue` so that condition and action-input reads can use TwinMaker.
+Metadata access is limited to the twin's workspace and its component types and
+entities. Missing or stale permissions, including policies that already have
+`GetWorkspace` but lack metadata reads, produce an
 `UPDATE`; `apply` updates the policy while keeping the role and its attachments.
 A missing role produces `DEPLOY`. Apply checks the desired policy and the saved
 AWS policy snapshot before any resource changes, including `NO_CHANGE` actions.
