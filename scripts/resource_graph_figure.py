@@ -185,6 +185,26 @@ CONDITIONAL_RESOURCES = {
   "core:l2:event_feedback_iam_inline_policy:iam_inline_policy": "if feedback (F)",
 }
 
+# Managed-policy attachments that attach two policies (read from the role deployers).
+DOUBLE_ATTACHMENTS = {
+  "dispatcher_iam_managed_policy_attachment",
+  "lambda_chain_iam_managed_policy_attachment",
+  "processor_iam_managed_policy_attachment",
+}
+# Entries that are not AWS resources counted in the resource formula.
+NOT_COUNTED = {
+  "local_auth_files": "local files",
+  "init_value": "configuration",
+  "iot_message": "message, not a resource",
+  "event_action": "configuration",
+  "dynamodb_backup": "setting",
+  "iam_trust_policy": "part of the role",
+  "iot_policy_version": "implicit child",
+}
+
+# Units whose incoming edges are runtime message paths, not configuration references.
+RUNTIME_PATH_TARGETS = {"init_values"}
+
 CARD_W = 214
 ROW_H = 17
 HEAD_H = 34
@@ -279,7 +299,7 @@ def layout(members):
     for unit in units:
       boxes[unit][1] += shift
   width = MARGIN * 2 + len(COLUMNS) * CARD_W + (len(COLUMNS) - 1) * COL_GAP
-  return boxes, width, total + 110
+  return boxes, width, total + 130
 
 
 def render(templates, members, edges) -> str:
@@ -325,7 +345,8 @@ def render(templates, members, edges) -> str:
     else:
       dx = (x2 - x1) / 2
       d = f"M{x1},{y1} C{x1 + dx},{y1} {x2 - dx},{y2} {x2},{y2}"
-    add(f'<path d="{d}" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>')
+    runtime = ' stroke-dasharray="5,3"' if target in RUNTIME_PATH_TARGETS else ""
+    add(f'<path d="{d}" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2"{runtime} marker-end="url(#arrow)"/>')
 
   # cards
   used_types: OrderedDict[str, None] = OrderedDict()
@@ -344,10 +365,22 @@ def render(templates, members, edges) -> str:
       cy = y + HEAD_H + ROW_H * i + 9
       lifecycle = template.get("lifecycle_artifact")
       add(marker(shape_name, x + 15, cy, color, bool(lifecycle)))
-      text = label + (" (cleanup)" if lifecycle and "cleanup" in template["id"] else "")
+      name = template["id"].split(":")[2]
+      note_text = ""
+      if name in DOUBLE_ATTACHMENTS:
+        label += " \u00d72"
+      if "cleanup" in name:
+        note_text = "destroy only"
+      elif key in NOT_COUNTED:
+        note_text = "not counted"
+      text = label
       if template["id"] in CONDITIONAL_RESOURCES:
         text += f" \u2013 {CONDITIONAL_RESOURCES[template['id']]}"
-      add(f'<text x="{x + 27}" y="{cy + 4}" font-size="10.5" fill="#333">{escape(text)}</text>')
+      if note_text:
+        add(f'<text x="{x + 27}" y="{cy + 4}" font-size="10.5" fill="#333">{escape(text)} '
+            f'<tspan fill="#777" font-style="italic" font-size="9">({escape(note_text)})</tspan></text>')
+      else:
+        add(f'<text x="{x + 27}" y="{cy + 4}" font-size="10.5" fill="#333">{escape(text)}</text>')
 
   # legend: one entry per family (shape + color), then the arrow / hollow notes
   lx = MARGIN
@@ -362,7 +395,9 @@ def render(templates, members, edges) -> str:
   add(f'<text x="{lx + 17}" y="{ly + 23}" font-size="10" fill="#333">Hollow marker: lifecycle artifact '
       f'(invoke permission, backup, cleanup, publish).  '
       f'Dashed card: optional.</text>')
-  add(f'<text x="{lx + 520}" y="{ly + 23}" font-size="10" fill="#333">Arrow A \u2192 B: a resource of B is created after one of A.</text>')
+  add(f'<text x="{lx}" y="{ly + 40}" font-size="10" fill="#333">Italic note: not counted in the resource total '
+      f'(local file, configuration, message, implicit child) or created only at destroy time.</text>')
+  add(f'<text x="{lx + 520}" y="{ly + 23}" font-size="10" fill="#333">Arrow A \u2192 B: B refers to a resource of A and is created after it (dashed: runtime message path).</text>')
   return "\n".join(out) + "\n</svg>\n"
 
 

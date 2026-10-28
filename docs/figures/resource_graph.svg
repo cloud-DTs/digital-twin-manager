@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1598" height="955" viewBox="0 0 1598 955" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1598" height="975" viewBox="0 0 1598 975" font-family="Helvetica, Arial, sans-serif">
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>
-<rect width="1598" height="955" fill="#ffffff"/>
-<rect x="14" y="8" width="234" height="939" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect width="1598" height="975" fill="#ffffff"/>
+<rect x="14" y="8" width="234" height="959" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="131.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 1</text>
 <text x="131.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Acquisition</text>
-<rect x="348" y="8" width="234" height="939" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="348" y="8" width="234" height="959" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="465.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 2</text>
 <text x="465.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Storage</text>
-<rect x="682" y="8" width="234" height="939" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="682" y="8" width="234" height="959" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="799.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 3</text>
 <text x="799.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Processing</text>
-<rect x="1016" y="8" width="234" height="939" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="1016" y="8" width="234" height="959" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="1133.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 4</text>
 <text x="1133.0" y="46" text-anchor="middle" font-size="12" fill="#555">Twin Management</text>
-<rect x="1350" y="8" width="234" height="939" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="1350" y="8" width="234" height="959" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="1467.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 5</text>
 <text x="1467.0" y="46" text-anchor="middle" font-size="12" fill="#555">Visualization</text>
 <path d="M572,84.0 C632.0,84.0 632.0,207.5 692,207.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -33,14 +33,14 @@
 <path d="M572,710.0 C799.0,710.0 799.0,480.5 1026,480.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M1240,473.5 C1276,473.5 1276,571.5 1240,571.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <path d="M906,346.5 C948,346.5 948,718.5 906,718.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M238,224.5 C274,224.5 274,620.5 238,620.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
-<path d="M692,92.5 C465.0,92.5 465.0,627.5 238,627.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M238,224.5 C274,224.5 274,620.5 238,620.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+<path d="M692,92.5 C465.0,92.5 465.0,627.5 238,627.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
 <rect x="24" y="210.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="226.5" font-size="12.5" font-weight="700" fill="#222">Dispatcher</text>
 <rect x="33.5" y="248.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="257.5" font-size="10.5" fill="#333">IAM role</text>
 <rect x="33.5" y="265.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="51" y="274.5" font-size="10.5" fill="#333">Managed policy attachment</text>
+<text x="51" y="274.5" font-size="10.5" fill="#333">Managed policy attachment ×2</text>
 <polygon points="39.0,281.0 45.5,292.5 32.5,292.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="291.5" font-size="10.5" fill="#333">Lambda function</text>
 <polygon points="39.0,297.5 46.0,304.5 39.0,311.5 32.0,304.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
@@ -53,7 +53,7 @@
 <polygon points="39.0,395.5 46.0,402.5 39.0,409.5 32.0,402.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="406.5" font-size="10.5" fill="#333">IoT policy</text>
 <polygon points="39.0,412.5 46.0,419.5 39.0,426.5 32.0,419.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="51" y="423.5" font-size="10.5" fill="#333">IoT policy version</text>
+<text x="51" y="423.5" font-size="10.5" fill="#333">IoT policy version <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="24" y="457.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="473.5" font-size="12.5" font-weight="700" fill="#222">IoT device identity</text>
 <text x="34" y="486.5" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
@@ -66,20 +66,20 @@
 <polygon points="39.0,544.5 46.0,551.5 39.0,558.5 32.0,551.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="555.5" font-size="10.5" fill="#333">Policy attachment</text>
 <polygon points="39.0,562.0 45.5,567.5 43.5,574.5 34.5,574.5 32.5,567.5" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="51" y="572.5" font-size="10.5" fill="#333">Local auth files</text>
+<text x="51" y="572.5" font-size="10.5" fill="#333">Local auth files <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="24" y="606.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="622.5" font-size="12.5" font-weight="700" fill="#222">Initial values</text>
 <text x="34" y="635.5" font-size="9.5" font-style="italic" fill="#666">per device (V)</text>
 <polygon points="39.0,643.0 45.5,648.5 43.5,655.5 34.5,655.5 32.5,648.5" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="51" y="653.5" font-size="10.5" fill="#333">Init value</text>
+<text x="51" y="653.5" font-size="10.5" fill="#333">Init value <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <polygon points="39.0,659.5 46.0,666.5 39.0,673.5 32.0,666.5" fill="#ffffff" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="51" y="670.5" font-size="10.5" fill="#333">MQTT publish</text>
+<text x="51" y="670.5" font-size="10.5" fill="#333">MQTT publish <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="358" y="70.0" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="86.0" font-size="12.5" font-weight="700" fill="#222">Hot storage</text>
 <circle cx="373" cy="113.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="117.0" font-size="10.5" fill="#333">DynamoDB table</text>
 <circle cx="373" cy="130.0" r="6" fill="#ffffff" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="385" y="134.0" font-size="10.5" fill="#333">DynamoDB backup</text>
+<text x="385" y="134.0" font-size="10.5" fill="#333">DynamoDB backup <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="358" y="168.0" width="214" height="161" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="184.0" font-size="12.5" font-weight="700" fill="#222">Hot-to-Cold Mover</text>
 <rect x="367.5" y="205.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
@@ -138,7 +138,7 @@
 <rect x="701.5" y="116.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="125.5" font-size="10.5" fill="#333">IAM role</text>
 <rect x="701.5" y="133.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="719" y="142.5" font-size="10.5" fill="#333">Managed policy attachment</text>
+<text x="719" y="142.5" font-size="10.5" fill="#333">Managed policy attachment ×2</text>
 <polygon points="707.0,149.0 713.5,160.5 700.5,160.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="159.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="692" y="193.5" width="214" height="110" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
@@ -176,14 +176,14 @@
 <rect x="701.5" y="627.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="636.5" font-size="10.5" fill="#333">IAM role</text>
 <rect x="701.5" y="644.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="719" y="653.5" font-size="10.5" fill="#333">Managed policy attachment</text>
+<text x="719" y="653.5" font-size="10.5" fill="#333">Managed policy attachment ×2</text>
 <polygon points="707.0,660.0 713.5,671.5 700.5,671.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="670.5" font-size="10.5" fill="#333">Step Functions state machine</text>
 <rect x="692" y="704.5" width="214" height="110" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="720.5" font-size="12.5" font-weight="700" fill="#222">Event action</text>
 <text x="702" y="733.5" font-size="9.5" font-style="italic" fill="#666">per internal action (A)</text>
 <polygon points="707.0,741.0 713.5,746.5 711.5,753.5 702.5,753.5 700.5,746.5" fill="#ffffff" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="719" y="751.5" font-size="10.5" fill="#333">Event action</text>
+<text x="719" y="751.5" font-size="10.5" fill="#333">Event action <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="701.5" y="759.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="768.5" font-size="10.5" fill="#333">IAM role</text>
 <rect x="701.5" y="776.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
@@ -205,18 +205,18 @@
 <polygon points="1035.0,370.5 1038.0,364.5 1044.0,364.5 1047.0,370.5 1044.0,376.5 1038.0,376.5" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="374.5" font-size="10.5" fill="#333">TwinMaker workspace</text>
 <polygon points="1035.0,387.5 1038.0,381.5 1044.0,381.5 1047.0,387.5 1044.0,393.5 1038.0,393.5" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1053" y="391.5" font-size="10.5" fill="#333">TwinMaker scene cleanup (cleanup)</text>
+<text x="1053" y="391.5" font-size="10.5" fill="#333">TwinMaker scene cleanup <tspan fill="#777" font-style="italic" font-size="9">(destroy only)</tspan></text>
 <polygon points="1035.0,404.5 1038.0,398.5 1044.0,398.5 1047.0,404.5 1044.0,410.5 1038.0,410.5" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1053" y="408.5" font-size="10.5" fill="#333">TwinMaker entities (cleanup)</text>
+<text x="1053" y="408.5" font-size="10.5" fill="#333">TwinMaker entities <tspan fill="#777" font-style="italic" font-size="9">(destroy only)</tspan></text>
 <polygon points="1035.0,421.5 1038.0,415.5 1044.0,415.5 1047.0,421.5 1044.0,427.5 1038.0,427.5" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1053" y="425.5" font-size="10.5" fill="#333">TwinMaker component type (cleanup)</text>
+<text x="1053" y="425.5" font-size="10.5" fill="#333">TwinMaker component type <tspan fill="#777" font-style="italic" font-size="9">(destroy only)</tspan></text>
 <rect x="1026" y="459.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="1036" y="475.5" font-size="12.5" font-weight="700" fill="#222">Device component type</text>
 <text x="1036" y="488.5" font-size="9.5" font-style="italic" fill="#666">per distinct type (T ≤ D)</text>
 <polygon points="1035.0,502.5 1038.0,496.5 1044.0,496.5 1047.0,502.5 1044.0,508.5 1038.0,508.5" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="506.5" font-size="10.5" fill="#333">TwinMaker component type</text>
 <polygon points="1035.0,519.5 1038.0,513.5 1044.0,513.5 1047.0,519.5 1044.0,525.5 1038.0,525.5" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1053" y="523.5" font-size="10.5" fill="#333">TwinMaker components (cleanup)</text>
+<text x="1053" y="523.5" font-size="10.5" fill="#333">TwinMaker components <tspan fill="#777" font-style="italic" font-size="9">(destroy only)</tspan></text>
 <rect x="1026" y="557.5" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="1036" y="573.5" font-size="12.5" font-weight="700" fill="#222">Entity hierarchy</text>
 <text x="1036" y="586.5" font-size="9.5" font-style="italic" fill="#666">per entity / component (H, C)</text>
@@ -232,27 +232,28 @@
 <rect x="1369.5" y="429.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="438.5" font-size="10.5" fill="#333">IAM role</text>
 <rect x="1369.5" y="446.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1387" y="455.5" font-size="10.5" fill="#333">Trust policy</text>
+<text x="1387" y="455.5" font-size="10.5" fill="#333">Trust policy <tspan fill="#777" font-style="italic" font-size="9">(not counted)</tspan></text>
 <rect x="1369.5" y="463.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="472.5" font-size="10.5" fill="#333">Inline policy</text>
 <polygon points="1369.0,485.5 1372.0,479.5 1378.0,479.5 1381.0,485.5 1378.0,491.5 1372.0,491.5" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="489.5" font-size="10.5" fill="#333">Managed Grafana workspace</text>
-<text x="24" y="877" font-size="10" font-weight="700" fill="#333">Resource family</text>
-<rect x="125.5" y="869.5" width="9" height="9" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="141" y="877" font-size="10" fill="#333">Access (IAM roles, policies)</text>
-<polygon points="320.2,868.5 325.7,878.0 314.7,878.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="331.20000000000005" y="877" font-size="10" fill="#333">Compute (Lambda, Step Functions)</text>
-<polygon points="532.0,868.0 538.0,874.0 532.0,880.0 526.0,874.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="543.0" y="877" font-size="10" fill="#333">IoT Core (rules, identities, messages)</text>
-<circle cx="776.2" cy="874" r="5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="787.2" y="877" font-size="10" fill="#333">Data stores (DynamoDB, S3)</text>
-<polygon points="953.7,869.0 957.5,869.0 957.5,872.1 960.6,872.1 960.6,875.9 957.5,875.9 957.5,879.0 953.7,879.0 953.7,875.9 950.6,875.9 950.6,872.1 953.7,872.1" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="966.6" y="877" font-size="10" fill="#333">Scheduling (EventBridge)</text>
-<polygon points="1119.2,874.0 1121.7,869.0 1126.7,869.0 1129.2,874.0 1126.7,879.0 1121.7,879.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1135.2" y="877" font-size="10" fill="#333">Twin and visualization (TwinMaker, Grafana)</text>
-<polygon points="1395.4,868.5 1400.9,873.0 1398.9,879.0 1391.9,879.0 1389.9,873.0" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="1406.4" y="877" font-size="10" fill="#333">Configuration and local files</text>
-<circle cx="30" cy="897" r="5" fill="#ffffff" stroke="#444444" stroke-width="1.6" stroke-linejoin="round"/>
-<text x="41" y="900" font-size="10" fill="#333">Hollow marker: lifecycle artifact (invoke permission, backup, cleanup, publish).  Dashed card: optional.</text>
-<text x="544" y="900" font-size="10" fill="#333">Arrow A → B: a resource of B is created after one of A.</text>
+<text x="24" y="897" font-size="10" font-weight="700" fill="#333">Resource family</text>
+<rect x="125.5" y="889.5" width="9" height="9" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="141" y="897" font-size="10" fill="#333">Access (IAM roles, policies)</text>
+<polygon points="320.2,888.5 325.7,898.0 314.7,898.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="331.20000000000005" y="897" font-size="10" fill="#333">Compute (Lambda, Step Functions)</text>
+<polygon points="532.0,888.0 538.0,894.0 532.0,900.0 526.0,894.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="543.0" y="897" font-size="10" fill="#333">IoT Core (rules, identities, messages)</text>
+<circle cx="776.2" cy="894" r="5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="787.2" y="897" font-size="10" fill="#333">Data stores (DynamoDB, S3)</text>
+<polygon points="953.7,889.0 957.5,889.0 957.5,892.1 960.6,892.1 960.6,895.9 957.5,895.9 957.5,899.0 953.7,899.0 953.7,895.9 950.6,895.9 950.6,892.1 953.7,892.1" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="966.6" y="897" font-size="10" fill="#333">Scheduling (EventBridge)</text>
+<polygon points="1119.2,894.0 1121.7,889.0 1126.7,889.0 1129.2,894.0 1126.7,899.0 1121.7,899.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="1135.2" y="897" font-size="10" fill="#333">Twin and visualization (TwinMaker, Grafana)</text>
+<polygon points="1395.4,888.5 1400.9,893.0 1398.9,899.0 1391.9,899.0 1389.9,893.0" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="1406.4" y="897" font-size="10" fill="#333">Configuration and local files</text>
+<circle cx="30" cy="917" r="5" fill="#ffffff" stroke="#444444" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="41" y="920" font-size="10" fill="#333">Hollow marker: lifecycle artifact (invoke permission, backup, cleanup, publish).  Dashed card: optional.</text>
+<text x="24" y="937" font-size="10" fill="#333">Italic note: not counted in the resource total (local file, configuration, message, implicit child) or created only at destroy time.</text>
+<text x="544" y="920" font-size="10" fill="#333">Arrow A → B: B refers to a resource of A and is created after it (dashed: runtime message path).</text>
 </svg>
