@@ -120,6 +120,63 @@ TYPES = {
   "grafana_workspace": ("Managed Grafana workspace", "#c0392b"),
 }
 
+# Resource families: each has its own marker shape AND an Okabe-Ito color, so the
+# figure stays readable for color-blind readers and in grayscale.
+FAMILIES = OrderedDict([
+  ("access", ("Access (IAM roles, policies)", "square", "#E69F00")),
+  ("compute", ("Compute (Lambda, Step Functions)", "triangle", "#D55E00")),
+  ("iot", ("IoT Core (rules, identities, messages)", "diamond", "#009E73")),
+  ("data", ("Data stores (DynamoDB, S3)", "circle", "#0072B2")),
+  ("schedule", ("Scheduling (EventBridge)", "cross", "#CC79A7")),
+  ("twin", ("Twin and visualization (TwinMaker, Grafana)", "hexagon", "#56B4E9")),
+  ("config", ("Configuration and local files", "pentagon", "#666666")),
+])
+
+FAMILY_OF = {
+  "iam": "access", "iam_managed_policy_attachment": "access", "iam_inline_policy": "access",
+  "iam_trust_policy": "access",
+  "lambda_function": "compute", "lambda_permission": "compute", "step_function": "compute",
+  "iot_rule": "iot", "iot_thing": "iot", "iot_certificate": "iot",
+  "iot_certificate_attachment": "iot", "iot_policy": "iot", "iot_policy_version": "iot",
+  "iot_policy_attachment": "iot", "iot_message": "iot",
+  "dynamodb_table": "data", "dynamodb_backup": "data", "s3_bucket": "data", "s3_bucket_cors": "data",
+  "eventbridge_rule": "schedule", "eventbridge_target": "schedule",
+  "twinmaker_workspace": "twin", "twinmaker_scene": "twin", "twinmaker_entity": "twin",
+  "twinmaker_component_type": "twin", "twinmaker_component": "twin", "twinmaker_hierarchy": "twin",
+  "grafana_workspace": "twin",
+  "local_auth_files": "config", "init_value": "config", "event_action": "config",
+}
+
+
+def marker(shape: str, cx: float, cy: float, color: str, hollow: bool, r: float = 6) -> str:
+  """SVG marker of the given shape centered at (cx, cy)."""
+  fill = "#ffffff" if hollow else color
+  style = f'fill="{fill}" stroke="{color}" stroke-width="1.6" stroke-linejoin="round"'
+  if shape == "circle":
+    return f'<circle cx="{cx}" cy="{cy}" r="{r}" {style}/>'
+  if shape == "square":
+    return f'<rect x="{cx - r + 0.5}" y="{cy - r + 0.5}" width="{2 * r - 1}" height="{2 * r - 1}" {style}/>'
+  if shape == "triangle":
+    points = [(cx, cy - r - 0.5), (cx + r + 0.5, cy + r - 1), (cx - r - 0.5, cy + r - 1)]
+  elif shape == "diamond":
+    points = [(cx, cy - r - 1), (cx + r + 1, cy), (cx, cy + r + 1), (cx - r - 1, cy)]
+  elif shape == "hexagon":
+    points = [(cx - r, cy), (cx - r / 2, cy - r), (cx + r / 2, cy - r),
+              (cx + r, cy), (cx + r / 2, cy + r), (cx - r / 2, cy + r)]
+  elif shape == "pentagon":
+    points = [(cx, cy - r - 0.5), (cx + r + 0.5, cy - 1), (cx + r - 1.5, cy + r),
+              (cx - r + 1.5, cy + r), (cx - r - 0.5, cy - 1)]
+  elif shape == "cross":
+    t = r / 2.6
+    points = [(cx - t, cy - r), (cx + t, cy - r), (cx + t, cy - t), (cx + r, cy - t),
+              (cx + r, cy + t), (cx + t, cy + t), (cx + t, cy + r), (cx - t, cy + r),
+              (cx - t, cy + t), (cx - r, cy + t), (cx - r, cy - t), (cx - t, cy - t)]
+  else:
+    raise ValueError(f"Unknown marker shape '{shape}'")
+  joined = " ".join(f"{px:.1f},{py:.1f}" for px, py in points)
+  return f'<polygon points="{joined}" {style}/>'
+
+
 CARD_W = 214
 ROW_H = 17
 HEAD_H = 34
@@ -214,7 +271,7 @@ def layout(members):
     for unit in units:
       boxes[unit][1] += shift
   width = MARGIN * 2 + len(COLUMNS) * CARD_W + (len(COLUMNS) - 1) * COL_GAP
-  return boxes, width, total + 70
+  return boxes, width, total + 110
 
 
 def render(templates, members, edges) -> str:
@@ -273,21 +330,28 @@ def render(templates, members, edges) -> str:
       add(f'<text x="{x + 10}" y="{y + 29}" font-size="9.5" font-style="italic" fill="#666">{escape(note)}</text>')
     for i, template in enumerate(members[unit]):
       key = type_of(template["id"])
-      label, color = TYPES[key]
+      label = TYPES[key][0]
+      _family_label, shape_name, color = FAMILIES[FAMILY_OF[key]]
       used_types[key] = None
       cy = y + HEAD_H + ROW_H * i + 9
       lifecycle = template.get("lifecycle_artifact")
-      shape = (f'<rect x="{x + 10}" y="{cy - 5}" width="10" height="10" rx="2" fill="{"#ffffff" if lifecycle else color}" '
-               f'stroke="{color}" stroke-width="1.5"/>')
-      add(shape)
+      add(marker(shape_name, x + 15, cy, color, bool(lifecycle)))
       text = label + (" (cleanup)" if lifecycle and "cleanup" in template["id"] else "")
       add(f'<text x="{x + 27}" y="{cy + 4}" font-size="10.5" fill="#333">{escape(text)}</text>')
 
-  # legend
-  ly = height - 36
+  # legend: one entry per family (shape + color), then the arrow / hollow notes
   lx = MARGIN
-  add(f'<text x="{lx}" y="{ly + 4}" font-size="10" font-weight="700" fill="#333">Arrow A → B: a resource of B is created after one of A.  '
-      f'Hollow marker: lifecycle artifact (permission, backup, cleanup, publish).</text>')
+  ly = height - 78
+  add(f'<text x="{lx}" y="{ly}" font-size="10" font-weight="700" fill="#333">Resource family</text>')
+  cursor = lx + 100
+  for label, shape_name, color in FAMILIES.values():
+    add(marker(shape_name, cursor + 6, ly - 3, color, False, 5))
+    add(f'<text x="{cursor + 17}" y="{ly}" font-size="10" fill="#333">{escape(label)}</text>')
+    cursor += 17 + len(label) * 5.4 + 22
+  add(marker("circle", lx + 6, ly + 20, "#444444", True, 5))
+  add(f'<text x="{lx + 17}" y="{ly + 23}" font-size="10" fill="#333">Hollow marker: lifecycle artifact '
+      f'(invoke permission, backup, cleanup, publish)</text>')
+  add(f'<text x="{lx + 420}" y="{ly + 23}" font-size="10" fill="#333">Arrow A \u2192 B: a resource of B is created after one of A.</text>')
   return "\n".join(out) + "\n</svg>\n"
 
 

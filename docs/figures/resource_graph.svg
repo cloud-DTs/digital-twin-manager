@@ -1,19 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1598" height="881" viewBox="0 0 1598 881" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1598" height="921" viewBox="0 0 1598 921" font-family="Helvetica, Arial, sans-serif">
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#555"/></marker></defs>
-<rect width="1598" height="881" fill="#ffffff"/>
-<rect x="14" y="8" width="234" height="865" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect width="1598" height="921" fill="#ffffff"/>
+<rect x="14" y="8" width="234" height="905" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="131.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 1</text>
 <text x="131.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Acquisition</text>
-<rect x="348" y="8" width="234" height="865" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="348" y="8" width="234" height="905" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="465.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 2</text>
 <text x="465.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Storage</text>
-<rect x="682" y="8" width="234" height="865" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="682" y="8" width="234" height="905" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="799.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 3</text>
 <text x="799.0" y="46" text-anchor="middle" font-size="12" fill="#555">Data Processing</text>
-<rect x="1016" y="8" width="234" height="865" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="1016" y="8" width="234" height="905" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="1133.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 4</text>
 <text x="1133.0" y="46" text-anchor="middle" font-size="12" fill="#555">Twin Management</text>
-<rect x="1350" y="8" width="234" height="865" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
+<rect x="1350" y="8" width="234" height="905" rx="8" fill="#f5f6f8" stroke="#dde0e5"/>
 <text x="1467.0" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#333">Layer 5</text>
 <text x="1467.0" y="46" text-anchor="middle" font-size="12" fill="#555">Visualization</text>
 <path d="M572,84.0 C632.0,84.0 632.0,207.5 692,207.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
@@ -37,195 +37,212 @@
 <path d="M692,92.5 C465.0,92.5 465.0,610.5 238,610.5" fill="none" stroke="#555" stroke-opacity="0.55" stroke-width="1.2" marker-end="url(#arrow)"/>
 <rect x="24" y="193.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="209.5" font-size="12.5" font-weight="700" fill="#222">Dispatcher</text>
-<rect x="34" y="231.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="33.5" y="231.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="240.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="34" y="248.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="33.5" y="248.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="257.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="34" y="265.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="39.0,264.0 45.5,275.5 32.5,275.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="274.5" font-size="10.5" fill="#333">Lambda function</text>
-<rect x="34" y="282.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
+<polygon points="39.0,280.5 46.0,287.5 39.0,294.5 32.0,287.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="291.5" font-size="10.5" fill="#333">IoT topic rule</text>
-<rect x="34" y="299.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
+<polygon points="39.0,298.0 45.5,309.5 32.5,309.5" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="308.5" font-size="10.5" fill="#333">Lambda invoke permission</text>
 <rect x="24" y="342.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="358.5" font-size="12.5" font-weight="700" fill="#222">Shared IoT policy</text>
 <text x="34" y="371.5" font-size="9.5" font-style="italic" fill="#666">once per twin</text>
-<rect x="34" y="380.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<polygon points="39.0,378.5 46.0,385.5 39.0,392.5 32.0,385.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="389.5" font-size="10.5" fill="#333">IoT policy</text>
-<rect x="34" y="397.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<polygon points="39.0,395.5 46.0,402.5 39.0,409.5 32.0,402.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="406.5" font-size="10.5" fill="#333">IoT policy version</text>
 <rect x="24" y="440.5" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="456.5" font-size="12.5" font-weight="700" fill="#222">IoT device identity</text>
 <text x="34" y="469.5" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
-<rect x="34" y="478.5" width="10" height="10" rx="2" fill="#2e8b57" stroke="#2e8b57" stroke-width="1.5"/>
+<polygon points="39.0,476.5 46.0,483.5 39.0,490.5 32.0,483.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="487.5" font-size="10.5" fill="#333">IoT Thing</text>
-<rect x="34" y="495.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<polygon points="39.0,493.5 46.0,500.5 39.0,507.5 32.0,500.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="504.5" font-size="10.5" fill="#333">IoT certificate</text>
-<rect x="34" y="512.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<polygon points="39.0,510.5 46.0,517.5 39.0,524.5 32.0,517.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="521.5" font-size="10.5" fill="#333">Certificate attachment</text>
-<rect x="34" y="529.5" width="10" height="10" rx="2" fill="#5fb98a" stroke="#5fb98a" stroke-width="1.5"/>
+<polygon points="39.0,527.5 46.0,534.5 39.0,541.5 32.0,534.5" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="538.5" font-size="10.5" fill="#333">Policy attachment</text>
-<rect x="34" y="546.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
+<polygon points="39.0,545.0 45.5,550.5 43.5,557.5 34.5,557.5 32.5,550.5" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="555.5" font-size="10.5" fill="#333">Local auth files</text>
 <rect x="24" y="589.5" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="34" y="605.5" font-size="12.5" font-weight="700" fill="#222">Initial values</text>
 <text x="34" y="618.5" font-size="9.5" font-style="italic" fill="#666">per device (V)</text>
-<rect x="34" y="627.5" width="10" height="10" rx="2" fill="#9aa5a0" stroke="#9aa5a0" stroke-width="1.5"/>
+<polygon points="39.0,626.0 45.5,631.5 43.5,638.5 34.5,638.5 32.5,631.5" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="636.5" font-size="10.5" fill="#333">Init value</text>
-<rect x="34" y="644.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#2e8b57" stroke-width="1.5"/>
+<polygon points="39.0,642.5 46.0,649.5 39.0,656.5 32.0,649.5" fill="#ffffff" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="51" y="653.5" font-size="10.5" fill="#333">MQTT publish</text>
 <rect x="358" y="70.0" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="86.0" font-size="12.5" font-weight="700" fill="#222">Hot storage</text>
-<rect x="368" y="108.0" width="10" height="10" rx="2" fill="#3b6fb6" stroke="#3b6fb6" stroke-width="1.5"/>
+<circle cx="373" cy="113.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="117.0" font-size="10.5" fill="#333">DynamoDB table</text>
-<rect x="368" y="125.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#7ba3d9" stroke-width="1.5"/>
+<circle cx="373" cy="130.0" r="6" fill="#ffffff" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="134.0" font-size="10.5" fill="#333">DynamoDB backup</text>
 <rect x="358" y="168.0" width="214" height="144" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="184.0" font-size="12.5" font-weight="700" fill="#222">Hot-to-Cold Mover</text>
-<rect x="368" y="206.0" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="367.5" y="205.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="215.0" font-size="10.5" fill="#333">IAM role</text>
-<rect x="368" y="223.0" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="367.5" y="222.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="232.0" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="368" y="240.0" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="373.0,238.5 379.5,250.0 366.5,250.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="249.0" font-size="10.5" fill="#333">Lambda function</text>
-<rect x="368" y="257.0" width="10" height="10" rx="2" fill="#b04a8f" stroke="#b04a8f" stroke-width="1.5"/>
+<polygon points="370.7,256.0 375.3,256.0 375.3,259.7 379.0,259.7 379.0,264.3 375.3,264.3 375.3,268.0 370.7,268.0 370.7,264.3 367.0,264.3 367.0,259.7 370.7,259.7" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="266.0" font-size="10.5" fill="#333">EventBridge rule</text>
-<rect x="368" y="274.0" width="10" height="10" rx="2" fill="#d68fbe" stroke="#d68fbe" stroke-width="1.5"/>
+<polygon points="370.7,273.0 375.3,273.0 375.3,276.7 379.0,276.7 379.0,281.3 375.3,281.3 375.3,285.0 370.7,285.0 370.7,281.3 367.0,281.3 367.0,276.7 370.7,276.7" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="283.0" font-size="10.5" fill="#333">EventBridge target</text>
-<rect x="368" y="291.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
+<polygon points="373.0,289.5 379.5,301.0 366.5,301.0" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="300.0" font-size="10.5" fill="#333">Lambda invoke permission</text>
 <rect x="358" y="334.0" width="214" height="59" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="350.0" font-size="12.5" font-weight="700" fill="#222">Cold storage</text>
-<rect x="368" y="372.0" width="10" height="10" rx="2" fill="#3f9d9d" stroke="#3f9d9d" stroke-width="1.5"/>
+<circle cx="373" cy="377.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="381.0" font-size="10.5" fill="#333">S3 bucket</text>
 <rect x="358" y="415.0" width="214" height="144" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="431.0" font-size="12.5" font-weight="700" fill="#222">Cold-to-Archive Mover</text>
-<rect x="368" y="453.0" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="367.5" y="452.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="462.0" font-size="10.5" fill="#333">IAM role</text>
-<rect x="368" y="470.0" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="367.5" y="469.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="479.0" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="368" y="487.0" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="373.0,485.5 379.5,497.0 366.5,497.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="496.0" font-size="10.5" fill="#333">Lambda function</text>
-<rect x="368" y="504.0" width="10" height="10" rx="2" fill="#b04a8f" stroke="#b04a8f" stroke-width="1.5"/>
+<polygon points="370.7,503.0 375.3,503.0 375.3,506.7 379.0,506.7 379.0,511.3 375.3,511.3 375.3,515.0 370.7,515.0 370.7,511.3 367.0,511.3 367.0,506.7 370.7,506.7" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="513.0" font-size="10.5" fill="#333">EventBridge rule</text>
-<rect x="368" y="521.0" width="10" height="10" rx="2" fill="#d68fbe" stroke="#d68fbe" stroke-width="1.5"/>
+<polygon points="370.7,520.0 375.3,520.0 375.3,523.7 379.0,523.7 379.0,528.3 375.3,528.3 375.3,532.0 370.7,532.0 370.7,528.3 367.0,528.3 367.0,523.7 370.7,523.7" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="530.0" font-size="10.5" fill="#333">EventBridge target</text>
-<rect x="368" y="538.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
+<polygon points="373.0,536.5 379.5,548.0 366.5,548.0" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="547.0" font-size="10.5" fill="#333">Lambda invoke permission</text>
 <rect x="358" y="581.0" width="214" height="59" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="597.0" font-size="12.5" font-weight="700" fill="#222">Archive storage</text>
-<rect x="368" y="619.0" width="10" height="10" rx="2" fill="#3f9d9d" stroke="#3f9d9d" stroke-width="1.5"/>
+<circle cx="373" cy="624.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="628.0" font-size="10.5" fill="#333">S3 bucket</text>
 <rect x="358" y="662.0" width="214" height="127" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="368" y="678.0" font-size="12.5" font-weight="700" fill="#222">Hot Reader</text>
-<rect x="368" y="700.0" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="367.5" y="699.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="709.0" font-size="10.5" fill="#333">IAM role</text>
-<rect x="368" y="717.0" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="367.5" y="716.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="726.0" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="368" y="734.0" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="367.5" y="733.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="743.0" font-size="10.5" fill="#333">Inline policy</text>
-<rect x="368" y="751.0" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="373.0,749.5 379.5,761.0 366.5,761.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="760.0" font-size="10.5" fill="#333">Lambda function</text>
-<rect x="368" y="768.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#f0b27a" stroke-width="1.5"/>
+<polygon points="373.0,766.5 379.5,778.0 366.5,778.0" fill="#ffffff" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="385" y="777.0" font-size="10.5" fill="#333">Lambda invoke permission</text>
 <rect x="692" y="78.5" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="94.5" font-size="12.5" font-weight="700" fill="#222">Device processor</text>
 <text x="702" y="107.5" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
-<rect x="702" y="116.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="116.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="125.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="133.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="133.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="142.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="150.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="707.0,149.0 713.5,160.5 700.5,160.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="159.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="692" y="193.5" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="209.5" font-size="12.5" font-weight="700" fill="#222">Persister</text>
-<rect x="702" y="231.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="231.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="240.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="248.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="248.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="257.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="265.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="707.0,264.0 713.5,275.5 700.5,275.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="274.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="692" y="308.5" width="214" height="110" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="324.5" font-size="12.5" font-weight="700" fill="#222">Event Checker</text>
-<rect x="702" y="346.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="346.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="355.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="363.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="363.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="372.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="380.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="380.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="389.5" font-size="10.5" fill="#333">Inline policy</text>
-<rect x="702" y="397.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="707.0,396.0 713.5,407.5 700.5,407.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="406.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="692" y="440.5" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="456.5" font-size="12.5" font-weight="700" fill="#222">Event Feedback</text>
-<rect x="702" y="478.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="478.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="487.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="495.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="495.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="504.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="512.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="707.0,511.0 713.5,522.5 700.5,522.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="521.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="692" y="555.5" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="571.5" font-size="12.5" font-weight="700" fill="#222">Lambda Chain</text>
-<rect x="702" y="593.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="593.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="602.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="610.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="610.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="619.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="627.5" width="10" height="10" rx="2" fill="#8e5bb5" stroke="#8e5bb5" stroke-width="1.5"/>
+<polygon points="707.0,626.0 713.5,637.5 700.5,637.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="636.5" font-size="10.5" fill="#333">Step Functions state machine</text>
 <rect x="692" y="670.5" width="214" height="110" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="702" y="686.5" font-size="12.5" font-weight="700" fill="#222">Event action</text>
 <text x="702" y="699.5" font-size="9.5" font-style="italic" fill="#666">per internal action (A)</text>
-<rect x="702" y="708.5" width="10" height="10" rx="2" fill="#ffffff" stroke="#9aa5a0" stroke-width="1.5"/>
+<polygon points="707.0,707.0 713.5,712.5 711.5,719.5 702.5,719.5 700.5,712.5" fill="#ffffff" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="717.5" font-size="10.5" fill="#333">Event action</text>
-<rect x="702" y="725.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="701.5" y="725.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="734.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="702" y="742.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="701.5" y="742.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="751.5" font-size="10.5" fill="#333">Managed policy attachment</text>
-<rect x="702" y="759.5" width="10" height="10" rx="2" fill="#e07b39" stroke="#e07b39" stroke-width="1.5"/>
+<polygon points="707.0,758.0 713.5,769.5 700.5,769.5" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="719" y="768.5" font-size="10.5" fill="#333">Lambda function</text>
 <rect x="1026" y="234.0" width="214" height="178" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="1036" y="250.0" font-size="12.5" font-weight="700" fill="#222">TwinMaker workspace</text>
-<rect x="1036" y="272.0" width="10" height="10" rx="2" fill="#3f9d9d" stroke="#3f9d9d" stroke-width="1.5"/>
+<circle cx="1041" cy="277.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="281.0" font-size="10.5" fill="#333">S3 bucket</text>
-<rect x="1036" y="289.0" width="10" height="10" rx="2" fill="#7cc4c4" stroke="#7cc4c4" stroke-width="1.5"/>
+<circle cx="1041" cy="294.0" r="6" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="298.0" font-size="10.5" fill="#333">S3 CORS config</text>
-<rect x="1036" y="306.0" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="1035.5" y="305.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="315.0" font-size="10.5" fill="#333">IAM role</text>
-<rect x="1036" y="323.0" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="1035.5" y="322.5" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="332.0" font-size="10.5" fill="#333">Inline policy</text>
-<rect x="1036" y="340.0" width="10" height="10" rx="2" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"/>
+<polygon points="1035.0,345.0 1038.0,339.0 1044.0,339.0 1047.0,345.0 1044.0,351.0 1038.0,351.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="349.0" font-size="10.5" fill="#333">TwinMaker workspace</text>
-<rect x="1036" y="357.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#e6a199" stroke-width="1.5"/>
+<polygon points="1035.0,362.0 1038.0,356.0 1044.0,356.0 1047.0,362.0 1044.0,368.0 1038.0,368.0" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="366.0" font-size="10.5" fill="#333">TwinMaker scene cleanup (cleanup)</text>
-<rect x="1036" y="374.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,379.0 1038.0,373.0 1044.0,373.0 1047.0,379.0 1044.0,385.0 1038.0,385.0" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="383.0" font-size="10.5" fill="#333">TwinMaker entities (cleanup)</text>
-<rect x="1036" y="391.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,396.0 1038.0,390.0 1044.0,390.0 1047.0,396.0 1044.0,402.0 1038.0,402.0" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="400.0" font-size="10.5" fill="#333">TwinMaker component type (cleanup)</text>
 <rect x="1026" y="434.0" width="214" height="76" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="1036" y="450.0" font-size="12.5" font-weight="700" fill="#222">Device component type</text>
 <text x="1036" y="463.0" font-size="9.5" font-style="italic" fill="#666">per device (D)</text>
-<rect x="1036" y="472.0" width="10" height="10" rx="2" fill="#d9665a" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,477.0 1038.0,471.0 1044.0,471.0 1047.0,477.0 1044.0,483.0 1038.0,483.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="481.0" font-size="10.5" fill="#333">TwinMaker component type</text>
-<rect x="1036" y="489.0" width="10" height="10" rx="2" fill="#ffffff" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,494.0 1038.0,488.0 1044.0,488.0 1047.0,494.0 1044.0,500.0 1038.0,500.0" fill="#ffffff" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="498.0" font-size="10.5" fill="#333">TwinMaker components (cleanup)</text>
 <rect x="1026" y="532.0" width="214" height="93" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2"/>
 <text x="1036" y="548.0" font-size="12.5" font-weight="700" fill="#222">Entity hierarchy</text>
 <text x="1036" y="561.0" font-size="9.5" font-style="italic" fill="#666">per entity / component (H, C)</text>
-<rect x="1036" y="570.0" width="10" height="10" rx="2" fill="#d9665a" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,575.0 1038.0,569.0 1044.0,569.0 1047.0,575.0 1044.0,581.0 1038.0,581.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="579.0" font-size="10.5" fill="#333">TwinMaker hierarchy</text>
-<rect x="1036" y="587.0" width="10" height="10" rx="2" fill="#d9665a" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,592.0 1038.0,586.0 1044.0,586.0 1047.0,592.0 1044.0,598.0 1038.0,598.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="596.0" font-size="10.5" fill="#333">TwinMaker entities</text>
-<rect x="1036" y="604.0" width="10" height="10" rx="2" fill="#d9665a" stroke="#d9665a" stroke-width="1.5"/>
+<polygon points="1035.0,609.0 1038.0,603.0 1044.0,603.0 1047.0,609.0 1044.0,615.0 1038.0,615.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1053" y="613.0" font-size="10.5" fill="#333">TwinMaker components</text>
 <rect x="1360" y="374.5" width="214" height="110" rx="6" fill="#ffffff" stroke="#7a8190" stroke-width="1.2" stroke-dasharray="5,3"/>
 <text x="1370" y="390.5" font-size="12.5" font-weight="700" fill="#222">Grafana workspace</text>
 <text x="1370" y="403.5" font-size="9.5" font-style="italic" fill="#666">currently disabled</text>
-<rect x="1370" y="412.5" width="10" height="10" rx="2" fill="#8a6d3b" stroke="#8a6d3b" stroke-width="1.5"/>
+<rect x="1369.5" y="412.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="421.5" font-size="10.5" fill="#333">IAM role</text>
-<rect x="1370" y="429.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="1369.5" y="429.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="438.5" font-size="10.5" fill="#333">Trust policy</text>
-<rect x="1370" y="446.5" width="10" height="10" rx="2" fill="#c9a66b" stroke="#c9a66b" stroke-width="1.5"/>
+<rect x="1369.5" y="446.0" width="11" height="11" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="455.5" font-size="10.5" fill="#333">Inline policy</text>
-<rect x="1370" y="463.5" width="10" height="10" rx="2" fill="#c0392b" stroke="#c0392b" stroke-width="1.5"/>
+<polygon points="1369.0,468.5 1372.0,462.5 1378.0,462.5 1381.0,468.5 1378.0,474.5 1372.0,474.5" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
 <text x="1387" y="472.5" font-size="10.5" fill="#333">Managed Grafana workspace</text>
-<text x="24" y="849" font-size="10" font-weight="700" fill="#333">Arrow A → B: a resource of B is created after one of A.  Hollow marker: lifecycle artifact (permission, backup, cleanup, publish).</text>
+<text x="24" y="843" font-size="10" font-weight="700" fill="#333">Resource family</text>
+<rect x="125.5" y="835.5" width="9" height="9" fill="#E69F00" stroke="#E69F00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="141" y="843" font-size="10" fill="#333">Access (IAM roles, policies)</text>
+<polygon points="320.2,834.5 325.7,844.0 314.7,844.0" fill="#D55E00" stroke="#D55E00" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="331.20000000000005" y="843" font-size="10" fill="#333">Compute (Lambda, Step Functions)</text>
+<polygon points="532.0,834.0 538.0,840.0 532.0,846.0 526.0,840.0" fill="#009E73" stroke="#009E73" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="543.0" y="843" font-size="10" fill="#333">IoT Core (rules, identities, messages)</text>
+<circle cx="776.2" cy="840" r="5" fill="#0072B2" stroke="#0072B2" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="787.2" y="843" font-size="10" fill="#333">Data stores (DynamoDB, S3)</text>
+<polygon points="953.7,835.0 957.5,835.0 957.5,838.1 960.6,838.1 960.6,841.9 957.5,841.9 957.5,845.0 953.7,845.0 953.7,841.9 950.6,841.9 950.6,838.1 953.7,838.1" fill="#CC79A7" stroke="#CC79A7" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="966.6" y="843" font-size="10" fill="#333">Scheduling (EventBridge)</text>
+<polygon points="1119.2,840.0 1121.7,835.0 1126.7,835.0 1129.2,840.0 1126.7,845.0 1121.7,845.0" fill="#56B4E9" stroke="#56B4E9" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="1135.2" y="843" font-size="10" fill="#333">Twin and visualization (TwinMaker, Grafana)</text>
+<polygon points="1395.4,834.5 1400.9,839.0 1398.9,845.0 1391.9,845.0 1389.9,839.0" fill="#666666" stroke="#666666" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="1406.4" y="843" font-size="10" fill="#333">Configuration and local files</text>
+<circle cx="30" cy="863" r="5" fill="#ffffff" stroke="#444444" stroke-width="1.6" stroke-linejoin="round"/>
+<text x="41" y="866" font-size="10" fill="#333">Hollow marker: lifecycle artifact (invoke permission, backup, cleanup, publish)</text>
+<text x="444" y="866" font-size="10" fill="#333">Arrow A → B: a resource of B is created after one of A.</text>
 </svg>
