@@ -32,6 +32,19 @@ class ResourceNamesTests(unittest.TestCase):
       resource_names.dispatcher_iot_rule_name(self.config),
     )
 
+  def test_iot_policy_is_shared_by_the_twin(self) -> None:
+    self.assertEqual("dtc-y-01-iot-policy", resource_names.iot_policy_name(self.config))
+    self.assertNotEqual(
+      resource_names.iot_policy_name(self.config),
+      resource_names.iot_policy_name({"digital_twin_name": "other"}),
+    )
+
+  def test_legacy_device_policy_name_is_available_for_migration(self) -> None:
+    self.assertEqual(
+      "dtc-y-01-sensor-1",
+      resource_names.iot_thing_policy_name(self.config, self.iot_device),
+    )
+
   def test_s3_bucket_names_are_lowercase(self) -> None:
     self.assertEqual(
       "dtc-y-01-twinmaker",

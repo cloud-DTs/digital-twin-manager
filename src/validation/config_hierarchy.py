@@ -39,7 +39,7 @@ COMPONENT_SOURCE_KEYS = {
   "componentTypeId",
 }
 
-COMPONENT_OPTIONAL_KEYS = COMPONENT_SOURCE_KEYS
+COMPONENT_OPTIONAL_KEYS = COMPONENT_SOURCE_KEYS | {"componentTypeName"}
 
 ENTITY_ID_PATTERN = r"[A-Za-z0-9_-]+"
 IOT_DEVICE_ID_PATTERN = r"[A-Za-z0-9_-]+"
@@ -115,6 +115,9 @@ def _validate_component(component, field, seen_component_names):
     f"{field}.name",
     seen_component_names,
   )
+  if "componentTypeName" in component:
+    require_string(component["componentTypeName"], f"{field}.componentTypeName")
+
   _validate_component_type_source(component, field)
 
 
@@ -152,14 +155,15 @@ def _validate_component_name(value, field, seen_component_names):
 def _validate_component_type_source(component, field):
   source_keys = COMPONENT_SOURCE_KEYS & component.keys()
 
-  if len(source_keys) != 1:
+  if not source_keys:
     raise ValueError(
-      f"{field} must contain exactly one of: {keys_text(COMPONENT_SOURCE_KEYS)}"
+      f"{field} must contain at least one of: {keys_text(COMPONENT_SOURCE_KEYS)}"
     )
 
   if "iotDeviceId" in component:
     _validate_iot_device_id(component["iotDeviceId"], f"{field}.iotDeviceId")
-  else:
+
+  if "componentTypeId" in component:
     _validate_component_type_id(
       component["componentTypeId"],
       f"{field}.componentTypeId",

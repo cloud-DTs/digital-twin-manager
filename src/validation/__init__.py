@@ -6,6 +6,7 @@ from . import (
   config_iot_devices,
   config_providers,
   cross_config,
+  component_types,
 )
 
 
@@ -29,4 +30,6 @@ def validate_all_configs(
     config_iot_devices_data,
     config_hierarchy_data,
     config_events_data,
+    config=config_data,
   )
+  component_types.validate(config_data, config_iot_devices_data, config_hierarchy_data)

@@ -19,6 +19,8 @@ INIT_VALUE_TEMPLATE_ID = "init_values:init_values:init_value:init_value"
 
 
 SHARED_LOGICAL_NAMES = {
+  "iot:l1:iot_policy:iot_policy": "iot-policy",
+  "iot:l1:iot_policy_version:iot_policy_version": "iot-policy",
   "core:l1:dispatcher_iam:iam": "dispatcher",
   "core:l1:dispatcher_iam_managed_policy_attachment:iam_managed_policy_attachment": "dispatcher",
   "core:l1:dispatcher_lambda:lambda_function": "dispatcher",
@@ -147,6 +149,9 @@ def _template_drafts(
 ) -> list[_RuntimeNodeDraft]:
   template_id = template.id
 
+  if template_id in SHARED_LOGICAL_NAMES:
+    return [_shared_draft(template, config)]
+
   if template_id.startswith("iot:l1:"):
     return [
       _iot_l1_draft(template, config, iot_device)
@@ -160,9 +165,15 @@ def _template_drafts(
     ]
 
   if template_id.startswith("iot:l4:"):
+    representative_devices: dict[str, Mapping[str, Any]] = {}
+
+    for iot_device in effective_iot_devices(config_iot_devices, config_hierarchy):
+      component_type_logical_name = resource_names.component_type_logical_id(iot_device)
+      representative_devices.setdefault(component_type_logical_name, iot_device)
+
     return [
       _iot_l4_draft(template, config, iot_device)
-      for iot_device in effective_iot_devices(config_iot_devices)
+      for iot_device in representative_devices.values()
     ]
 
   if template_id == HIERARCHY_TEMPLATE_ID:
@@ -236,13 +247,16 @@ def _iot_l4_draft(
   config: Mapping[str, Any],
   iot_device: Mapping[str, Any],
 ) -> _RuntimeNodeDraft:
-  device_id = str(iot_device["id"])
+  component_type_logical_name = resource_names.component_type_logical_id(iot_device)
 
   return _RuntimeNodeDraft(
     template=template,
-    logical_name=device_id,
-    physical_name=resource_names.resource_name(config, device_id),
-    metadata={"scope": "iot_device", "device_id": device_id},
+    logical_name=component_type_logical_name,
+    physical_name=resource_names.resource_name(config, component_type_logical_name),
+    metadata={
+      "scope": "iot_device_component_type",
+      "component_type_logical_name": component_type_logical_name,
+    },
   )
 
 
@@ -614,16 +628,9 @@ def _component_type_logical_name(
   component: Mapping[str, Any],
   config: Mapping[str, Any],
 ) -> str:
-  if "iotDeviceId" in component:
-    return str(component["iotDeviceId"])
-
-  component_type_id = str(component["componentTypeId"])
+  component_type_id = str(resource_names.hierarchy_component_type_id(config, component))
   prefix = f"{resource_names.digital_twin_name(config)}-"
-
-  if prefix and component_type_id.startswith(prefix):
-    return component_type_id[len(prefix):]
-
-  return component_type_id
+  return component_type_id.removeprefix(prefix)
 
 
 def _event_creates_lambda(event: Mapping[str, Any]) -> bool:

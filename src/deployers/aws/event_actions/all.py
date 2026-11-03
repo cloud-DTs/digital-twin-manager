@@ -1,5 +1,6 @@
 from deployers.aws.event_actions.lambda_actions import LambdaActionsDeployer
 from deployers.aws.apply_actions import pending_actions
+from deployers.aws.lambda_function import needs_lambda_validation
 from deployers.base import Deployer
 import deployment_state
 
@@ -15,6 +16,14 @@ class AllDeployer(Deployer):
         "actions": LambdaActionsDeployer().plan()
       }]
     }
+
+  def validate_plan(self, group_plan):
+    for layer in group_plan["layers"]:
+      deployer = LambdaActionsDeployer()
+      replacement_names = deployer.replacement_function_names(layer["actions"])
+      for action in layer["actions"]:
+        if action["resource_type"] == "event_action" and needs_lambda_validation(action):
+          deployer.validate_plan(action, replacement_names)
 
   def apply(self, group_plan, action_name):
     layers = group_plan["layers"]

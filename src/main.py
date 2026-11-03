@@ -159,11 +159,7 @@ def main():
 
       if command == "deploy":
         sanity_checker.check()
-        deployers.aws.core.all.AllDeployer().deploy()
-        deployers.aws.iot.all.AllDeployer().deploy()
-        deployers.aws.hierarchy.all.AllDeployer().deploy()
-        deployers.aws.event_actions.all.AllDeployer().deploy()
-        deployers.aws.init_values.all.AllDeployer().deploy()
+        deployers.aws.all.AllDeployer().deploy()
         deployment_state.save_last_applied_config_state()
         print(f"State configs saved to: {deployment_state.state_config_dir_path()}")
         generate_federation.generate_federation_input()
@@ -187,10 +183,7 @@ def main():
         if not _try_initialize_last_applied_config_state():
           continue
 
-        plan_groups = [deployers.aws.core.all.AllDeployer().plan(), deployers.aws.iot.all.AllDeployer().plan(),
-                       deployers.aws.hierarchy.all.AllDeployer().plan(),
-                       deployers.aws.event_actions.all.AllDeployer().plan(),
-                       deployers.aws.init_values.all.AllDeployer().plan()]
+        plan_groups = deployers.aws.all.AllDeployer().plan()
 
         plan_groups = _analyze_plan_dependencies(plan_groups)
         _print_plan_blockers(plan_groups)

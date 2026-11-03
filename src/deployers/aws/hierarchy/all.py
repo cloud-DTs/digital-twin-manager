@@ -1,5 +1,5 @@
 from deployers.aws.hierarchy.twinmaker_hierarchy import TwinmakerHierarchyDeployer
-from deployers.aws.apply_actions import pending_actions
+from deployers.aws.apply_actions import ACTION_DEPLOY, pending_actions
 from deployers.base import Deployer
 import deployment_state
 
@@ -40,6 +40,11 @@ class AllDeployer(Deployer):
 
       TwinmakerHierarchyDeployer().apply(action, resource)
       deployment_state.mark_plan_action_processed("hierarchy", layer_name, action)
+
+  def validate_plan(self, group_plan):
+    for layer in group_plan["layers"]:
+      for action in pending_actions(layer["actions"], ACTION_DEPLOY):
+        TwinmakerHierarchyDeployer().validate_plan(action)
 
   def deploy(self):
     TwinmakerHierarchyDeployer().deploy()

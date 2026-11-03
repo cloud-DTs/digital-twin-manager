@@ -75,12 +75,12 @@ This report follows the semantic layers from the paper:
 
 | Layer | AWS resources and persistent configurations | Initial-value messages | Total |
 |---|---:|---:|---:|
-| Layer 1 — Data Acquisition | `6 + 5D` | `V` | `6 + 5D + V` |
+| Layer 1 — Data Acquisition | `7 + 4D` | `V` | `7 + 4D + V` |
 | Layer 2 — Data Storage | `24` | `0` | `24` |
 | Layer 3 — Data Processing | `21 + 4D + 3A` | `0` | `21 + 4D + 3A` |
 | Layer 4 — Digital Twin Management | `5 + D + H + C` | `0` | `5 + D + H + C` |
 | Layer 5 — Visualization | `0` | `0` | `0` |
-| **Total** | **`56 + 10D + 3A + H + C`** | **`V`** | **`56 + 10D + 3A + H + C + V`** |
+| **Total** | **`57 + 9D + 3A + H + C`** | **`V`** | **`57 + 9D + 3A + H + C + V`** |
 
 ## Layer 1 — Data Acquisition
 
@@ -96,16 +96,18 @@ and initial-value messages published into the ingestion pipeline.
 | IoT Core topic rule | `1` |
 | IoT Thing | `D` |
 | Auto-generated IoT certificate | `D` |
-| IoT policy | `D` |
+| Shared IoT policy | `1` |
 | Certificate-to-Thing attachment | `D` |
 | IoT-policy-to-certificate attachment | `D` |
 | Publish initial-value message | `V` |
-| **Layer 1 total** | **`6 + 5D + V`** |
+| **Layer 1 total** | **`7 + 4D + V`** |
 
 The Dispatcher resources are deployed by
 [`core/l1.py`](../src/deployers/aws/core/l1.py). Per-device Things,
-certificates, policies, and attachments are created by
-[`iot/iot_thing.py`](../src/deployers/aws/iot/iot_thing.py). Initial values are
+certificates, and attachments are created by
+[`iot/iot_thing.py`](../src/deployers/aws/iot/iot_thing.py). The shared policy is
+managed by [`iot/iot_policy.py`](../src/deployers/aws/iot/iot_policy.py), including
+when the twin has no devices. Initial values are
 published with QoS 1 by
 [`init_values/init_values.py`](../src/deployers/aws/init_values/init_values.py).
 
@@ -235,7 +237,7 @@ actions for resources from older deployments.
 | Step Functions state machines | `1` |
 | IoT Things | `D` |
 | Auto-generated IoT certificates | `D` |
-| IoT policies | `D` |
+| IoT policies | `1` |
 | Certificate-to-Thing attachments | `D` |
 | IoT-policy-to-certificate attachments | `D` |
 | IoT TwinMaker workspaces | `1` |
@@ -256,12 +258,12 @@ For the repository's `*.example` configuration files:
 
 | Layer | Infrastructure and configuration | Messages | Total |
 |---|---:|---:|---:|
-| Layer 1 | `16` | `1` | `17` |
+| Layer 1 | `15` | `1` | `16` |
 | Layer 2 | `24` | `0` | `24` |
 | Layer 3 | `32` | `0` | `32` |
 | Layer 4 | `10` | `0` | `10` |
 | Layer 5 | `0` | `0` | `0` |
-| **Total** | **`82`** | **`1`** | **`83`** |
+| **Total** | **`81`** | **`1`** | **`82`** |
 
 ## Items Outside the Main Total
 
@@ -272,7 +274,7 @@ artifacts rather than explicit persistent setup operations:
 - Each Lambda is created with `Publish=True`. Counting the resulting immutable
   Lambda version adds `7 + D + A` AWS objects.
 - Creating an IoT policy also creates its default policy version. Counting it
-  separately adds `D` AWS objects.
+  separately adds `1` AWS object.
 - The IoT deployer writes three local authentication files per device
   (`certificate.pem.crt`, `private.pem.key`, and `public.pem.key`), adding `3D`
   local files but no additional AWS resources.
@@ -282,8 +284,8 @@ artifacts rather than explicit persistent setup operations:
 
 If Lambda versions and IoT policy versions are also counted as AWS objects, the  object count for a fresh deployment is:
 
-`63 + 12D + 4A + H + C`
+`65 + 10D + 4A + H + C`
 
 Including initial-value publish operations gives:
 
-`63 + 12D + 4A + H + C + V`
+`65 + 10D + 4A + H + C + V`

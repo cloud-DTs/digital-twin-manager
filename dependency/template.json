@@ -580,7 +580,12 @@
     {
       "id": "iot:l1:iot_thing:iot_thing",
       "owner_deployer": "IotThingDeployer",
-      "depends_on": []
+      "depends_on": [
+        {
+          "id": "iot:l1:iot_policy:iot_policy",
+          "type": "create_after"
+        }
+      ]
     },
     {
       "id": "iot:l1:iot_certificate:iot_certificate",
@@ -594,17 +599,12 @@
     },
     {
       "id": "iot:l1:iot_policy:iot_policy",
-      "owner_deployer": "IotThingDeployer",
-      "depends_on": [
-        {
-          "id": "iot:l1:iot_thing:iot_thing",
-          "type": "create_after"
-        }
-      ]
+      "owner_deployer": "IotPolicyDeployer",
+      "depends_on": []
     },
     {
       "id": "iot:l1:iot_policy_version:iot_policy_version",
-      "owner_deployer": "IotThingDeployer",
+      "owner_deployer": "IotPolicyDeployer",
       "depends_on": [
         {
           "id": "iot:l1:iot_policy:iot_policy",

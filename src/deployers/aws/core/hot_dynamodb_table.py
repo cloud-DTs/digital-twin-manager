@@ -64,6 +64,11 @@ class HotDynamodbTableDeployer(Deployer):
     waiter = globals.aws_dynamodb_client.get_waiter('table_exists')
     waiter.wait(TableName=table_name)
 
+    globals.aws_dynamodb_client.update_continuous_backups(
+      TableName=table_name,
+      PointInTimeRecoverySpecification={"PointInTimeRecoveryEnabled": True},
+    )
+
     self.log(f"Created DynamoDb table: {table_name}")
 
   def destroy(self, table_name=None):

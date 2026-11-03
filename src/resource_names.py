@@ -152,10 +152,15 @@ def iot_thing_name(config: Mapping[str, Any], iot_device: Mapping[str, Any]) -> 
   return resource_name(config, str(iot_device["id"]))
 
 
+def iot_policy_name(config: Mapping[str, Any]) -> str:
+  return resource_name(config, "iot-policy")
+
+
 def iot_thing_policy_name(
   config: Mapping[str, Any],
   iot_device: Mapping[str, Any],
 ) -> str:
+  """Name of a legacy per-device policy, retained for migration and cleanup."""
   return resource_name(config, str(iot_device["id"]))
 
 
@@ -191,11 +196,17 @@ def processor_lambda_function_name(
   return resource_name(config, processor_logical_name(iot_device))
 
 
+def component_type_logical_id(iot_device: Mapping[str, Any]) -> str:
+  return str(iot_device.get("componentTypeId") or iot_device["id"])
+
+
 def twinmaker_component_type_id(
   config: Mapping[str, Any],
   iot_device: Mapping[str, Any],
 ) -> str:
-  return twinmaker_component_type_id_from_device_id(config, str(iot_device["id"]))
+  return twinmaker_component_type_id_from_device_id(
+    config, component_type_logical_id(iot_device)
+  )
 
 
 def twinmaker_component_type_id_from_device_id(
@@ -203,6 +214,21 @@ def twinmaker_component_type_id_from_device_id(
   device_id: str,
 ) -> str:
   return resource_name(config, device_id)
+
+
+def hierarchy_component_type_id(
+  config: Mapping[str, Any],
+  component: Mapping[str, Any],
+) -> str:
+  if "componentTypeId" in component:
+    if "iotDeviceId" in component:
+      return twinmaker_component_type_id_from_device_id(
+        config, str(component["componentTypeId"])
+      )
+    return component["componentTypeId"]
+  return twinmaker_component_type_id_from_device_id(
+    config, str(component["iotDeviceId"])
+  )
 
 
 def event_action_iam_role_name(

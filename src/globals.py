@@ -11,6 +11,7 @@ load_dotenv()
 CONFIG_DIR_ENV = "DIGITAL_TWIN_MANAGER_CONFIG_DIR"
 
 deploy_managed_grafana = os.getenv("DEPLOY_MANAGED_GRAFANA", "false").lower() == "true"
+debug = os.getenv("DEBUG", "false").strip().lower() == "true"
 
 iot_data_path = "iot_devices_auth"
 core_lfs_path = "lambda_functions/core"
@@ -352,6 +353,10 @@ def grafana_iam_role_name():
 
 def iot_thing_name(iot_device):
     return resource_names.iot_thing_name(config, iot_device)
+
+
+def iot_policy_name():
+    return resource_names.iot_policy_name(config)
 
 
 def iot_thing_policy_name(iot_device):

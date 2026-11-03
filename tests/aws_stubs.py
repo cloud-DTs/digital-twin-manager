@@ -11,6 +11,7 @@ class ClientError(Exception):
   def __init__(self, response=None, operation_name=None):
     super().__init__(operation_name)
     self.response = response or {"Error": {}}
+    self.operation_name = operation_name
 
 
 class StubAwsClient:
