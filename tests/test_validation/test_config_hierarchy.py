@@ -40,6 +40,55 @@ class ConfigHierarchyValidationTests(unittest.TestCase):
 
     config_hierarchy.validate(value)
 
+  def test_component_with_component_type_name_passes(self) -> None:
+    sources = [
+      {"iotDeviceId": "sensor-1"},
+      {"componentTypeId": "shared-sensor-type"},
+      {"iotDeviceId": "sensor-1", "componentTypeId": "shared-sensor-type"},
+    ]
+    for source in sources:
+      with self.subTest(source=source):
+        value = valid_config_hierarchy()
+        component = value[0]["children"][0]
+        del component["iotDeviceId"]
+        component.update(source)
+        component["componentTypeName"] = "PAC Sensor v2.0"
+        value[0]["children"][1]["children"][0]["componentTypeName"] = "Humidity Sensor"
+
+        config_hierarchy.validate(value)
+
+  def test_non_string_component_type_name_fails(self) -> None:
+    for name in (None, 123, True, [], {}):
+      with self.subTest(name=name):
+        value = valid_config_hierarchy()
+        value[0]["children"][0]["componentTypeName"] = name
+
+        with self.assertRaisesRegex(ValueError, r"componentTypeName must be a string"):
+          config_hierarchy.validate(value)
+
+  def test_empty_component_type_name_fails(self) -> None:
+    value = valid_config_hierarchy()
+    value[0]["children"][0]["componentTypeName"] = ""
+
+    with self.assertRaisesRegex(ValueError, r"componentTypeName must not be empty"):
+      config_hierarchy.validate(value)
+
+  def test_component_type_name_does_not_replace_source(self) -> None:
+    value = valid_config_hierarchy()
+    del value[0]["children"][0]["iotDeviceId"]
+    value[0]["children"][0]["componentTypeName"] = "PAC Sensor"
+
+    with self.assertRaisesRegex(ValueError, "at least one"):
+      config_hierarchy.validate(value)
+
+  def test_unknown_component_key_still_fails(self) -> None:
+    value = valid_config_hierarchy()
+    value[0]["children"][0]["componentTypeName"] = "PAC Sensor"
+    value[0]["children"][0]["unexpected"] = "value"
+
+    with self.assertRaisesRegex(ValueError, r"contains unknown key\(s\): unexpected$"):
+      config_hierarchy.validate(value)
+
   def test_duplicate_entity_id_fails(self) -> None:
     value = valid_config_hierarchy()
     duplicate_entity = clone(value[0]["children"][1])
