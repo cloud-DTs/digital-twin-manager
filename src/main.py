@@ -3,6 +3,7 @@ import os
 import sys
 
 import globals
+import util
 import deployers.aws.core.all
 import deployers.aws.iot.all
 import deployers.aws.hierarchy.all
@@ -138,6 +139,8 @@ def parse_arguments():
   parser.add_argument("--plan", help="Path to plan.json")
   parser.add_argument("--pems", help="Folder for the IoT device certificates")
   parser.add_argument("--output", help="Folder for the federation input file")
+  parser.add_argument("--code", action="append", default=[],
+                      help="Mapping pathToCode=folder for Lambda code, can be given multiple times")
   return parser.parse_args()
 
 
@@ -163,7 +166,13 @@ def apply_path_arguments(args):
     os.makedirs(args.pems, exist_ok=True)
     globals.iot_data_path = args.pems
 
+  # Lambda code: pathToCode from config_events.json is mapped to the folder given by the hub.
+  if args.code:
+    code_map = dict(entry.split("=", 1) for entry in args.code)
+    original_resolve = util.resolve_folder_path
+    util.resolve_folder_path = lambda path: code_map.get(path) or original_resolve(path)
 
+  # The federation input is written relative to the working directory.
   if args.output:
     os.makedirs(args.output, exist_ok=True)
     os.chdir(args.output)
